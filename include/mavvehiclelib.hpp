@@ -31,6 +31,7 @@ class mavvehicle
    int qgcUdpPort = 14550;
    int mavlinkSystemId = 1;
 	int mavlinkComponentId = 1;
+   bool verbose;
 
    std::thread listenWorkerThread;
    std::thread sendWorkerThread;
@@ -39,9 +40,9 @@ class mavvehicle
    uint64_t microsSinceEpoch();
 
    void init();
-   int createSocket(std::string localAddress, int localPort);
+   int createSocket(std::string localAddress, int localPort, bool blocking);
    void listenWorker(int sock, std::string fromAddress, int fromPort);
-   void exampleLoop(int sock);
+   void exampleLoop(int sock, std::string toAddress, int toPort);
 };
 
 } /* namespace mavvehicle*/

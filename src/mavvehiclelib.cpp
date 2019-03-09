@@ -62,6 +62,8 @@ mavvehicle::~mavvehicle()
 
 void mavvehicle::init()
 {
+		verbose = false;
+
     vehicleUdpAddress = "";
     vehicleUdpPort = 14551;
     qgcUdpAddress = "127.0.0.1";
@@ -99,11 +101,11 @@ void mavvehicle::startVehicle()
 {
     listenWorkerThreadShouldRun = true;
 
-		int socket1 = createSocket(vehicleUdpAddress, vehicleUdpPort);
+		int socket1 = createSocket(vehicleUdpAddress, vehicleUdpPort, true);
 		//int socket2 = createSocket(vehicleUdpAddress, vehicleUdpPort);
 
     listenWorkerThread = std::thread(&mavvehicle::listenWorker, this, socket1, qgcUdpAddress, qgcUdpPort);
-    sendWorkerThread = std::thread(&mavvehicle::exampleLoop, this, socket1);
+    sendWorkerThread = std::thread(&mavvehicle::exampleLoop, this, socket1, qgcUdpAddress, qgcUdpPort);
 }
 
 //*****************************************************************************
@@ -124,7 +126,7 @@ void mavvehicle::stopVehicle()
 //*
 //******************************************************************************
 
-int mavvehicle::createSocket(std::string localAddress, int localPort)
+int mavvehicle::createSocket(std::string localAddress, int localPort, bool blocking)
 {
 	int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	struct sockaddr_in locAddr;
@@ -146,13 +148,18 @@ int mavvehicle::createSocket(std::string localAddress, int localPort)
 		return -1;
   } 
 	
-	/* Attempt to make it non blocking */
-	if (fcntl(sock, F_SETFL, O_NONBLOCK | O_ASYNC) < 0)
-  {
-		fprintf(stderr, "error setting nonblocking: %s\n", strerror(errno));
-		close(sock);
-		return -1;
-  }
+	// Attempt to make it non blocking 
+	// we dont need this is we have separate treads for read and write
+
+	if(!blocking)
+	{
+		if (fcntl(sock, F_SETFL, O_NONBLOCK | O_ASYNC) < 0)
+		{
+			fprintf(stderr, "error setting nonblocking: %s\n", strerror(errno));
+			close(sock);
+			return -1;
+		}
+	}
 
 	return sock;
 }
@@ -195,17 +202,21 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 			mavlink_status_t status;
 			int gcPort = ntohs(gcAddr.sin_port);
 			
-			printf("Bytes Received: %d\nDatagram: ", (int)recsize);
+			if(verbose)
+				printf("Bytes Received: %d\nDatagram: ", (int)recsize);
 
 			for (i = 0; i < recsize; ++i)
 			{
 				temp = buf[i];
-				printf("%02x ", (unsigned char)temp);
+
+				if(verbose)
+					printf("%02x ", (unsigned char)temp);
 
 				if (mavlink_parse_char(MAVLINK_COMM_0, buf[i], &msg, &status))
 				{
 					// Packet received
-					printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
+					printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+						gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
 				}
 			}
 
@@ -213,7 +224,7 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 		}
 
 		memset(buf, 0, BUFFER_LENGTH);
-		sleep(1); // Sleep one second
+		//sleep(1); // Sleep one second
   }
 }
 
@@ -224,7 +235,7 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 //*
 //******************************************************************************
 
-void mavvehicle::exampleLoop(int sock)
+void mavvehicle::exampleLoop(int sock, std::string toAddress, int toPort)
 {
 	char target_ip[100];
 	
@@ -240,12 +251,12 @@ void mavvehicle::exampleLoop(int sock)
 	int i = 0;
 	unsigned int temp = 0;
 
-	strcpy(target_ip, qgcUdpAddress.c_str());
+	strcpy(target_ip, toAddress.c_str());
 
 	memset(&gcAddr, 0, sizeof(gcAddr));
 	gcAddr.sin_family = AF_INET;
 	gcAddr.sin_addr.s_addr = inet_addr(target_ip);
-	gcAddr.sin_port = htons(qgcUdpPort);
+	gcAddr.sin_port = htons(toPort);
 	
 	//for (;;) 
   while(listenWorkerThreadShouldRun)
@@ -273,33 +284,6 @@ void mavvehicle::exampleLoop(int sock)
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcAddr, sizeof(struct sockaddr_in));
 		
-		/*memset(buf, 0, BUFFER_LENGTH);
-		recsize = recvfrom(sock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcAddr, &fromlen);
-
-		if (recsize > 0)
-    {
-			// Something received - print out all bytes and parse packet
-			mavlink_message_t msg;
-			mavlink_status_t status;
-			int gcPort = ntohs(gcAddr.sin_port);
-			
-			printf("Bytes Received: %d\nDatagram: ", (int)recsize);
-
-			for (i = 0; i < recsize; ++i)
-			{
-				temp = buf[i];
-				printf("%02x ", (unsigned char)temp);
-
-				if (mavlink_parse_char(MAVLINK_COMM_0, buf[i], &msg, &status))
-				{
-					// Packet received
-					printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
-				}
-			}
-
-			printf("\n");
-		}*/
-
 		memset(buf, 0, BUFFER_LENGTH);
 		sleep(1); // Sleep one second
   }
