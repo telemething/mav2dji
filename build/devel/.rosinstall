@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /Data/catkin-ws/src/mav2dji/build/devel/setup.sh

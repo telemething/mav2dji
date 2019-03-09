@@ -1,0 +1,8 @@
+prefix=/Data/catkin-ws/src/mav2dji/build/devel
+
+Name: mav2dji
+Description: Description of mav2dji
+Version: 0.0.0
+Cflags: 
+Libs: -L/Data/catkin-ws/src/mav2dji/build/devel/lib 
+Requires: 
