@@ -8,21 +8,35 @@
 
 #pragma once
 #include <mavlink/common/mavlink.h>
+#include <functional>
 #include <thread>
 
 namespace mavvehiclelib
 {
 
+/*class mavvehicleclient
+{
+  public:
+
+   virtual int vehicleMavMessageCallback(int arg)
+   { return arg; }
+};*/
+
 class mavvehicle
 {
  public:
 
-    explicit mavvehicle();
-    ~mavvehicle();
+   typedef std::function<int(mavlink_message_t)> mavMessageCallbackType;
 
-    void startVehicle();
-    void stopVehicle();
+   explicit mavvehicle();
+   explicit mavvehicle(mavMessageCallbackType callback);
+   ~mavvehicle();
 
+   void startVehicle();
+   void stopVehicle();
+
+   void addMavMessageCallback(mavMessageCallbackType callback);
+    
  private:
 
    std::string vehicleUdpAddress = "";
@@ -32,6 +46,8 @@ class mavvehicle
    int mavlinkSystemId = 1;
 	int mavlinkComponentId = 1;
    bool verbose;
+
+   mavMessageCallbackType mavMessageCallback;
 
    std::thread listenWorkerThread;
    std::thread sendWorkerThread;

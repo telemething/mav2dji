@@ -8,7 +8,6 @@
 
 #include <mav2dji_ros.hpp>
 
-
 //*****************************************************************************
 //*
 //*
@@ -24,8 +23,7 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-mav2dji_ros::mav2dji_ros(ros::NodeHandle nh) :
-      nodeHandle_(nh)
+mav2dji_ros::mav2dji_ros(ros::NodeHandle nh) : nodeHandle_(nh) 
 {
   ROS_INFO("[tt_tracker] Node started.");
 }
@@ -46,9 +44,28 @@ mav2dji_ros::~mav2dji_ros()
 //*
 //******************************************************************************
 
+int mav2dji_ros::vehicleMavMessageCallback(mavlink_message_t msg)
+{
+  printf("-------------- got message ----------------\n");
+
+	if(verbose)
+		printf("\nReceived message: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+			msg.sysid, msg.compid, msg.len, msg.msgid);
+
+  return 0;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
 void mav2dji_ros::startVehicle()
 {
-    mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>();
+    mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>(std::bind(
+      &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
+
     mavvehicle_->startVehicle();
 }
 

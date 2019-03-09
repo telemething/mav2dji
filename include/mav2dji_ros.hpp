@@ -15,7 +15,8 @@
 namespace mav2dji
 {
 
-class mav2dji_ros
+//class mav2dji_ros : mavvehiclelib::mavvehicleclient
+class mav2dji_ros 
 {
  public:
 
@@ -28,10 +29,12 @@ class mav2dji_ros
   void startVehicle();
   void stopVehicle();
 
-private:
+  int vehicleMavMessageCallback(mavlink_message_t mavMsg);
 
-    std::unique_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
+ private:
 
+  bool verbose = false;
+  std::unique_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
 };
 
 } /* namespace mav2dji*/

@@ -50,6 +50,18 @@ mavvehicle::mavvehicle()
 //*
 //******************************************************************************
 
+mavvehicle::mavvehicle(mavMessageCallbackType callback)
+{
+	addMavMessageCallback(callback);
+	init();
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
 mavvehicle::~mavvehicle()
 {
 }
@@ -71,6 +83,17 @@ void mavvehicle::init()
 
 		mavlinkSystemId = 1;
 		mavlinkComponentId = 1;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
+void mavvehicle::addMavMessageCallback(mavMessageCallbackType callback)
+{
+	mavMessageCallback = callback;
 }
 
 //*****************************************************************************
@@ -215,19 +238,21 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 				if (mavlink_parse_char(MAVLINK_COMM_0, buf[i], &msg, &status))
 				{
 					// Packet received
-					printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
-						gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
+					if(verbose)
+						printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+							gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
+
+					mavMessageCallback(msg);
 				}
 			}
 
-			printf("\n");
+			if(verbose)
+				printf("\n");
 		}
 
 		memset(buf, 0, BUFFER_LENGTH);
-		//sleep(1); // Sleep one second
   }
 }
-
 
 //*****************************************************************************
 //*
