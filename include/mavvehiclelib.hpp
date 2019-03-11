@@ -11,6 +11,8 @@
 #include <functional>
 #include <thread>
 
+#include <arpa/inet.h>
+
 namespace mavvehiclelib
 {
 
@@ -21,6 +23,8 @@ namespace mavvehiclelib
    virtual int vehicleMavMessageCallback(int arg)
    { return arg; }
 };*/
+
+#define UDP_BUFFER_LENGTH 2041
 
 class mavvehicle
 {
@@ -36,6 +40,7 @@ class mavvehicle
    void stopVehicle();
 
    void addMavMessageCallback(mavMessageCallbackType callback);
+   int sendMavMessageToGcs(const mavlink_message_t* pMsg);
     
  private:
 
@@ -45,7 +50,10 @@ class mavvehicle
    int qgcUdpPort = 14550;
    int mavlinkSystemId = 1;
 	int mavlinkComponentId = 1;
+   int vehicleMavlinkSocket = 0;
+  	struct sockaddr_in gcSockAddr; 
    bool verbose;
+   uint8_t udpSendBuffer[UDP_BUFFER_LENGTH];
 
    mavMessageCallbackType mavMessageCallback;
 
