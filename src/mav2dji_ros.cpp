@@ -23,7 +23,7 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-mav2dji_ros::mav2dji_ros(ros::NodeHandle nh) : nodeHandle_(nh) 
+mav2dji_ros::mav2dji_ros(ros::NodeHandle nh) : rosNodeHandle(nh) 
 {
   ROS_INFO("[tt_tracker] Node started.");
 }
@@ -42,12 +42,30 @@ mav2dji_ros::~mav2dji_ros()
 //*
 //*
 //*
+//******************************************************************************
+
+void mav2dji_ros::init()
+{
+  mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
 //*****************************************************************************
 
 void mav2dji_ros::startVehicle()
 {
-    mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>(std::bind(
+    //mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>(std::bind(
+    //  &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
+
+    mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>();
+
+    mavvehicle_->addMavMessageCallback(std::bind(
       &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
+
+    px4_git_version_binary = mavvehicle_->getGitVersion();
 
     mavvehicle_->startVehicle();
 }
@@ -83,66 +101,325 @@ void mav2dji_ros::printMavMessageInfo(const mavlink_message_t* msg,
 //*
 //*****************************************************************************
 
-int mav2dji_ros::vehicleMavMessageCallback(mavlink_message_t msg)
+int mav2dji_ros::vehicleMavMessageCallback(const mavlink_message_t* msg)
 {
-	printMavMessageInfo(&msg, "Mavlink Message", false);
+	printMavMessageInfo(msg, "Mavlink Message", false);
   ProcessMavMessage(msg);
+
+  mission_manager->ProcessMavMessage(msg);
 
   return 0;
 }
 
 //*****************************************************************************
 //*
-
 //*
 //*
 //*****************************************************************************
 
-void mav2dji_ros::ProcessMavMessage(mavlink_message_t msgIn)
+void mav2dji_ros::ProcessMavMessage(const mavlink_message_t* msg)
 {
-  mavlink_message_t msg = msgIn;
+  //mavlink_message_t msg = msgIn;
 
-  switch (msg.msgid)
+  switch (msg->msgid)
   {
     case MAVLINK_MSG_ID_HEARTBEAT:
       processMAVLINK_MSG_ID_HEARTBEAT(msg);
-    break;
+      break;
+
     case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:
       processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(msg);
-    break;
+      break;
+
     case MAVLINK_MSG_ID_COMMAND_LONG:
-      processMAVLINK_MSG_ID_COMMAND_LONG(&msg);
-    break;
-    case MAVLINK_MSG_ID_MISSION_REQUEST_LIST:
-      processMAVLINK_MSG_ID_MISSION_REQUEST_LIST(msg);
-    break;
-    case MAVLINK_MSG_ID_MISSION_REQUEST:
-      processMAVLINK_MSG_ID_MISSION_REQUEST(msg);
-    break;
-    case MAVLINK_MSG_ID_MISSION_COUNT:
-      processMAVLINK_MSG_ID_MISSION_COUNT(msg);
-    break;
-    case MAVLINK_MSG_ID_MISSION_SET_CURRENT:
-      processMAVLINK_MSG_ID_MISSION_SET_CURRENT(msg);
-    break;
-    case MAVLINK_MSG_ID_MISSION_ITEM:
-      processMAVLINK_MSG_ID_MISSION_ITEM(msg);
-    break;
+      processMAVLINK_MSG_ID_COMMAND_LONG(msg);
+      break;
+
+    case MAVLINK_MSG_ID_COMMAND_INT:
+      handle_message_command_int(msg);
+      break;
+
+    case MAVLINK_MSG_ID_COMMAND_ACK:
+      handle_message_command_ack(msg);
+      break;
+
+    case MAVLINK_MSG_ID_OPTICAL_FLOW_RAD:
+      handle_message_optical_flow_rad(msg);
+      break;
+
+    case MAVLINK_MSG_ID_PING:
+      handle_message_ping(msg);
+      break;
+
+    case MAVLINK_MSG_ID_SET_MODE:
+      handle_message_set_mode(msg);
+      break;
+
+    case MAVLINK_MSG_ID_ATT_POS_MOCAP:
+      handle_message_att_pos_mocap(msg);
+      break;
+
+    case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:
+      handle_message_set_position_target_local_ned(msg);
+      break;
+
+    case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:
+      handle_message_set_attitude_target(msg);
+      break;
+
+    case MAVLINK_MSG_ID_SET_ACTUATOR_CONTROL_TARGET:
+      handle_message_set_actuator_control_target(msg);
+      break;
+
+    case MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE:
+      handle_message_vision_position_estimate(msg);
+      break;
+
+    case MAVLINK_MSG_ID_ODOMETRY:
+      handle_message_odometry(msg);
+      break;
+
+    case MAVLINK_MSG_ID_GPS_GLOBAL_ORIGIN:
+      handle_message_gps_global_origin(msg);
+      break;
+
+    case MAVLINK_MSG_ID_RADIO_STATUS:
+      handle_message_radio_status(msg);
+      break;
+
+    case MAVLINK_MSG_ID_MANUAL_CONTROL:
+      handle_message_manual_control(msg);
+      break;
+
+    case MAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE:
+      handle_message_rc_channels_override(msg);
+      break;
+
+    case MAVLINK_MSG_ID_DISTANCE_SENSOR:
+      handle_message_distance_sensor(msg);
+      break;
+
+    case MAVLINK_MSG_ID_FOLLOW_TARGET:
+      handle_message_follow_target(msg);
+      break;
+
+    case MAVLINK_MSG_ID_LANDING_TARGET:
+      handle_message_landing_target(msg);
+      break;
+
+    case MAVLINK_MSG_ID_ADSB_VEHICLE:
+      handle_message_adsb_vehicle(msg);
+      break;
+
+    case MAVLINK_MSG_ID_COLLISION:
+      handle_message_collision(msg);
+      break;
+
+    case MAVLINK_MSG_ID_GPS_RTCM_DATA:
+      handle_message_gps_rtcm_data(msg);
+      break;
+
+    case MAVLINK_MSG_ID_BATTERY_STATUS:
+      handle_message_battery_status(msg);
+      break;
+
+    case MAVLINK_MSG_ID_SERIAL_CONTROL:
+      handle_message_serial_control(msg);
+      break;
+
+    case MAVLINK_MSG_ID_LOGGING_ACK:
+      handle_message_logging_ack(msg);
+      break;
+
+    case MAVLINK_MSG_ID_PLAY_TUNE:
+      handle_message_play_tune(msg);
+      break;
+
+    case MAVLINK_MSG_ID_OBSTACLE_DISTANCE:
+      handle_message_obstacle_distance(msg);
+      break;
+
+    case MAVLINK_MSG_ID_TRAJECTORY_REPRESENTATION_WAYPOINTS:
+      handle_message_trajectory_representation_waypoints(msg);
+      break;
+
+    case MAVLINK_MSG_ID_NAMED_VALUE_FLOAT:
+      handle_message_named_value_float(msg);
+      break;
+
+    case MAVLINK_MSG_ID_DEBUG:
+      handle_message_debug(msg);
+      break;
+
+    case MAVLINK_MSG_ID_DEBUG_VECT:
+      handle_message_debug_vect(msg);
+      break;
+
+    case MAVLINK_MSG_ID_DEBUG_FLOAT_ARRAY:
+      handle_message_debug_float_array(msg);
+      break;
+
     default:
-      printf("\nUnhandled message: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
-			msg.sysid, msg.compid, msg.len, msg.msgid);
+        printf("\nUnhandled message: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+        msg->sysid, msg->compid, msg->len, msg->msgid);
   }
 }
 
 //*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
 
-void mav2dji_ros::processMAVLINK_MSG_ID_HEARTBEAT(mavlink_message_t msg)
+void mav2dji_ros::handle_message_command_int(const mavlink_message_t* msg) 
 {
-	printMavMessageInfo(&msg, "Mavlink Message : Hello", false);
+  printMavMessageInfo(msg, "Mavlink Message : command_int", true);  
+}
+
+void mav2dji_ros::handle_message_command_ack(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : command_ack", true);  
+}
+
+void mav2dji_ros::handle_message_optical_flow_rad(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : optical_flow_rad", true);  
+}
+
+void mav2dji_ros::handle_message_ping(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : message_ping", true);  
+}
+
+void mav2dji_ros::handle_message_set_mode(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : set_mode", true);  
+}
+
+void mav2dji_ros::handle_message_att_pos_mocap(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : att_pos_mocap", true);  
+}
+
+void mav2dji_ros::handle_message_set_position_target_local_ned(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : set_position_target_local_ned", true);  
+}
+
+void mav2dji_ros::handle_message_set_attitude_target(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : set_attitude_target", true);  
+}
+
+void mav2dji_ros::handle_message_set_actuator_control_target(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : set_actuator_control_target", true);  
+}
+
+void mav2dji_ros::handle_message_vision_position_estimate(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : vision_position_estimate", true);  
+}
+
+void mav2dji_ros::handle_message_odometry(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : odometry", true);  
+}
+
+void mav2dji_ros::handle_message_gps_global_origin(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : gps_global_origin", true);  
+}
+
+void mav2dji_ros::handle_message_radio_status(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : radio_status", true);  
+}
+
+void mav2dji_ros::handle_message_manual_control(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : manual_control", true);  
+}
+
+void mav2dji_ros::handle_message_rc_channels_override(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : rc_channels_override", true);  
+}
+
+void mav2dji_ros::handle_message_distance_sensor(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : distance_sensor", true);  
+}
+
+void mav2dji_ros::handle_message_follow_target(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : follow_target", true);  
+}
+
+void mav2dji_ros::handle_message_landing_target(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : landing_target", true);  
+}
+
+void mav2dji_ros::handle_message_adsb_vehicle(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : adsb_vehicle", true);  
+}
+
+void mav2dji_ros::handle_message_collision(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : collision", true);  
+}
+
+void mav2dji_ros::handle_message_gps_rtcm_data(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : gps_rtcm_data", true);  
+}
+
+void mav2dji_ros::handle_message_battery_status(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : battery_status", true);  
+}
+
+void mav2dji_ros::handle_message_serial_control(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : serial_control", true);  
+}
+
+void mav2dji_ros::handle_message_logging_ack(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : logging_ack", true);  
+}
+
+void mav2dji_ros::handle_message_play_tune(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : play_tune", true);  
+}
+
+void mav2dji_ros::handle_message_obstacle_distance(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : obstacle_distance", true);  
+}
+
+void mav2dji_ros::handle_message_trajectory_representation_waypoints(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : trajectory_representation_waypoints", true);  
+}
+
+void mav2dji_ros::handle_message_named_value_float(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : named_value_float", true);  
+}
+
+void mav2dji_ros::handle_message_debug(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : debug", true);  
+}
+
+void mav2dji_ros::handle_message_debug_vect(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : debug_vect", true);  
+}
+
+void mav2dji_ros::handle_message_debug_float_array(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mavlink Message : debug_float_array", true);  
 }
 
 //*****************************************************************************
@@ -151,9 +428,23 @@ void mav2dji_ros::processMAVLINK_MSG_ID_HEARTBEAT(mavlink_message_t msg)
 //*
 //*****************************************************************************
 
-void mav2dji_ros::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(mavlink_message_t msg)
+void mav2dji_ros::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg) 
 {
-	printMavMessageInfo(&msg, "Mavlink Message : PARAM_REQUEST_LIST", true);
+	printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_HEARTBEAT", false);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav2dji_ros::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg)
+{
+	printMavMessageInfo(msg, "Mavlink Message : PARAM_REQUEST_LIST", true);
+
+  mavlink_param_request_list_t req_list;
+	mavlink_msg_param_request_list_decode(msg, &req_list);
 }
 
 //*****************************************************************************
@@ -206,51 +497,6 @@ void mav2dji_ros::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
 //*
 //*****************************************************************************
 
-void mav2dji_ros::processMAVLINK_MSG_ID_MISSION_REQUEST_LIST(mavlink_message_t msg)
-{
-
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
-
-void mav2dji_ros::processMAVLINK_MSG_ID_MISSION_REQUEST(mavlink_message_t msg)
-{
-
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
-
-void mav2dji_ros::processMAVLINK_MSG_ID_MISSION_COUNT(mavlink_message_t msg)
-{
-
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
-
-void mav2dji_ros::processMAVLINK_MSG_ID_MISSION_SET_CURRENT(mavlink_message_t msg)
-{
-
-}
-
-
-//*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
-
 void mav2dji_ros::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_t* msgIn)
 {
 	mavlink_message_t msgResp = {};
@@ -292,7 +538,7 @@ void mav2dji_ros::mcu_unique_id(uint32_t *uid_96_bit)
 //*
 //*****************************************************************************
 
-void mav2dji_ros::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn) 
+/*void mav2dji_ros::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn) 
 {
 	//struct vehicle_status_s status;
 
@@ -332,6 +578,8 @@ void mav2dji_ros::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
 		mcu_unique_id(uid);
 		msg.uid = (((uint64_t)uid[1]) << 32) | uid[2];
 
+    mavlink_msg_autopilot_version_pack(1,1,&MmsgOut, )
+
 		//this->send_message(MAVLINK_MSG_ID_AUTOPILOT_VERSION, &msg);
 
     mavlink_message_t msgOut;
@@ -340,66 +588,73 @@ void mav2dji_ros::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
 
     mavvehicle_->sendMavMessageToGcs(&msgOut);
 	//}
-}
+}*/
 
-//*****************************************************************************
-//*
-//*
-//*
-//*****************************************************************************
-
-void mav2dji_ros::processMAVLINK_MSG_ID_MISSION_ITEM(mavlink_message_t recvMsg)
+void mav2dji_ros::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn) 
 {
-  /*if(recvMsg.compid != MAV_COMP_ID_MISSIONPLANNER) 
+	//struct vehicle_status_s status;
+
+	//MavlinkOrbSubscription *status_sub = this->add_orb_subscription(ORB_ID(vehicle_status));
+
+	//if (status_sub->update(&status)) 
   {
-    DJI2MAV_DEBUG("In Hotpoint the compid is %u.", 
-      recvMsg.compid);
-  }
+    //* @param capabilities  Bitmap of capabilities
+    //* @param flight_sw_version  Firmware version number
+    //* @param middleware_sw_version  Middleware version number
+    //* @param os_sw_version  Operating system version number
+    //* @param board_version  HW / board version (last 8 bytes should be silicon ID, if any)
+    //* @param flight_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+    //* @param middleware_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+    //* @param os_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+    //* @param vendor_id  ID of the board vendor
+    //* @param product_id  ID of the product
+    //* @param uid  UID if provided by hardware (see uid2)
+    //* @param uid2  UID if provided by hardware (supersedes the uid field. If this is non-zero, use this field, otherwise use uid)
+    //* @return length of the message in bytes (excluding serial stream start sign)
+		
+    uint32_t uid3[3];
+    mcu_unique_id(uid3);
 
-  DJI2MAV_DEBUG("In Hotpoint mission item with status: %d.", 
-    (int)m_status);
+    uint32_t flight_sw_version = 0; 
+    uint32_t middleware_sw_version = 0;
+    uint32_t os_sw_version = 0; 
+    uint32_t board_version = 0;
+    uint8_t  flight_custom_version[8];
+    uint8_t  middleware_custom_version[8];
+    uint8_t  os_custom_version[8];
+    uint16_t vendor_id = 0;
+    uint16_t product_id = 0;
+		uint64_t uid = (((uint64_t)uid3[1]) << 32) | uid3[2];
+    uint8_t  uid2[18];
 
-  switch(m_status) 
-  {
-    case loaded:
-    case executing:
-    case idle:
-    case uploading:
-    case paused:
-    case error:
-      return;
-    case downloading:
-    break;
-  }
+    uint64_t capabilities =	
+        MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT
+		  | MAV_PROTOCOL_CAPABILITY_MISSION_INT
+		  | MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT
+		  | MAV_PROTOCOL_CAPABILITY_COMMAND_INT
+		  //| MAV_PROTOCOL_CAPABILITY_FTP
+		  | MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET
+		  | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED
+		  | MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET
+		  | MAV_PROTOCOL_CAPABILITY_MAVLINK2
+		  | MAV_PROTOCOL_CAPABILITY_MISSION_FENCE
+		  | MAV_PROTOCOL_CAPABILITY_MISSION_RALLY;
 
-  mavlink_mission_item_t itemMsg;
-  mavlink_msg_mission_item_decode(&recvMsg, &itemMsg);
+    memcpy((void *)flight_custom_version, &px4_git_version_binary, sizeof(flight_custom_version));
+		memcpy((void *)middleware_custom_version, &px4_git_version_binary, sizeof(middleware_custom_version));
+		memset((void *)os_custom_version, 0, sizeof(os_custom_version));
+		memset((void *)uid2, 0, sizeof(uid2));
 
-  if(itemMsg.seq == 0) 
-  {
-    m_hp.setHotpointData(itemMsg.seq, itemMsg.command, 
-    itemMsg.param1, itemMsg.param2, itemMsg.param3, 
-    itemMsg.param4, itemMsg.x, itemMsg.y, itemMsg.z);
-  } 
-  else 
-  {
-    DJI2MAV_ERROR("Invalid sequence %u of mission item in " 
-     "Hotpoint!", itemMsg.seq);
-    return;
-  }
+    mavlink_message_t msgOut;
 
-  mavlink_message_t sendMsg;
-  mavlink_msg_mission_ack_pack(getMySysid(), 
-                        MAV_COMP_ID_MISSIONPLANNER, &sendMsg, 
-                        recvMsg.sysid, recvMsg.compid, 
-                        MAV_MISSION_ACCEPTED);
-  sendMsgToMaster(sendMsg);
-  m_status = loaded;
-  m_hp.display();
+    mavlink_msg_autopilot_version_pack(1,1,&msgOut, capabilities, flight_sw_version, 
+      middleware_sw_version, os_sw_version, board_version, flight_custom_version, 
+      middleware_custom_version, os_custom_version, vendor_id, product_id, uid, uid2 );
 
-  if(NULL != m_missionItemHook)
-    m_missionItemHook(itemMsg.seq);*/
+    mavvehicle_->sendMavMessageToGcs(&msgOut);
 
+    printMavMessageInfo(&msgOut, "Sent response to : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
+	}
 }
 
 }

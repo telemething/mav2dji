@@ -24,6 +24,9 @@
 
 #define BUFFER_LENGTH 2041 
 
+// found this but I dont think it's current https://subak.io/code/px4/Firmware/build_px4fmu-v2_default/build_git_version.h.html
+#define FIRMWARE_BUILD_VERSION 0x9c2dd48814a6ade1
+
 //*****************************************************************************
 //*
 //*
@@ -50,11 +53,11 @@ mavvehicle::mavvehicle()
 //*
 //******************************************************************************
 
-mavvehicle::mavvehicle(mavMessageCallbackType callback)
+/*mavvehicle::mavvehicle(mavMessageCallbackType callback)
 {
 	addMavMessageCallback(callback);
 	init();
-}
+}*/
 
 //*****************************************************************************
 //*
@@ -83,6 +86,19 @@ void mavvehicle::init()
 
 		mavlinkSystemId = 1;
 		mavlinkComponentId = 1;
+
+		union 
+		{
+			unsigned long gvbul = FIRMWARE_BUILD_VERSION;
+			uint8_t gvbui8[8];
+		} xvert;
+
+		px4_git_version_binary = xvert.gvbui8;
+}
+
+uint8_t* mavvehicle::getGitVersion()
+{
+	return px4_git_version_binary;
 }
 
 //*****************************************************************************
@@ -241,6 +257,7 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 		memset(buf, 0, BUFFER_LENGTH);
 		recsize = recvfrom(sock, (void *)buf, BUFFER_LENGTH, 0, (struct sockaddr *)&gcSockAddr, &fromlen);
 
+
 		if (recsize > 0)
     {
 			// Something received - print out all bytes and parse packet
@@ -250,6 +267,10 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 			
 			if(verbose)
 				printf("Bytes Received: %d\nDatagram: ", (int)recsize);
+
+			parseMavlink(MAVLINK_COMM_0, buf, &msg, &status);
+				printf("\nReceived packet: Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+					gcPort, msg.magic, msg.sysid, msg.compid, msg.len, msg.msgid);
 
 			for (i = 0; i < recsize; ++i)
 			{
@@ -262,11 +283,19 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 				{
 					// Packet received
 					if(verbose)
-						printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
-							gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
+						printf("\n-->: Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+							gcPort, msg.magic, msg.sysid, msg.compid, msg.len, msg.msgid);
 
-					mavMessageCallback(msg);
+					mavMessageCallback(&msg);
 				}
+				else
+				{
+					//printf("----- unparsable packet received ------\n");
+					//parseMavlink(MAVLINK_COMM_1, buf[i], &msg, &status);
+					//printf("\nReceived packet: Port: %i, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+					//		gcPort, msg.sysid, msg.compid, msg.len, msg.msgid);
+				}
+				
 			}
 
 			if(verbose)
@@ -280,6 +309,26 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 //*****************************************************************************
 //*
 //*
+//*
+//******************************************************************************
+
+void mavvehicle::parseMavlink(uint8_t chan, uint8_t* in, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status)
+{
+	r_message->magic = *in++; // Mavlink V1 = 0xFE, Mavlink V2 = 0xFD
+	r_message->len = *in++;
+	r_message->incompat_flags = *in++;
+	r_message->compat_flags = *in++;
+	r_message->seq = *in++;
+	r_message->sysid = *in++;
+	r_message->compid = *in++;
+	r_message->msgid = *in++;
+	r_message->msgid += *in++ << 8;
+	r_message->msgid += *in++ << 8;
+}
+
+//*****************************************************************************
+//*
+//* https://github.com/mavlink/mavlink-devguide/blob/master/en/guide/serialization.md
 //*
 //******************************************************************************
 

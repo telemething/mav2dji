@@ -1,6 +1,12 @@
 [
 {
   "directory": "/Data/catkin-ws/src/mav2dji/build",
+  "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/mav2dji_mission.cpp.o -c /Data/catkin-ws/src/mav2dji/src/mav2dji_mission.cpp",
+  "file": "/Data/catkin-ws/src/mav2dji/src/mav2dji_mission.cpp"
+},
+
+{
+  "directory": "/Data/catkin-ws/src/mav2dji/build",
   "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/mavvehiclelib.cpp.o -c /Data/catkin-ws/src/mav2dji/src/mavvehiclelib.cpp",
   "file": "/Data/catkin-ws/src/mav2dji/src/mavvehiclelib.cpp"
 },
