@@ -33,7 +33,7 @@ class mav2dji_ros
 
   bool verbose = false;
   ros::NodeHandle rosNodeHandle;
-  std::unique_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
+  std::shared_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
 
   uint8_t *px4_git_version_binary;
 

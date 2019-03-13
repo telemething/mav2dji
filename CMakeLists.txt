@@ -199,6 +199,7 @@ include_directories(
 
 
 add_executable(mav2dji_ros_node
+  src/mav2dji_message_base.cpp
   src/mav2dji_mission.cpp
   src/mavvehiclelib.cpp
   src/mav2dji_ros.cpp

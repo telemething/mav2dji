@@ -46,7 +46,7 @@ mav2dji_ros::~mav2dji_ros()
 
 void mav2dji_ros::init()
 {
-  mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle);
+  mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle, mavvehicle_);
 }
 
 //*****************************************************************************
@@ -57,10 +57,10 @@ void mav2dji_ros::init()
 
 void mav2dji_ros::startVehicle()
 {
-    //mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>(std::bind(
+    //mavvehicle_ = std::make_shared<mavvehiclelib::mavvehicle>(std::bind(
     //  &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
 
-    mavvehicle_ = std::make_unique<mavvehiclelib::mavvehicle>();
+    mavvehicle_ = std::make_shared<mavvehiclelib::mavvehicle>();
 
     mavvehicle_->addMavMessageCallback(std::bind(
       &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));

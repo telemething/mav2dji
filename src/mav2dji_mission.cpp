@@ -8,6 +8,8 @@
 
 #include <mav2dji_mission.hpp>
 
+#define CHECK_SYSID_COMPID_MISSION(_msg) true
+
 //*****************************************************************************
 //*
 //*
@@ -23,8 +25,11 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-mav2dji_mission::mav2dji_mission(ros::NodeHandle nh) : nodeHandle_(nh) 
+mav2dji_mission::mav2dji_mission(
+	ros::NodeHandle nh, 
+	std::shared_ptr<mavvehiclelib::mavvehicle> mavVeh) : nodeHandle_(nh)
 {
+	mavvehicle_ = mavVeh;
   ROS_INFO("[tt_tracker] Node started.");
 }
 
@@ -134,6 +139,204 @@ void mav2dji_mission::send_mission_ack(uint8_t sysid, uint8_t compid, uint8_t ty
 	//PX4_DEBUG("WPM: Send MISSION_ACK type %u to ID %u", wpa.type, wpa.target_system);
 }
 
+uint16_t mav2dji_mission::current_max_item_count()
+{
+	if (_mission_type >= sizeof(MAX_COUNT) / sizeof(MAX_COUNT[0])) {
+
+        //*** TODO
+		//PX4_ERR("WPM: MAX_COUNT out of bounds (%u)", _mission_type);
+        
+		return 0;
+	}
+
+	return MAX_COUNT[_mission_type];
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int mav2dji_mission::update_geofence_count(unsigned count)
+{
+	mission_stats_entry_s stats;
+	stats.num_items = count;
+	stats.update_counter = ++_geofence_update_counter; // this makes sure navigator will reload the fence data
+
+	/// update stats in dataman 
+	int res = dm_write(DM_KEY_FENCE_POINTS, 0, DM_PERSIST_POWER_ON_RESET, &stats, sizeof(mission_stats_entry_s));
+
+	if (res == sizeof(mission_stats_entry_s)) {
+		_count[MAV_MISSION_TYPE_FENCE] = count;
+
+	} else {
+
+		if (_filesystem_errcount++ < FILESYSTEM_ERRCOUNT_NOTIFY_LIMIT) {
+			//_mavlink->send_statustext_critical("Mission storage: Unable to write to microSD");
+			send_statustext_critical("Mission storage: Unable to write to microSD");
+		}
+
+		return PX4_ERROR;
+	}
+
+	return PX4_OK;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int mav2dji_mission::update_safepoint_count(unsigned count)
+{
+	mission_stats_entry_s stats;
+	stats.num_items = count;
+
+	// update stats in dataman 
+	int res = dm_write(DM_KEY_SAFE_POINTS, 0, DM_PERSIST_POWER_ON_RESET, &stats, sizeof(mission_stats_entry_s));
+
+	if (res == sizeof(mission_stats_entry_s)) {
+		_count[MAV_MISSION_TYPE_RALLY] = count;
+
+	} else {
+
+		if (_filesystem_errcount++ < FILESYSTEM_ERRCOUNT_NOTIFY_LIMIT) {
+			//_mavlink->send_statustext_critical("Mission storage: Unable to write to microSD");
+			send_statustext_critical("Mission storage: Unable to write to microSD");
+		}
+
+		return PX4_ERROR;
+	}
+
+	return PX4_OK;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int mav2dji_mission::update_active_mission(dm_item_t dataman_id, uint16_t count, int32_t seq)
+{
+	mission_s mission;
+	mission.timestamp = hrt_absolute_time();
+	mission.dataman_id = dataman_id;
+	mission.count = count;
+	mission.current_seq = seq;
+
+	// update mission state in dataman 
+
+	// lock MISSION_STATE item 
+	int dm_lock_ret = dm_lock(DM_KEY_MISSION_STATE);
+
+	if (dm_lock_ret != 0) {
+		PX4_ERR("DM_KEY_MISSION_STATE lock failed");
+	}
+
+	int res = dm_write(DM_KEY_MISSION_STATE, 0, DM_PERSIST_POWER_ON_RESET, &mission, sizeof(mission_s));
+
+	// unlock MISSION_STATE item 
+	if (dm_lock_ret == 0) 
+	{
+		dm_unlock(DM_KEY_MISSION_STATE);
+	}
+
+	if (res == sizeof(mission_s)) 
+	{
+		/// update active mission state 
+		_dataman_id = dataman_id;
+		_count[MAV_MISSION_TYPE_MISSION] = count;
+		_current_seq = seq;
+		_my_dataman_id = _dataman_id;
+
+		// mission state saved successfully, publish offboard_mission topic 
+		if (_offboard_mission_pub == nullptr) 
+		{
+			//*** TODO, figure out if we need to do anything
+			//_offboard_mission_pub = orb_advertise(ORB_ID(mission), &mission);
+		} 
+		else 
+		{
+			//*** TODO, figure out if we need to do anything
+			//orb_publish(ORB_ID(mission), _offboard_mission_pub, &mission);
+		}
+
+		return PX4_OK;
+
+	} 
+	else 
+	{
+		PX4_ERR("WPM: can't save mission state");
+
+		if (_filesystem_errcount++ < FILESYSTEM_ERRCOUNT_NOTIFY_LIMIT) 
+		{
+			//_mavlink->send_statustext_critical("Mission storage: Unable to write to microSD");
+			send_statustext_critical("Mission storage: Unable to write to microSD");
+		}
+
+		return PX4_ERROR;
+	}
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav2dji_mission::send_mission_request(uint8_t targetSysid, uint8_t targetCompid, uint16_t seq)
+{
+	if (seq < current_max_item_count()) 
+	{
+		_time_last_sent = hrt_absolute_time();
+
+		mavlink_message_t msgOut;
+
+		if (_int_mode) 
+		{
+			//mavlink_mission_request_int_t wpr;
+			//wpr.target_system = targetSysid;
+			//wpr.target_component = targetCompid;
+			//wpr.seq = seq;
+			//wpr.mission_type = _mission_type;
+			//mavlink_msg_mission_request_int_send_struct(_mavlink->get_channel(), &wpr);
+
+			mavlink_msg_mission_request_int_pack(
+				getMavlinkSystemId(), getMavlinkComponentId(), 
+				&msgOut, targetSysid, targetCompid, seq, _mission_type );
+
+			PX4_DEBUG("WPM: Send MISSION_REQUEST_INT seq %u to ID %u", seq, targetSysid);
+
+		} 
+		else 
+		{
+			//mavlink_mission_request_t wpr;
+			//wpr.target_system = targetSysid;
+			//wpr.target_component = targetCompid;
+			//wpr.seq = seq;
+			//wpr.mission_type = _mission_type;
+
+			mavlink_msg_mission_request_pack(
+				getMavlinkSystemId(), getMavlinkComponentId(), 
+				&msgOut, targetSysid, targetCompid, seq, _mission_type );
+
+			//mavlink_msg_mission_request_send_struct(_mavlink->get_channel(), &wpr);
+
+			PX4_DEBUG("WPM: Send MISSION_REQUEST seq %u to ID %u", seq, targetSysid);
+		}
+
+		sendMavMessageToGcs(&msgOut);
+	} 
+	else 
+	{
+		send_statustext_critical("ERROR: Waypoint index exceeds list capacity");
+		PX4_DEBUG("WPM: Send MISSION_REQUEST ERROR: seq %u exceeds list capacity", seq);
+	}
+}
+
 //*****************************************************************************
 //*
 //*
@@ -147,11 +350,14 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 	mavlink_mission_count_t wpc;
 	mavlink_msg_mission_count_decode(msg, &wpc);
 
-	/*if (CHECK_SYSID_COMPID_MISSION(wpc)) {
-		if (_state == MAVLINK_WPM_STATE_IDLE) {
+	if (CHECK_SYSID_COMPID_MISSION(wpc)) 
+	{
+		if (_state == MAVLINK_WPM_STATE_IDLE) 
+		{
 			_time_last_recv = hrt_absolute_time();
 
-			if (_transfer_in_progress) {
+			if (_transfer_in_progress) 
+			{
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 				return;
 			}
@@ -159,7 +365,8 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 			_transfer_in_progress = true;
 			_mission_type = (MAV_MISSION_TYPE)wpc.mission_type;
 
-			if (wpc.count > current_max_item_count()) {
+			if (wpc.count > current_max_item_count()) 
+			{
 				PX4_DEBUG("WPM: MISSION_COUNT ERROR: too many waypoints (%d), supported: %d", wpc.count, current_max_item_count());
 
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_NO_SPACE);
@@ -167,18 +374,22 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 				return;
 			}
 
-			if (wpc.count == 0) {
+			if (wpc.count == 0) 
+			{
 				PX4_DEBUG("WPM: MISSION_COUNT 0, clearing waypoints list and staying in state MAVLINK_WPM_STATE_IDLE");
 
-				switch (_mission_type) {
+				switch (_mission_type) 
+				{
 				case MAV_MISSION_TYPE_MISSION:
 
 					// alternate dataman ID anyway to let navigator know about changes 
 
-					if (_dataman_id == DM_KEY_WAYPOINTS_OFFBOARD_0) {
+					if (_dataman_id == DM_KEY_WAYPOINTS_OFFBOARD_0) 
+					{
 						update_active_mission(DM_KEY_WAYPOINTS_OFFBOARD_1, 0, 0);
-
-					} else {
+					} 
+					else 
+					{
 						update_active_mission(DM_KEY_WAYPOINTS_OFFBOARD_0, 0, 0);
 					}
 
@@ -213,47 +424,57 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 						DM_KEY_WAYPOINTS_OFFBOARD_0);	// use inactive storage for transmission
 			_transfer_current_seq = -1;
 
-			if (_mission_type == MAV_MISSION_TYPE_FENCE) {
+			if (_mission_type == MAV_MISSION_TYPE_FENCE) 
+			{
 				// We're about to write new geofence items, so take the lock. It will be released when
 				// switching back to idle
+                
 				PX4_DEBUG("locking fence dataman items");
 
 				int ret = dm_lock(DM_KEY_FENCE_POINTS);
 
-				if (ret == 0) {
+				if (ret == 0) 
+				{
 					_geofence_locked = true;
 
-				} else {
+				} 
+				else 
+				{
 					PX4_ERR("locking failed (%i)", errno);
 				}
 			}
-
-		} else if (_state == MAVLINK_WPM_STATE_GETLIST) {
+		} 
+		else if (_state == MAVLINK_WPM_STATE_GETLIST) 
+		{
 			_time_last_recv = hrt_absolute_time();
 
-			if (_transfer_seq == 0) {
+			if (_transfer_seq == 0) 
+			{
 				// looks like our MISSION_REQUEST was lost, try again 
-				PX4_DEBUG("WPM: MISSION_COUNT %u from ID %u (again)", wpc.count, msg->sysid);
 
-			} else {
+				PX4_DEBUG("WPM: MISSION_COUNT %u from ID %u (again)", wpc.count, msg->sysid);
+			} 
+			else 
+			{
 				PX4_DEBUG("WPM: MISSION_COUNT ERROR: busy, already receiving seq %u", _transfer_seq);
 
-				_mavlink->send_statustext_critical("WPM: REJ. CMD: Busy");
+				send_statustext_critical("WPM: REJ. CMD: Busy");
 
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 				return;
 			}
-
-		} else {
+		} 
+		else
+		{
 			PX4_DEBUG("WPM: MISSION_COUNT ERROR: busy, state %i", _state);
 
-			_mavlink->send_statustext_critical("WPM: IGN MISSION_COUNT: Busy");
+			send_statustext_critical("WPM: IGN MISSION_COUNT: Busy");
 			send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 			return;
 		}
 
 		send_mission_request(_transfer_partner_sysid, _transfer_partner_compid, _transfer_seq);
-	}*/
+	}
 }
 
 //*****************************************************************************
