@@ -6,7 +6,7 @@
  *   
  */
 
-#include <mav2dji_ros.hpp>
+#include <mav_message.hpp>
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "mav2dji");

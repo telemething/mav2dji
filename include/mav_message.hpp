@@ -10,8 +10,8 @@
 
 // ROS
 #include <ros/ros.h>
-#include <mavvehiclelib.hpp>
-#include <mav2dji_mission.hpp>
+#include <mav_udp.hpp>
+#include <mav_message_mission.hpp>
 
 namespace mav2dji
 {

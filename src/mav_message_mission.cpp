@@ -6,7 +6,7 @@
  *   
  */
 
-#include <mav2dji_mission.hpp>
+#include <mav_message_mission.hpp>
 
 #define CHECK_SYSID_COMPID_MISSION(_msg) true
 

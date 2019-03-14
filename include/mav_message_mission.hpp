@@ -8,7 +8,7 @@
 
 #pragma once 
 
-#include <mav2dji_message_base.hpp>
+#include <mav_message_base.hpp>
 
 #  define NUM_MISSIONS_SUPPORTED 2000 // This allocates a file of around 181 kB on the SD card.
 

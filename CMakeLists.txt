@@ -199,10 +199,12 @@ include_directories(
 
 
 add_executable(mav2dji_ros_node
-  src/mav2dji_message_base.cpp
-  src/mav2dji_mission.cpp
-  src/mavvehiclelib.cpp
-  src/mav2dji_ros.cpp
+  src/vehicle_ros_interface.cpp
+  src/vehicle.cpp
+  src/mav_message_base.cpp
+  src/mav_message_mission.cpp
+  src/mav_udp.cpp
+  src/mav_message.cpp
   src/mav2dji_ros_node.cpp
 )
 add_dependencies(mav2dji_ros_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

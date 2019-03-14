@@ -9,7 +9,7 @@
 #pragma once 
 // ROS
 #include <ros/ros.h>
-#include <mavvehiclelib.hpp>
+#include <mav_udp.hpp>
 
 #define PX4_ERROR (-1)
 #define PX4_OK 0
@@ -34,20 +34,6 @@
 //*** Orb stuff, just to allow compiling
 typedef void 	*orb_advert_t;
 #define ORB_ID(_name) &mav2dji_message_base::orbDummy
-
-//static inline void do_nothing(int level, ...)
-//{
-//	(void)level;
-//}
-
-//void px4_log_modulename(int level, const char *moduleName, const char *fmt, ...)
-//{
-    //*** TODO
-//}
-//void mavlink_vasprintf(int severity, orb_advert_t *mavlink_log_pub, const char *fmt, ...)
-//{
-    //*** TODO
-//}
 
 #define __px4_log_modulename(level, fmt, ...) \
 	do { \

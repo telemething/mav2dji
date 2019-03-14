@@ -6,7 +6,7 @@
  *   
  */
 
-#include <mav2dji_message_base.hpp>
+#include <mav_message_base.hpp>
 
 //*****************************************************************************
 //*
