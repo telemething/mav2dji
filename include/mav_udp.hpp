@@ -26,15 +26,15 @@ namespace mavvehiclelib
 
 #define UDP_BUFFER_LENGTH 2041
 
-class mavvehicle
+class mav_udp
 {
  public:
 
     typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 
-    explicit mavvehicle();
-    explicit mavvehicle(mavMessageCallbackType callback);
-    ~mavvehicle();
+    explicit mav_udp();
+    explicit mav_udp(mavMessageCallbackType callback);
+    ~mav_udp();
 
     uint8_t* getGitVersion();
 

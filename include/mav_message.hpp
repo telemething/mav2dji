@@ -17,23 +17,25 @@ namespace mav2dji
 {
 
 //class mav2dji_ros : mavvehiclelib::mavvehicleclient
-class mav2dji_ros 
+class mav_message 
 {
  public:
 
-  explicit mav2dji_ros(ros::NodeHandle nh);
-  ~mav2dji_ros();
+  explicit mav_message();
+  ~mav_message();
 
   void startVehicle();
   void stopVehicle();
 
+  void ProcessMavMessage(const mavlink_message_t* msg);
+  void printMavMessageInfo(const mavlink_message_t* msg, std::string prefix, bool always); 
   int vehicleMavMessageCallback(const mavlink_message_t* mavMsg);
 
  private:
 
   bool verbose = false;
   ros::NodeHandle rosNodeHandle;
-  std::shared_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
+  std::shared_ptr<mavvehiclelib::mav_udp> mavvehicle_;
 
   uint8_t *px4_git_version_binary;
 
@@ -44,9 +46,7 @@ class mav2dji_ros
 	//MavlinkTimesync		_mavlink_timesync;
 
   void init();
-  void ProcessMavMessage(const mavlink_message_t* msg);
-  void printMavMessageInfo(const mavlink_message_t* msg, 
-    std::string prefix, bool always);
+    
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* msg);

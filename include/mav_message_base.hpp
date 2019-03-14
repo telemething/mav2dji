@@ -79,11 +79,11 @@ class mav2dji_message_base
     explicit mav2dji_message_base();
     ~mav2dji_message_base();
 
-    int getMavlinkSystemId() { return mavvehicle_->getMavlinkSystemId(); }
-    int getMavlinkComponentId() { return mavvehicle_->getMavlinkComponentId(); }
-    int sendMavMessageToGcs(const mavlink_message_t* msg){ return mavvehicle_->sendMavMessageToGcs(msg);};
+    int getMavlinkSystemId() { return mav_udp_->getMavlinkSystemId(); }
+    int getMavlinkComponentId() { return mav_udp_->getMavlinkComponentId(); }
+    int sendMavMessageToGcs(const mavlink_message_t* msg){ return mav_udp_->sendMavMessageToGcs(msg);};
 
-    std::shared_ptr<mavvehiclelib::mavvehicle> mavvehicle_;
+    std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
 
     uint64_t microsSinceEpoch();
     uint64_t hrt_absolute_time();

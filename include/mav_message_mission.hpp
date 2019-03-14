@@ -105,7 +105,7 @@ class mav2dji_mission : mav2dji_message_base
     // ROS node handle.
     ros::NodeHandle nodeHandle_;
 
-    explicit mav2dji_mission(ros::NodeHandle nh, std::shared_ptr<mavvehiclelib::mavvehicle> mavVeh);
+    explicit mav2dji_mission(ros::NodeHandle nh, std::shared_ptr<mavvehiclelib::mav_udp> mavVeh);
     ~mav2dji_mission();
     
     int ProcessMavMessage(const mavlink_message_t* msg);

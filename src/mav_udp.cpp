@@ -42,7 +42,7 @@ namespace mavvehiclelib
 //*
 //******************************************************************************
 
-mavvehicle::mavvehicle()
+mav_udp::mav_udp()
 {
   init();
 }
@@ -53,7 +53,7 @@ mavvehicle::mavvehicle()
 //*
 //******************************************************************************
 
-/*mavvehicle::mavvehicle(mavMessageCallbackType callback)
+/*mav_udp::mav_udp(mavMessageCallbackType callback)
 {
 	addMavMessageCallback(callback);
 	init();
@@ -65,7 +65,7 @@ mavvehicle::mavvehicle()
 //*
 //******************************************************************************
 
-mavvehicle::~mavvehicle()
+mav_udp::~mav_udp()
 {
 }
 
@@ -75,7 +75,7 @@ mavvehicle::~mavvehicle()
 //*
 //******************************************************************************
 
-void mavvehicle::init()
+void mav_udp::init()
 {
 		verbose = false;
 
@@ -96,7 +96,7 @@ void mavvehicle::init()
 		px4_git_version_binary = xvert.gvbui8;
 }
 
-uint8_t* mavvehicle::getGitVersion()
+uint8_t* mav_udp::getGitVersion()
 {
 	return px4_git_version_binary;
 }
@@ -107,7 +107,7 @@ uint8_t* mavvehicle::getGitVersion()
 //*
 //******************************************************************************
 
-void mavvehicle::addMavMessageCallback(mavMessageCallbackType callback)
+void mav_udp::addMavMessageCallback(mavMessageCallbackType callback)
 {
 	mavMessageCallback = callback;
 }
@@ -118,7 +118,7 @@ void mavvehicle::addMavMessageCallback(mavMessageCallbackType callback)
 //*
 //******************************************************************************
 
-uint64_t mavvehicle::microsSinceEpoch()
+uint64_t mav_udp::microsSinceEpoch()
 {
 	struct timeval tv;
 	
@@ -136,15 +136,15 @@ uint64_t mavvehicle::microsSinceEpoch()
 //*
 //******************************************************************************
 
-void mavvehicle::startVehicle()
+void mav_udp::startVehicle()
 {
     listenWorkerThreadShouldRun = true;
 
 		vehicleMavlinkSocket = createSocket(vehicleUdpAddress, vehicleUdpPort, true);
 		//int socket2 = createSocket(vehicleUdpAddress, vehicleUdpPort);
 
-    listenWorkerThread = std::thread(&mavvehicle::listenWorker, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
-    sendWorkerThread = std::thread(&mavvehicle::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+    listenWorkerThread = std::thread(&mav_udp::listenWorker, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+    sendWorkerThread = std::thread(&mav_udp::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
 }
 
 //*****************************************************************************
@@ -153,7 +153,7 @@ void mavvehicle::startVehicle()
 //*
 //******************************************************************************
 
-void mavvehicle::stopVehicle()
+void mav_udp::stopVehicle()
 {
     listenWorkerThreadShouldRun = false;
 }
@@ -164,7 +164,7 @@ void mavvehicle::stopVehicle()
 //*
 //******************************************************************************
 
-int mavvehicle::sendMavMessageToGcs(const mavlink_message_t* pMsg)
+int mav_udp::sendMavMessageToGcs(const mavlink_message_t* pMsg)
 {
 		auto len = mavlink_msg_to_send_buffer(udpSendBuffer, pMsg);
 
@@ -181,7 +181,7 @@ int mavvehicle::sendMavMessageToGcs(const mavlink_message_t* pMsg)
 //*
 //******************************************************************************
 
-int mavvehicle::createSocket(std::string localAddress, int localPort, bool blocking)
+int mav_udp::createSocket(std::string localAddress, int localPort, bool blocking)
 {
 	int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	struct sockaddr_in locAddr;
@@ -232,7 +232,7 @@ int mavvehicle::createSocket(std::string localAddress, int localPort, bool block
 //*
 //******************************************************************************
 
-void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
+void mav_udp::listenWorker(int sock, std::string fromAddress, int fromPort)
 {
 	char target_ip[100];
 	
@@ -314,7 +314,7 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 //*
 //******************************************************************************
 
-void mavvehicle::parseMavlink(uint8_t chan, uint8_t* in, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status)
+void mav_udp::parseMavlink(uint8_t chan, uint8_t* in, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status)
 {
 	r_message->magic = *in++; // Mavlink V1 = 0xFE, Mavlink V2 = 0xFD
 	r_message->len = *in++;
@@ -334,7 +334,7 @@ void mavvehicle::parseMavlink(uint8_t chan, uint8_t* in, mavlink_message_t* r_me
 //*
 //******************************************************************************
 
-void mavvehicle::exampleLoop(int sock, std::string toAddress, int toPort)
+void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 {
 	char target_ip[100];
 	

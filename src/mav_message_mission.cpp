@@ -27,9 +27,9 @@ namespace mav2dji
 
 mav2dji_mission::mav2dji_mission(
 	ros::NodeHandle nh, 
-	std::shared_ptr<mavvehiclelib::mavvehicle> mavVeh) : nodeHandle_(nh)
+	std::shared_ptr<mavvehiclelib::mav_udp> mavVeh) : nodeHandle_(nh)
 {
-	mavvehicle_ = mavVeh;
+	mav_udp_ = mavVeh;
   ROS_INFO("[tt_tracker] Node started.");
 }
 
