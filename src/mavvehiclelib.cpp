@@ -269,7 +269,7 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 				printf("Bytes Received: %d\nDatagram: ", (int)recsize);
 
 			parseMavlink(MAVLINK_COMM_0, buf, &msg, &status);
-				printf("\nReceived packet: Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+				printf("\n---> Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
 					gcPort, msg.magic, msg.sysid, msg.compid, msg.len, msg.msgid);
 
 			for (i = 0; i < recsize; ++i)
@@ -308,7 +308,9 @@ void mavvehicle::listenWorker(int sock, std::string fromAddress, int fromPort)
 
 //*****************************************************************************
 //*
-//*
+//* mavlink.io protocol overview : https://mavlink.io/en/about/overview.html
+//* mavlink devguide packet serialization : https://github.com/mavlink/mavlink-devguide/blob/master/en/guide/serialization.md
+//* message list : https://mavlink.io/en/messages/common.html
 //*
 //******************************************************************************
 

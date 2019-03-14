@@ -25,7 +25,7 @@ namespace mav2dji
 
 mav2dji_ros::mav2dji_ros(ros::NodeHandle nh) : rosNodeHandle(nh) 
 {
-  ROS_INFO("[tt_tracker] Node started.");
+  init();
 }
 
 //*****************************************************************************
@@ -46,7 +46,6 @@ mav2dji_ros::~mav2dji_ros()
 
 void mav2dji_ros::init()
 {
-  mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle, mavvehicle_);
 }
 
 //*****************************************************************************
@@ -61,6 +60,7 @@ void mav2dji_ros::startVehicle()
     //  &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
 
     mavvehicle_ = std::make_shared<mavvehiclelib::mavvehicle>();
+    mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle, mavvehicle_);
 
     mavvehicle_->addMavMessageCallback(std::bind(
       &mav2dji_ros::vehicleMavMessageCallback, this, std::placeholders::_1));
@@ -105,9 +105,6 @@ int mav2dji_ros::vehicleMavMessageCallback(const mavlink_message_t* msg)
 {
 	printMavMessageInfo(msg, "Mavlink Message", false);
   ProcessMavMessage(msg);
-
-  mission_manager->ProcessMavMessage(msg);
-
   return 0;
 }
 
@@ -120,6 +117,18 @@ int mav2dji_ros::vehicleMavMessageCallback(const mavlink_message_t* msg)
 void mav2dji_ros::ProcessMavMessage(const mavlink_message_t* msg)
 {
   //mavlink_message_t msg = msgIn;
+
+  int retcode = mission_manager->ProcessMavMessage(msg);
+
+  if(retcode != 1)
+  {
+    if(0 > retcode)
+    {
+      printMavMessageInfo(msg, "--------- ERROR in mission_manager->ProcessMavMessage() ---------------", true);
+    }
+
+    return;
+  }
 
   switch (msg->msgid)
   {
