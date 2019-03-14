@@ -7,6 +7,7 @@
  */
 
 #include <mav_message_base.hpp>
+#include <sys/time.h>
 
 //*****************************************************************************
 //*
@@ -77,6 +78,17 @@ void mav2dji_message_base::send_statustext_critical(const char *string)
 	//*** TODO : show to user?
 	mavlink_log_critical(&_mavlink_log_pub, "%s", string);
 	PX4_ERR("%s", string);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
+void mav2dji_message_base::addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
+{
+	sendMavMessageCallback = callback;
 }
 
 }

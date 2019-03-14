@@ -10,32 +10,33 @@
 
 // ROS
 #include <ros/ros.h>
-#include <mav_udp.hpp>
+//#include <mav_udp.hpp>
+#include <mav_message_base.hpp>
 #include <mav_message_mission.hpp>
 
 namespace mav2dji
 {
 
 //class mav2dji_ros : mavvehiclelib::mavvehicleclient
-class mav_message 
+class mav_message : public mav2dji_message_base
 {
  public:
 
   explicit mav_message();
   ~mav_message();
 
-  void startVehicle();
-  void stopVehicle();
+  //void startVehicle();
+  //void stopVehicle();
 
   void ProcessMavMessage(const mavlink_message_t* msg);
   void printMavMessageInfo(const mavlink_message_t* msg, std::string prefix, bool always); 
-  int vehicleMavMessageCallback(const mavlink_message_t* mavMsg);
+  //int vehicleMavMessageCallback(const mavlink_message_t* mavMsg);
 
  private:
 
   bool verbose = false;
   ros::NodeHandle rosNodeHandle;
-  std::shared_ptr<mavvehiclelib::mav_udp> mavvehicle_;
+  //std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
 
   uint8_t *px4_git_version_binary;
 

@@ -8,8 +8,9 @@
 
 #pragma once 
 // ROS
-#include <ros/ros.h>
-#include <mav_udp.hpp>
+//#include <ros/ros.h>
+#include <vehicle_Info.hpp>
+//#include <mav_udp.hpp>
 
 #define PX4_ERROR (-1)
 #define PX4_OK 0
@@ -79,11 +80,20 @@ class mav2dji_message_base
     explicit mav2dji_message_base();
     ~mav2dji_message_base();
 
-    int getMavlinkSystemId() { return mav_udp_->getMavlinkSystemId(); }
-    int getMavlinkComponentId() { return mav_udp_->getMavlinkComponentId(); }
-    int sendMavMessageToGcs(const mavlink_message_t* msg){ return mav_udp_->sendMavMessageToGcs(msg);};
+    //int getMavlinkSystemId() { return mav_udp_->getMavlinkSystemId(); }
+    //int getMavlinkComponentId() { return mav_udp_->getMavlinkComponentId(); }
 
-    std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
+    int getMavlinkSystemId() { return VehicleInfo::getMavlinkSystemId(); }
+    int getMavlinkComponentId() { return VehicleInfo::getMavlinkComponentId(); }
+
+    void addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+
+    //int sendMavMessageToGcs(const mavlink_message_t* msg){ return mav_udp_->sendMavMessageToGcs(msg);};
+    int sendMavMessageToGcs(const mavlink_message_t* msg){ return sendMavMessageCallback(msg);};
+
+    //std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
+
+    MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;
 
     uint64_t microsSinceEpoch();
     uint64_t hrt_absolute_time();

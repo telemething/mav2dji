@@ -107,7 +107,7 @@ uint8_t* mav_udp::getGitVersion()
 //*
 //******************************************************************************
 
-void mav_udp::addMavMessageCallback(mavMessageCallbackType callback)
+void mav_udp::addGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
 {
 	mavMessageCallback = callback;
 }
@@ -136,7 +136,7 @@ uint64_t mav_udp::microsSinceEpoch()
 //*
 //******************************************************************************
 
-void mav_udp::startVehicle()
+void mav_udp::startConnection()
 {
     listenWorkerThreadShouldRun = true;
 
@@ -153,7 +153,7 @@ void mav_udp::startVehicle()
 //*
 //******************************************************************************
 
-void mav_udp::stopVehicle()
+void mav_udp::stopConnection()
 {
     listenWorkerThreadShouldRun = false;
 }

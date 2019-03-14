@@ -46,6 +46,8 @@ vehicle::~vehicle()
 
 void vehicle::init()
 {
+    int mavlinkSystemId = 1;
+    int mavlinkComponentId = 1;
 }
 
 //*****************************************************************************
@@ -56,20 +58,19 @@ void vehicle::init()
 
 void vehicle::startVehicle()
 {
-    //udpConnection = std::make_shared<mavvehiclelib::mav_udp>(std::bind(
-    //  &vehicle::vehicleMavMessageCallback, this, std::placeholders::_1));
-
     udpConnection = std::make_shared<mavvehiclelib::mav_udp>();
-    //mission_manager = std::make_unique<mav2dji_mission>(rosNodeHandle, mavvehicle_);
 
     mavMessageProcessor  = std::make_shared<mav_message>();
 
-    udpConnection->addMavMessageCallback(std::bind(
-      &vehicle::vehicleMavMessageCallback, this, std::placeholders::_1));
+    udpConnection->addGotMavMessageCallback(std::bind(
+      &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
+
+    mavMessageProcessor->addSendMavMessageCallback(std::bind(
+      &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
 
     //px4_git_version_binary = udpConnection->getGitVersion();
 
-    udpConnection->startVehicle();
+    udpConnection->startConnection();
 }
 
 //*****************************************************************************
@@ -80,7 +81,7 @@ void vehicle::startVehicle()
 
 void vehicle::stopVehicle()
 {
-    udpConnection->stopVehicle();
+    udpConnection->stopConnection();
 }
 
 //*****************************************************************************
@@ -89,11 +90,23 @@ void vehicle::stopVehicle()
 //*
 //*****************************************************************************
 
-int vehicle::vehicleMavMessageCallback(const mavlink_message_t* msg)
+int vehicle::gotMavMessageCallback(const mavlink_message_t* msg)
 {
-	mavMessageProcessor->printMavMessageInfo(msg, "Mavlink Message", false);
+	mavMessageProcessor->printMavMessageInfo(msg, "Got Mavlink", false);
   mavMessageProcessor->ProcessMavMessage(msg);
   return 0;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int vehicle::sendMavMessageCallback(const mavlink_message_t* msg)
+{
+	mavMessageProcessor->printMavMessageInfo(msg, "Sent Mavlink", false);
+  return udpConnection->sendMavMessageToGcs(msg);
 }
 
 }

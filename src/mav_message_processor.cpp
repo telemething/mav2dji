@@ -6,7 +6,7 @@
  *   
  */
 
-#include <mav_message.hpp>
+#include <mav_message_processor.hpp>
 
 //*****************************************************************************
 //*
@@ -54,7 +54,7 @@ void mav_message::init()
 //*
 //*****************************************************************************
 
-void mav_message::startVehicle()
+/*void mav_message::startVehicle()
 {
     //mavvehicle_ = std::make_shared<mavvehiclelib::mavvehicle>(std::bind(
     //  &mav_message::vehicleMavMessageCallback, this, std::placeholders::_1));
@@ -79,7 +79,7 @@ void mav_message::startVehicle()
 void mav_message::stopVehicle()
 {
     mavvehicle_->stopVehicle();
-}
+}*/
 
 //*****************************************************************************
 //*
@@ -101,12 +101,12 @@ void mav_message::printMavMessageInfo(const mavlink_message_t* msg,
 //*
 //*****************************************************************************
 
-int mav_message::vehicleMavMessageCallback(const mavlink_message_t* msg)
+/*int mav_message::vehicleMavMessageCallback(const mavlink_message_t* msg)
 {
 	printMavMessageInfo(msg, "Mavlink Message", false);
   ProcessMavMessage(msg);
   return 0;
-}
+}*/
 
 //*****************************************************************************
 //*
@@ -521,7 +521,8 @@ void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_
 
   mavlink_msg_protocol_version_pack( 1, 1, &msgResp, version, 
     minVersion, maxVersion, &spec_version_hash, &library_version_hash);
-  mavvehicle_->sendMavMessageToGcs(&msgResp);
+  //mav_udp_->sendMavMessageToGcs(&msgResp);
+  sendMavMessageToGcs(&msgResp);
 
   printMavMessageInfo(&msgResp, "Sent response to : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
 }
@@ -660,7 +661,8 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
       middleware_sw_version, os_sw_version, board_version, flight_custom_version, 
       middleware_custom_version, os_custom_version, vendor_id, product_id, uid, uid2 );
 
-    mavvehicle_->sendMavMessageToGcs(&msgOut);
+    //mav_udp_->sendMavMessageToGcs(&msgOut);
+    sendMavMessageToGcs(&msgOut);
 
     printMavMessageInfo(&msgOut, "Sent response to : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
 	}

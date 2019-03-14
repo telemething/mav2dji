@@ -7,10 +7,12 @@
  */
 
 #pragma once
-#include <mavlink/common/mavlink.h>
-#include <functional>
-#include <thread>
+//#include <mavlink/common/mavlink.h>
+//#include <functional>
 
+#include <vehicle_Info.hpp>
+
+#include <thread>
 #include <arpa/inet.h>
 
 namespace mavvehiclelib
@@ -30,10 +32,10 @@ class mav_udp
 {
  public:
 
-    typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
+    //typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 
     explicit mav_udp();
-    explicit mav_udp(mavMessageCallbackType callback);
+    explicit mav_udp(MavlinkMessageInfo::mavMessageCallbackType callback);
     ~mav_udp();
 
     uint8_t* getGitVersion();
@@ -42,10 +44,10 @@ class mav_udp
     int getMavlinkComponentId() { return mavlinkComponentId; }
 
 
-    void startVehicle();
-    void stopVehicle();
+    void startConnection();
+    void stopConnection();
 
-    void addMavMessageCallback(mavMessageCallbackType callback);
+    void addGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
     int sendMavMessageToGcs(const mavlink_message_t* pMsg);
     
  private:
@@ -61,7 +63,7 @@ class mav_udp
       bool verbose;
       uint8_t udpSendBuffer[UDP_BUFFER_LENGTH];
 
-      mavMessageCallbackType mavMessageCallback;
+      MavlinkMessageInfo::mavMessageCallbackType mavMessageCallback;
 
       std::thread listenWorkerThread;
       std::thread sendWorkerThread;

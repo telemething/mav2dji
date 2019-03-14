@@ -25,12 +25,23 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-mav2dji_mission::mav2dji_mission(
-	ros::NodeHandle nh, 
-	std::shared_ptr<mavvehiclelib::mav_udp> mavVeh) : nodeHandle_(nh)
+//mav2dji_mission::mav2dji_mission(
+//	ros::NodeHandle nh, 
+//	std::shared_ptr<mavvehiclelib::mav_udp> mavUdp) : nodeHandle_(nh)
+//{
+//	mav_udp_ = mavUdp;
+//  ROS_INFO("[tt_tracker] Node started.");
+//}
+
+//mav2dji_mission::mav2dji_mission(
+//	ros::NodeHandle nh) : nodeHandle_(nh)
+//{
+//  ROS_INFO("[tt_tracker] Node started.");
+//}
+
+mav2dji_mission::mav2dji_mission()
 {
-	mav_udp_ = mavVeh;
-  ROS_INFO("[tt_tracker] Node started.");
+  //ROS_INFO("[tt_tracker] Node started.");
 }
 
 //*****************************************************************************

@@ -204,7 +204,7 @@ add_executable(mav2dji_ros_node
   src/mav_message_base.cpp
   src/mav_message_mission.cpp
   src/mav_udp.cpp
-  src/mav_message.cpp
+  src/mav_message_processor.cpp
   src/mav2dji_ros_node.cpp
 )
 add_dependencies(mav2dji_ros_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
