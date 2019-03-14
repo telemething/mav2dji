@@ -118,29 +118,40 @@ int mav2dji_mission::ProcessMavMessage(const mavlink_message_t* msg)
 //*
 //*****************************************************************************
 
-void mav2dji_mission::send_mission_ack(uint8_t sysid, uint8_t compid, uint8_t type)
+void mav2dji_mission::send_mission_ack(uint8_t targetSysid, uint8_t targetCompid, uint8_t type)
 {
-	mavlink_mission_ack_t wpa;
+	//mavlink_mission_ack_t wpa;
 
-	wpa.target_system = sysid;
-	wpa.target_component = compid;
-	wpa.type = type;
-	wpa.mission_type = _mission_type;
+	//wpa.target_system = targetSysid;
+	//wpa.target_component = targetCompid;
+	//wpa.type = type;
+	//wpa.mission_type = _mission_type;
 
   // PUT BACK
 	//mavlink_msg_mission_ack_send_struct(_mavlink->get_channel(), &wpa);
-  //
 
-	//PX4_DEBUG("WPM: Send MISSION_ACK type %u to ID %u", wpa.type, wpa.target_system);
+	mavlink_message_t msgOut;
+
+	mavlink_msg_mission_ack_pack(
+		getMavlinkSystemId(), getMavlinkComponentId(), 
+		&msgOut, targetSysid, targetCompid, type, _mission_type );
+  
+	sendMavMessageToGcs(&msgOut);
+
+	PX4_DEBUG("WPM: Send MISSION_ACK type %u to ID %u", type, targetSysid);
 }
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
 
 uint16_t mav2dji_mission::current_max_item_count()
 {
-	if (_mission_type >= sizeof(MAX_COUNT) / sizeof(MAX_COUNT[0])) {
-
-        //*** TODO
-		//PX4_ERR("WPM: MAX_COUNT out of bounds (%u)", _mission_type);
-        
+	if (_mission_type >= sizeof(MAX_COUNT) / sizeof(MAX_COUNT[0])) 
+	{
+		PX4_ERR("WPM: MAX_COUNT out of bounds (%u)", _mission_type);       
 		return 0;
 	}
 
@@ -798,7 +809,7 @@ void mav2dji_mission::handle_mission_item(const mavlink_message_t* msg)
 		_int_mode = false;
 	}
 
-	//handle_mission_item_both(msg);
+	handle_mission_item_both(msg);
 }
 
 //*****************************************************************************
@@ -816,7 +827,7 @@ void mav2dji_mission::handle_mission_item_int(const mavlink_message_t* msg)
 		_int_mode = true;
 	}
 
-	//handle_mission_item_both(msg);
+	handle_mission_item_both(msg);
 }
 
 //*****************************************************************************
@@ -830,18 +841,23 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 	// The mavlink_message could also contain a mavlink_mission_item_int_t. We ignore that here
 	// and take care of it later in parse_mavlink_mission_item depending on _int_mode.
 
+	printf("--- WPM ---: Got a new MISSION_ITEM\n");
+
 	mavlink_mission_item_t wp;
 	mavlink_msg_mission_item_decode(msg, &wp);
 
-	if (CHECK_SYSID_COMPID_MISSION(wp)) {
+	if (CHECK_SYSID_COMPID_MISSION(wp)) 
+	{
 
-		if (wp.mission_type != _mission_type) {
+		if (wp.mission_type != _mission_type) 
+		{
 			PX4_WARN("WPM: Unexpected mission type (%u %u)", (int)wp.mission_type, (int)_mission_type);
 			send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 			return;
 		}
 
-		if (_state == MAVLINK_WPM_STATE_GETLIST) {
+		if (_state == MAVLINK_WPM_STATE_GETLIST) 
+		{
 			_time_last_recv = hrt_absolute_time();
 
 			if (wp.seq != _transfer_seq) {
@@ -852,8 +868,11 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 				return;
 			}
 
-		} else if (_state == MAVLINK_WPM_STATE_IDLE) {
-			if (_transfer_seq == wp.seq + 1) {
+		} 
+		else if (_state == MAVLINK_WPM_STATE_IDLE) 
+		{
+			if (_transfer_seq == wp.seq + 1) 
+			{
 				// Assume this is a duplicate, where we already successfully got all mission items,
 				// but the GCS did not receive the last ack and sent the same item again
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ACCEPTED);
@@ -868,7 +887,9 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 
 			return;
 
-		} else {
+		} 
+		else 
+		{
 			PX4_DEBUG("WPM: MISSION_ITEM ERROR: busy, state %i", _state);
 
 			//_mavlink->send_statustext_critical("IGN MISSION_ITEM: Busy");
@@ -881,7 +902,8 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 
 		int ret = parse_mavlink_mission_item(&wp, &mission_item);
 
-		if (ret != PX4_OK) {
+		if (ret != PX4_OK) 
+		{
 			PX4_DEBUG("WPM: MISSION_ITEM ERROR: seq %u invalid item", wp.seq);
 
 			//_mavlink->send_statustext_critical("IGN MISSION_ITEM: Busy");
@@ -896,88 +918,101 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 		bool write_failed = false;
 		bool check_failed = false;
 
-		switch (_mission_type) {
+		switch (_mission_type) 
+		{
+			case MAV_MISSION_TYPE_MISSION: 
+			{
+					// check that we don't get a wrong item (hardening against wrong client implementations, the list here
+					// does not need to be complete)
+					if (mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION ||
+							mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION ||
+							mission_item.nav_cmd == MAV_CMD_NAV_FENCE_CIRCLE_INCLUSION ||
+							mission_item.nav_cmd == MAV_CMD_NAV_FENCE_CIRCLE_EXCLUSION ||
+							mission_item.nav_cmd == MAV_CMD_NAV_RALLY_POINT) 
+					{
+						check_failed = true;
+					} 
+					else 
+					{
+						dm_item_t dm_item = _transfer_dataman_id;
 
-		case MAV_MISSION_TYPE_MISSION: {
-				// check that we don't get a wrong item (hardening against wrong client implementations, the list here
-				// does not need to be complete)
-				if (mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION ||
-				    mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION ||
-				    mission_item.nav_cmd == MAV_CMD_NAV_FENCE_CIRCLE_INCLUSION ||
-				    mission_item.nav_cmd == MAV_CMD_NAV_FENCE_CIRCLE_EXCLUSION ||
-				    mission_item.nav_cmd == MAV_CMD_NAV_RALLY_POINT) {
-					check_failed = true;
+						write_failed = dm_write(dm_item, wp.seq, DM_PERSIST_POWER_ON_RESET, &mission_item,
+									sizeof(struct mission_item_s)) != sizeof(struct mission_item_s);
 
-				} else {
-					dm_item_t dm_item = _transfer_dataman_id;
-
-					write_failed = dm_write(dm_item, wp.seq, DM_PERSIST_POWER_ON_RESET, &mission_item,
-								sizeof(struct mission_item_s)) != sizeof(struct mission_item_s);
-
-					if (!write_failed) {
-						/* waypoint marked as current */
-						if (wp.current) {
-							_transfer_current_seq = wp.seq;
+						if (!write_failed) 
+						{
+							/* waypoint marked as current */
+							if (wp.current) 
+							{
+								_transfer_current_seq = wp.seq;
+							}
 						}
 					}
-				}
 			}
 			break;
 
-		case MAV_MISSION_TYPE_FENCE: { // Write a geofence point
-				mission_fence_point_s mission_fence_point;
-				mission_fence_point.nav_cmd = mission_item.nav_cmd;
-				mission_fence_point.lat = mission_item.lat;
-				mission_fence_point.lon = mission_item.lon;
-				mission_fence_point.alt = mission_item.altitude;
+			case MAV_MISSION_TYPE_FENCE: 
+			{ // Write a geofence point
+					mission_fence_point_s mission_fence_point;
+					mission_fence_point.nav_cmd = mission_item.nav_cmd;
+					mission_fence_point.lat = mission_item.lat;
+					mission_fence_point.lon = mission_item.lon;
+					mission_fence_point.alt = mission_item.altitude;
 
-				if (mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION ||
-				    mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION) {
-					mission_fence_point.vertex_count = mission_item.vertex_count;
+					if (mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION ||
+							mission_item.nav_cmd == MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION) {
+						mission_fence_point.vertex_count = mission_item.vertex_count;
 
-					if (mission_item.vertex_count < 3) { // feasibility check
-						PX4_ERR("Fence: too few vertices");
-						check_failed = true;
-						update_geofence_count(0);
+						if (mission_item.vertex_count < 3) 
+						{ // feasibility check
+							PX4_ERR("Fence: too few vertices");
+							check_failed = true;
+							update_geofence_count(0);
+						}
+
+					} 
+					else 
+					{
+						mission_fence_point.circle_radius = mission_item.circle_radius;
 					}
 
-				} else {
-					mission_fence_point.circle_radius = mission_item.circle_radius;
-				}
+					mission_fence_point.frame = mission_item.frame;
 
-				mission_fence_point.frame = mission_item.frame;
-
-				if (!check_failed) {
-					write_failed = dm_write(DM_KEY_FENCE_POINTS, wp.seq + 1, DM_PERSIST_POWER_ON_RESET, &mission_fence_point,
-								sizeof(mission_fence_point_s)) != sizeof(mission_fence_point_s);
-				}
+					if (!check_failed) 
+					{
+						write_failed = dm_write(DM_KEY_FENCE_POINTS, wp.seq + 1, DM_PERSIST_POWER_ON_RESET, &mission_fence_point,
+									sizeof(mission_fence_point_s)) != sizeof(mission_fence_point_s);
+					}
 
 			}
 			break;
 
-		case MAV_MISSION_TYPE_RALLY: { // Write a safe point / rally point
-				mission_save_point_s mission_save_point;
-				mission_save_point.lat = mission_item.lat;
-				mission_save_point.lon = mission_item.lon;
-				mission_save_point.alt = mission_item.altitude;
-				mission_save_point.frame = mission_item.frame;
-				write_failed = dm_write(DM_KEY_SAFE_POINTS, wp.seq + 1, DM_PERSIST_POWER_ON_RESET, &mission_save_point,
-							sizeof(mission_save_point_s)) != sizeof(mission_save_point_s);
+			case MAV_MISSION_TYPE_RALLY: 
+			{ // Write a safe point / rally point
+					mission_save_point_s mission_save_point;
+					mission_save_point.lat = mission_item.lat;
+					mission_save_point.lon = mission_item.lon;
+					mission_save_point.alt = mission_item.altitude;
+					mission_save_point.frame = mission_item.frame;
+					write_failed = dm_write(DM_KEY_SAFE_POINTS, wp.seq + 1, DM_PERSIST_POWER_ON_RESET, &mission_save_point,
+								sizeof(mission_save_point_s)) != sizeof(mission_save_point_s);
 			}
 			break;
 
-		default:
-			//_mavlink->send_statustext_critical("Received unknown mission type, abort.");
-			send_statustext_critical("Received unknown mission type, abort.");
-			break;
+			default:
+				//_mavlink->send_statustext_critical("Received unknown mission type, abort.");
+				send_statustext_critical("Received unknown mission type, abort.");
+				break;
 		}
 
-		if (write_failed || check_failed) {
+		if (write_failed || check_failed) 
+		{
 			PX4_DEBUG("WPM: MISSION_ITEM ERROR: error writing seq %u to dataman ID %i", wp.seq, _transfer_dataman_id);
 
 			send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 
-			if (write_failed) {
+			if (write_failed) 
+			{
 				//_mavlink->send_statustext_critical("Unable to write on micro SD");
 				send_statustext_critical("Unable to write on micro SD");
 			}
@@ -988,59 +1023,69 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 		}
 
 		/* waypoint marked as current */
-		if (wp.current) {
+		if (wp.current) 
+		{
 			_transfer_current_seq = wp.seq;
 		}
 
+		printf("WPM: MISSION_ITEM seq %u processed\n", wp.seq);
 		PX4_DEBUG("WPM: MISSION_ITEM seq %u received", wp.seq);
 
 		_transfer_seq = wp.seq + 1;
 
-		if (_transfer_seq == _transfer_count) {
+		if (_transfer_seq == _transfer_count) 
+		{
 			/* got all new mission items successfully */
+			printf("--- WPM ---: MISSION_ITEM got all %u items, current_seq=%u, changing state to MAVLINK_WPM_STATE_IDLE\n",
+				  _transfer_count, _transfer_current_seq);
+
 			PX4_DEBUG("WPM: MISSION_ITEM got all %u items, current_seq=%u, changing state to MAVLINK_WPM_STATE_IDLE",
 				  _transfer_count, _transfer_current_seq);
 
 			ret = 0;
 
-			switch (_mission_type) {
-			case MAV_MISSION_TYPE_MISSION:
-				ret = update_active_mission(_transfer_dataman_id, _transfer_count, _transfer_current_seq);
-				break;
+			switch (_mission_type) 
+			{
+				case MAV_MISSION_TYPE_MISSION:
+					ret = update_active_mission(_transfer_dataman_id, _transfer_count, _transfer_current_seq);
+					break;
 
-			case MAV_MISSION_TYPE_FENCE:
-				ret = update_geofence_count(_transfer_count);
-				break;
+				case MAV_MISSION_TYPE_FENCE:
+					ret = update_geofence_count(_transfer_count);
+					break;
 
-			case MAV_MISSION_TYPE_RALLY:
-				ret = update_safepoint_count(_transfer_count);
-				break;
+				case MAV_MISSION_TYPE_RALLY:
+					ret = update_safepoint_count(_transfer_count);
+					break;
 
-			default:
-				PX4_ERR("mission type %u not handled", _mission_type);
+				default:
+					PX4_ERR("mission type %u not handled", _mission_type);
 				break;
 			}
 
 			// Note: the switch to idle needs to happen after update_geofence_count is called, for proper unlocking order
 			switch_to_idle_state();
 
-
-			if (ret == PX4_OK) {
+			if (ret == PX4_OK) 
+			{
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ACCEPTED);
-
-			} else {
+			} 
+			else 
+			{
 				send_mission_ack(_transfer_partner_sysid, _transfer_partner_compid, MAV_MISSION_ERROR);
 			}
 
 			_transfer_in_progress = false;
+		} 
+		else 
+		{
+			printf("--- WPM ---: Requesting next MISSION_ITEM\n");
 
-		} else {
 			/* request next item */
 			send_mission_request(_transfer_partner_sysid, _transfer_partner_compid, _transfer_seq);
 		}
 	}
 }
-
 
 //*****************************************************************************
 //*
