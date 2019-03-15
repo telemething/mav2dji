@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <mavlink/common/mavlink.h>
 #include <functional>
+#include <mavlink/common/mavlink.h>
+#include <vehicle_interface_djiros.hpp>
 
 //typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 
@@ -13,7 +14,8 @@ class MavlinkMessageInfo
     typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 };
 
-// found this but I dont think it's current https://subak.io/code/px4/Firmware/build_px4fmu-v2_default/build_git_version.h.html
+// found this but I dont think it's current 
+// https://subak.io/code/px4/Firmware/build_px4fmu-v2_default/build_git_version.h.html
 #define FIRMWARE_BUILD_VERSION 0x9c2dd48814a6ade1
 
 class VehicleInfo
@@ -23,6 +25,20 @@ class VehicleInfo
     VehicleInfo();
     ~VehicleInfo();
 
+    // instance members for setters
+
+    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+
+    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+
+    void setVehicleInterface(
+      std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface);
+
+    int setMavlinkSystemId(int val);
+    int setMavlinkComponentId(int val);
+
+    // static accessors for consumers
+
     static int getMavlinkSystemId();
     static int getMavlinkComponentId();
 
@@ -30,24 +46,6 @@ class VehicleInfo
 
     static MavlinkMessageInfo::mavMessageCallbackType getAddMavMessageCallback();
 
-    static uint8_t* getPx4GitVersion() 
-    {
-      static union 
-      {
-        unsigned long gvbul = FIRMWARE_BUILD_VERSION;
-        uint8_t gvbui8[8];
-      } xvert;
-
-		  return xvert.gvbui8;   
-    }
-
-    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-
-    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-
-    int setMavlinkSystemId(int val);
-    int setMavlinkComponentId(int val);
-
-
+    static uint8_t* getPx4GitVersion();
 };
 

@@ -11,14 +11,16 @@
 namespace mav2dji
 {
 
-class vehicle_ros_interface 
+class vehicle_interface 
 {
  public:
 
-    explicit vehicle_ros_interface();
-    ~vehicle_ros_interface();
+    explicit vehicle_interface();
+    ~vehicle_interface();
 
     void init();
+
+    void activate();
 
  private:
 };

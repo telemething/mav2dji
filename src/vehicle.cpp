@@ -49,14 +49,22 @@ void vehicle::init()
     mavlinkSystemId = 1;
     mavlinkComponentId = 1;
 
+    // register the vehicle's mavlink system and component IDs
     vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
     vehicleInfo.setMavlinkComponentId(mavlinkComponentId);
 
+    // register the 'send a mav message' callback
     vehicleInfo.setSendMavMessageCallback( std::bind(
     &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
 
+    // regsiter the 'got mav message' callback
     vehicleInfo.setGotMavMessageCallback( std::bind(
     &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
+
+    // create an instance of the vehicle specific interface class, cast as the 
+    // interface base class
+    vehicleInfo.setVehicleInterface( std::static_pointer_cast<vehicle_interface>
+      (std::make_shared<vehicle_interface_djiros>()));
 }
 
 //*****************************************************************************

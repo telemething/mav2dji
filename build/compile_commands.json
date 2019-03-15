@@ -1,14 +1,20 @@
 [
 {
   "directory": "/Data/catkin-ws/src/mav2dji/build",
+  "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/vehicle_interface_djiros.cpp.o -c /Data/catkin-ws/src/mav2dji/src/vehicle_interface_djiros.cpp",
+  "file": "/Data/catkin-ws/src/mav2dji/src/vehicle_interface_djiros.cpp"
+},
+
+{
+  "directory": "/Data/catkin-ws/src/mav2dji/build",
   "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/vehicle_info.cpp.o -c /Data/catkin-ws/src/mav2dji/src/vehicle_info.cpp",
   "file": "/Data/catkin-ws/src/mav2dji/src/vehicle_info.cpp"
 },
 
 {
   "directory": "/Data/catkin-ws/src/mav2dji/build",
-  "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/vehicle_ros_interface.cpp.o -c /Data/catkin-ws/src/mav2dji/src/vehicle_ros_interface.cpp",
-  "file": "/Data/catkin-ws/src/mav2dji/src/vehicle_ros_interface.cpp"
+  "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/vehicle_interface.cpp.o -c /Data/catkin-ws/src/mav2dji/src/vehicle_interface.cpp",
+  "file": "/Data/catkin-ws/src/mav2dji/src/vehicle_interface.cpp"
 },
 
 {

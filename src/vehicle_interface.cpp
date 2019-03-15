@@ -6,7 +6,7 @@
  *   
  */
 
-#include <vehicle_ros_interface.hpp>
+#include <vehicle_interface.hpp>
 
 //*****************************************************************************
 //*
@@ -23,7 +23,7 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-vehicle_ros_interface::vehicle_ros_interface()
+vehicle_interface::vehicle_interface()
 {
   init();
 }
@@ -34,7 +34,7 @@ vehicle_ros_interface::vehicle_ros_interface()
 //*
 //******************************************************************************
 
-vehicle_ros_interface::~vehicle_ros_interface()
+vehicle_interface::~vehicle_interface()
 {
 }
 
@@ -44,7 +44,7 @@ vehicle_ros_interface::~vehicle_ros_interface()
 //*
 //******************************************************************************
 
-void vehicle_ros_interface::init()
+void vehicle_interface::init()
 {
 }
 

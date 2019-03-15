@@ -13,6 +13,7 @@ class ffxxcc
   public:
     MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;
     MavlinkMessageInfo::mavMessageCallbackType gotMavMessageCallback;
+    std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface;
     int mavlinkSystemId;
     int mavlinkComponentId;
 };
@@ -47,11 +48,16 @@ VehicleInfo::~VehicleInfo()
 //*
 //******************************************************************************
 
+// instance members for setters
+
 void VehicleInfo::setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
 { singleton->sendMavMessageCallback = callback; }
 
 void VehicleInfo::setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
 { singleton->gotMavMessageCallback = callback; }
+
+void VehicleInfo::setVehicleInterface(std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface)
+{ singleton->vehicleInterface = vehicleInterface; }
 
 int VehicleInfo::setMavlinkSystemId(int val) 
 { singleton->mavlinkSystemId = val; }
@@ -59,8 +65,7 @@ int VehicleInfo::setMavlinkSystemId(int val)
 int VehicleInfo::setMavlinkComponentId(int val) 
 { singleton->mavlinkComponentId = val; }
 
-
-//*** statics, for consumers
+// static accessors for consumers
 
 int VehicleInfo::getMavlinkSystemId() 
 { return singleton->mavlinkSystemId; }
@@ -73,3 +78,14 @@ MavlinkMessageInfo::mavMessageCallbackType VehicleInfo::getSendMavMessageCallbac
 
 MavlinkMessageInfo::mavMessageCallbackType VehicleInfo::getAddMavMessageCallback()
 { return singleton->gotMavMessageCallback; }
+
+uint8_t* VehicleInfo::getPx4GitVersion() 
+{
+    static union 
+    {
+        unsigned long gvbul = FIRMWARE_BUILD_VERSION;
+        uint8_t gvbui8[8];
+    } xvert;
+
+    return xvert.gvbui8;   
+}
