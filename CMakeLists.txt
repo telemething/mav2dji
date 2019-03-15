@@ -36,6 +36,8 @@ find_package(catkin REQUIRED)
 ##   * add "message_generation" and every package in MSG_DEP_SET to
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  std_msgs
+  dji_sdk
 )
 ##   * add "message_runtime" and every package in MSG_DEP_SET to
 ##     catkin_package(CATKIN_DEPENDS ...)

@@ -8,8 +8,31 @@
 
 #pragma once
 
+#include <string>
+
 namespace mav2dji
 {
+
+class vehicle_interface_ret
+{
+   public:
+
+      enum resultEnum {success, failure};
+      resultEnum Result;
+      std::string Description;
+
+      vehicle_interface_ret(resultEnum result, std::string description )
+      {
+         Result = result;
+         Description = description;
+      }
+
+      vehicle_interface_ret(resultEnum result )
+      {
+         Result = result;
+         Description = "";
+      }
+};
 
 class vehicle_interface 
 {
@@ -18,11 +41,8 @@ class vehicle_interface
     explicit vehicle_interface();
     ~vehicle_interface();
 
-    void init();
-
-    void activate();
-
- private:
+    virtual int init();
+    virtual vehicle_interface_ret activate() = 0;
 };
 
 } /* namespace mav2dji*/

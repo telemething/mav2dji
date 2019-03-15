@@ -44,8 +44,10 @@ vehicle_interface::~vehicle_interface()
 //*
 //******************************************************************************
 
-void vehicle_interface::init()
+int vehicle_interface::init()
 {
+  return 0;
 }
+
 
 }
