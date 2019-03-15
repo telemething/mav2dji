@@ -46,6 +46,9 @@ mav_message::~mav_message()
 
 void mav_message::init()
 {
+  mission_manager = std::make_unique<mav2dji_mission>();
+  
+  px4_git_version_binary = VehicleInfo::getPx4GitVersion();
 }
 
 //*****************************************************************************

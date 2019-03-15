@@ -86,7 +86,7 @@ class mav2dji_message_base
     int getMavlinkSystemId() { return VehicleInfo::getMavlinkSystemId(); }
     int getMavlinkComponentId() { return VehicleInfo::getMavlinkComponentId(); }
 
-    void addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+    //void addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
 
     //int sendMavMessageToGcs(const mavlink_message_t* msg){ return mav_udp_->sendMavMessageToGcs(msg);};
     int sendMavMessageToGcs(const mavlink_message_t* msg){ return sendMavMessageCallback(msg);};

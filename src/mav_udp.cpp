@@ -25,7 +25,7 @@
 #define BUFFER_LENGTH 2041 
 
 // found this but I dont think it's current https://subak.io/code/px4/Firmware/build_px4fmu-v2_default/build_git_version.h.html
-#define FIRMWARE_BUILD_VERSION 0x9c2dd48814a6ade1
+//#define FIRMWARE_BUILD_VERSION 0x9c2dd48814a6ade1
 
 //*****************************************************************************
 //*
@@ -87,19 +87,19 @@ void mav_udp::init()
 		mavlinkSystemId = 1;
 		mavlinkComponentId = 1;
 
-		union 
+		/*union 
 		{
 			unsigned long gvbul = FIRMWARE_BUILD_VERSION;
 			uint8_t gvbui8[8];
 		} xvert;
 
-		px4_git_version_binary = xvert.gvbui8;
+		px4_git_version_binary = xvert.gvbui8;*/
 }
 
-uint8_t* mav_udp::getGitVersion()
-{
-	return px4_git_version_binary;
-}
+//uint8_t* mav_udp::getGitVersion()
+//{
+//	return px4_git_version_binary;
+//}
 
 //*****************************************************************************
 //*

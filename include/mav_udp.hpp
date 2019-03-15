@@ -38,7 +38,7 @@ class mav_udp
     explicit mav_udp(MavlinkMessageInfo::mavMessageCallbackType callback);
     ~mav_udp();
 
-    uint8_t* getGitVersion();
+    //uint8_t* getGitVersion();
 
     int getMavlinkSystemId() { return mavlinkSystemId; }
     int getMavlinkComponentId() { return mavlinkComponentId; }

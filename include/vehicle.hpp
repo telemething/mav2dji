@@ -34,6 +34,8 @@ class vehicle
 
  private:
 
+   VehicleInfo vehicleInfo;
+
    int mavlinkSystemId;
    int mavlinkComponentId;
 

@@ -46,8 +46,17 @@ vehicle::~vehicle()
 
 void vehicle::init()
 {
-    int mavlinkSystemId = 1;
-    int mavlinkComponentId = 1;
+    mavlinkSystemId = 1;
+    mavlinkComponentId = 1;
+
+    vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
+    vehicleInfo.setMavlinkComponentId(mavlinkComponentId);
+
+    vehicleInfo.setSendMavMessageCallback( std::bind(
+    &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
+
+    vehicleInfo.setGotMavMessageCallback( std::bind(
+    &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 }
 
 //*****************************************************************************
@@ -64,11 +73,6 @@ void vehicle::startVehicle()
 
     udpConnection->addGotMavMessageCallback(std::bind(
       &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
-
-    mavMessageProcessor->addSendMavMessageCallback(std::bind(
-      &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
-
-    //px4_git_version_binary = udpConnection->getGitVersion();
 
     udpConnection->startConnection();
 }

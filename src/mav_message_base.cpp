@@ -26,6 +26,7 @@ namespace mav2dji
 
 mav2dji_message_base::mav2dji_message_base() 
 {
+	sendMavMessageCallback = VehicleInfo::getSendMavMessageCallback();
 }
 
 //*****************************************************************************
@@ -86,9 +87,9 @@ void mav2dji_message_base::send_statustext_critical(const char *string)
 //*
 //******************************************************************************
 
-void mav2dji_message_base::addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
-{
-	sendMavMessageCallback = callback;
-}
+//void mav2dji_message_base::addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback)
+//{
+//	sendMavMessageCallback = callback;
+//}
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <mavlink/common/mavlink.h>
 #include <functional>
 
@@ -12,20 +13,41 @@ class MavlinkMessageInfo
     typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 };
 
+// found this but I dont think it's current https://subak.io/code/px4/Firmware/build_px4fmu-v2_default/build_git_version.h.html
+#define FIRMWARE_BUILD_VERSION 0x9c2dd48814a6ade1
+
 class VehicleInfo
 {
   public:
 
     VehicleInfo();
+    ~VehicleInfo();
 
-    static int getMavlinkSystemId() { return 1; }
-    static int getMavlinkComponentId() { return 1; }
+    static int getMavlinkSystemId();
+    static int getMavlinkComponentId();
 
-  //  int setMavlinkSystemId(int val) { mavlinkSystemId = val; }
-  //  int setMavlinkComponentId(int val) { mavlinkComponentId = val; }
+    static MavlinkMessageInfo::mavMessageCallbackType getSendMavMessageCallback();
 
-  //private: 
+    static MavlinkMessageInfo::mavMessageCallbackType getAddMavMessageCallback();
 
-  //  static int mavlinkSystemId;
-  //  static int mavlinkComponentId;
+    static uint8_t* getPx4GitVersion() 
+    {
+      static union 
+      {
+        unsigned long gvbul = FIRMWARE_BUILD_VERSION;
+        uint8_t gvbui8[8];
+      } xvert;
+
+		  return xvert.gvbui8;   
+    }
+
+    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+
+    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+
+    int setMavlinkSystemId(int val);
+    int setMavlinkComponentId(int val);
+
+
 };
+
