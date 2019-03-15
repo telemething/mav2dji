@@ -27,25 +27,20 @@ class VehicleInfo
 
     // instance members for setters
 
-    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-
-    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-
-    void setVehicleInterface(
-      std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface);
-
     int setMavlinkSystemId(int val);
     int setMavlinkComponentId(int val);
+    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+    void setVehicleInterface(
+      std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface);
 
     // static accessors for consumers
 
     static int getMavlinkSystemId();
     static int getMavlinkComponentId();
-
     static MavlinkMessageInfo::mavMessageCallbackType getSendMavMessageCallback();
-
     static MavlinkMessageInfo::mavMessageCallbackType getAddMavMessageCallback();
-
+    static std::shared_ptr<mav2dji::vehicle_interface> getVehicleInterface();
     static uint8_t* getPx4GitVersion();
 };
 

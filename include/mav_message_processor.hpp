@@ -9,7 +9,7 @@
 #pragma once
 
 // ROS
-#include <ros/ros.h>
+//#include <ros/ros.h>
 //#include <mav_udp.hpp>
 #include <mav_message_base.hpp>
 #include <mav_message_mission.hpp>
@@ -35,7 +35,7 @@ class mav_message : public mav2dji_message_base
  private:
 
   bool verbose = false;
-  ros::NodeHandle rosNodeHandle;
+  //ros::NodeHandle rosNodeHandle;
   //std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
 
   uint8_t *px4_git_version_binary;

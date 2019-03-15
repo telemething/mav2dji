@@ -45,7 +45,7 @@ class vehicle_interface_djiros : public vehicle_interface
    int DjiActivationSleepMs = 1000;
    int DjiActivationTimeoutMs = 10000;
 
-   ros::NodeHandle      rosNodeHandle;
+   std::unique_ptr<ros::NodeHandle> rosNodeHandle;
    ros::ServiceClient   drone_activation_service;
 
    vehicle_interface_ret connectToRos();

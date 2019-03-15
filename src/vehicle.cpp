@@ -44,7 +44,7 @@ vehicle::~vehicle()
 //*
 //******************************************************************************
 
-void vehicle::init()
+int vehicle::init()
 {
     mavlinkSystemId = 1;
     mavlinkComponentId = 1;
@@ -63,8 +63,12 @@ void vehicle::init()
 
     // create an instance of the vehicle specific interface class, cast as the 
     // interface base class
-    vehicleInfo.setVehicleInterface( std::static_pointer_cast<vehicle_interface>
-      (std::make_shared<vehicle_interface_djiros>()));
+
+    vehicleInterface = std::make_shared<vehicle_interface_djiros>();
+    vehicleInfo.setVehicleInterface(vehicleInterface);
+
+    //vehicleInfo.setVehicleInterface( std::static_pointer_cast<vehicle_interface>
+    //  (std::make_shared<vehicle_interface_djiros>()));
 }
 
 //*****************************************************************************
@@ -73,16 +77,26 @@ void vehicle::init()
 //*
 //*****************************************************************************
 
-void vehicle::startVehicle()
+int vehicle::startVehicle()
 {
     udpConnection = std::make_shared<mavvehiclelib::mav_udp>();
-
     mavMessageProcessor  = std::make_shared<mav_message>();
 
     udpConnection->addGotMavMessageCallback(std::bind(
       &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
+    vehicle_interface_ret ret = vehicleInterface->activate();  
+
+    if( ret.Result != vehicle_interface_ret::resultEnum::success )
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : %s ######\n\n\n", 
+        ret.Description.c_str() );
+      return -1;
+    }
+
     udpConnection->startConnection();
+
+    return 0;
 }
 
 //*****************************************************************************
@@ -91,9 +105,10 @@ void vehicle::startVehicle()
 //*
 //*****************************************************************************
 
-void vehicle::stopVehicle()
+int vehicle::stopVehicle()
 {
     udpConnection->stopConnection();
+    return 0;
 }
 
 //*****************************************************************************

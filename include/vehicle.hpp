@@ -24,8 +24,8 @@ class vehicle
    explicit vehicle();
    ~vehicle();
 
-   void startVehicle();
-   void stopVehicle();
+   int startVehicle();
+   int stopVehicle();
    int gotMavMessageCallback(const mavlink_message_t* msg);
    int sendMavMessageCallback(const mavlink_message_t* msg);
 
@@ -45,7 +45,7 @@ class vehicle
    std::shared_ptr<mav_message> mavMessageProcessor;
    std::shared_ptr<vehicle_interface> vehicleInterface;
 
-   void init();
+   int init();
 };
 
 } /* namespace mav2dji*/

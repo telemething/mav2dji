@@ -79,6 +79,9 @@ MavlinkMessageInfo::mavMessageCallbackType VehicleInfo::getSendMavMessageCallbac
 MavlinkMessageInfo::mavMessageCallbackType VehicleInfo::getAddMavMessageCallback()
 { return singleton->gotMavMessageCallback; }
 
+std::shared_ptr<mav2dji::vehicle_interface> VehicleInfo::getVehicleInterface()
+{ return singleton->vehicleInterface; }
+
 uint8_t* VehicleInfo::getPx4GitVersion() 
 {
     static union 
