@@ -9,6 +9,7 @@
 #pragma once
 
 #include <vehicle_interface.hpp>
+#include <thread>
 
 // ROS
 #include <ros/ros.h>
@@ -39,16 +40,21 @@ class vehicle_interface_djiros : public vehicle_interface
 
    int init();
    vehicle_interface_ret activate();
+   vehicle_interface_ret startVehicleAsync();
+   vehicle_interface_ret stopVehicle();
 
  private:
 
    int DjiActivationSleepMs = 1000;
    int DjiActivationTimeoutMs = 10000;
 
-   std::unique_ptr<ros::NodeHandle> rosNodeHandle;
+   std::thread vehicleRunWorkerThread;
+
+   std::shared_ptr<ros::NodeHandle> rosNodeHandle;
    ros::ServiceClient   drone_activation_service;
 
    vehicle_interface_ret connectToRos();
+   void vehicleRunWorker();
 
 };
 

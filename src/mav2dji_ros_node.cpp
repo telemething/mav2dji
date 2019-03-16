@@ -25,13 +25,13 @@ int main(int argc, char** argv)
 
 int main(int argc, char** argv) 
 {
-  //ros::init(argc, argv, "mav2dji");
-  //ros::NodeHandle nodeHandle("~");
   mav2dji::vehicle djiVehicle;
 
   djiVehicle.startVehicle();
 
-  //ros::spin();
+  //*** TODO : Do we need something better here?
+  while(djiVehicle.isVehicleRunning())
+    sleep(1); 
 
   return 0;
 }

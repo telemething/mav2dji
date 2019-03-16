@@ -91,6 +91,9 @@ int vehicle::startVehicle()
     {
       printf("\n\n\n###### vehicle::startVehicle() Exception : %s ######\n\n\n", 
         ret.Description.c_str() );
+      
+      stopVehicle();
+
       return -1;
     }
 
@@ -107,7 +110,13 @@ int vehicle::startVehicle()
 
 int vehicle::stopVehicle()
 {
-    udpConnection->stopConnection();
+    if(nullptr != udpConnection)
+      udpConnection->stopConnection();
+    
+    if(nullptr != vehicleInterface)
+      vehicleInterface->stopVehicle();
+
+    stopRunning = true;
     return 0;
 }
 
@@ -134,6 +143,17 @@ int vehicle::sendMavMessageCallback(const mavlink_message_t* msg)
 {
 	mavMessageProcessor->printMavMessageInfo(msg, "Sent Mavlink", false);
   return udpConnection->sendMavMessageToGcs(msg);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+bool vehicle::isVehicleRunning()
+{
+  return !stopRunning;
 }
 
 }

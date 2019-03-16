@@ -8,7 +8,7 @@
 
 #include <vehicle_interface_djiros.hpp>
 #include <chrono>
-#include <thread>
+
 
 //*****************************************************************************
 //*
@@ -76,7 +76,7 @@ vehicle_interface_ret vehicle_interface_djiros::connectToRos()
                 vehicle_interface_ret::resultEnum::failure, 
                 "Could not contact ROS master node. Make sure ROS is running.");
 
-        rosNodeHandle = std::make_unique<ros::NodeHandle>("~");
+        rosNodeHandle = std::make_shared<ros::NodeHandle>("~");
     }
     catch(const std::exception& e)
     {
@@ -176,6 +176,47 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
     //        activation.response.cmd_id, activation.response.ack_data};
 
     ROS_INFO("vehicle_interface_djiros::activate() : Drone activated OK");
+    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+vehicle_interface_ret vehicle_interface_djiros::startVehicleAsync()
+{
+    ROS_INFO("vehicle_interface_djiros::startVehicleAsync() : Starting Worker Thread");
+
+    vehicleRunWorkerThread = std::thread(
+        &vehicle_interface_djiros::vehicleRunWorker, this);
+
+    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+void vehicle_interface_djiros::vehicleRunWorker()
+{
+    ROS_INFO("vehicle_interface_djiros::vehicleRunWorker() : Worker Thread Started OK");
+    ros::spin();    
+}
+
+//*****************************************************************************
+//*
+//* shutdown();
+//*
+//******************************************************************************
+
+vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
+{
+    ROS_INFO("vehicle_interface_djiros::vehicleRunWorker() : Stopping Worker Thread");
+    ros::shutdown();
     return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
 }
 

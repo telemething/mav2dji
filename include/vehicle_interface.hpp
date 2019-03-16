@@ -43,6 +43,8 @@ class vehicle_interface
 
     virtual int init();
     virtual vehicle_interface_ret activate() = 0;
+    virtual vehicle_interface_ret startVehicleAsync() = 0;
+    virtual vehicle_interface_ret stopVehicle() = 0;
 };
 
 } /* namespace mav2dji*/
