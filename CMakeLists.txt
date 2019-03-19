@@ -201,6 +201,7 @@ include_directories(
 
 
 add_executable(mav2dji_ros_node
+  src/vehicle_telemetry.cpp
   src/vehicle_interface_djiros.cpp
   src/vehicle_info.cpp
   src/vehicle_interface.cpp
