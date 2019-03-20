@@ -70,3 +70,15 @@
 5	3541	1553040369	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
 5	3152	1553040547	CMakeFiles/mav2dji_ros_node.dir/src/vehicle_telemetry.cpp.o	9034ee02d15dcff5
 3152	3367	1553040547	devel/lib/mav2dji/mav2dji_ros_node	543f545272ef9bff
+6	3141	1553041534	CMakeFiles/mav2dji_ros_node.dir/src/vehicle_telemetry.cpp.o	9034ee02d15dcff5
+3141	3353	1553041534	devel/lib/mav2dji/mav2dji_ros_node	543f545272ef9bff
+5	3395	1553041979	CMakeFiles/mav2dji_ros_node.dir/src/mav2dji_ros_node.cpp.o	81f0be22ca0975b5
+5	3419	1553041979	CMakeFiles/mav2dji_ros_node.dir/src/vehicle_telemetry.cpp.o	9034ee02d15dcff5
+5	3407	1553042154	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+5	3159	1553042228	CMakeFiles/mav2dji_ros_node.dir/src/mav2dji_ros_node.cpp.o	81f0be22ca0975b5
+4	3355	1553042301	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+6	3264	1553042346	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+3264	3487	1553042347	devel/lib/mav2dji/mav2dji_ros_node	543f545272ef9bff
+6	3409	1553042358	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+5	3288	1553042406	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+3288	3511	1553042406	devel/lib/mav2dji/mav2dji_ros_node	543f545272ef9bff

@@ -12,6 +12,7 @@
 #include <thread>
 #include <mav_udp.hpp>
 #include <mav_message_processor.hpp>
+#include <vehicle_telemetry.hpp>
 
 namespace mav2dji
 {
@@ -36,7 +37,7 @@ class vehicle
  private:
 
    VehicleInfo vehicleInfo;
-
+   
    int mavlinkSystemId;
    int mavlinkComponentId;
 
@@ -46,6 +47,7 @@ class vehicle
    std::shared_ptr<mavvehiclelib::mav_udp> udpConnection;
    std::shared_ptr<mav_message> mavMessageProcessor;
    std::shared_ptr<vehicle_interface> vehicleInterface;
+   std::shared_ptr<vehicle_telemetry> vehicleTelemetry;
 
    int init();
 };

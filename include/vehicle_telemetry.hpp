@@ -110,14 +110,12 @@ class telemetry_source
 
    virtual telemetry_interface_ret startTelemetryAsync()
    {
-        ROS_INFO("telemetry_interface::startVehicleAsync() : Starting Worker Thread");
+      mavlinkSystemId = VehicleInfo::getMavlinkSystemId();
+      mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
+      sendMavMessageCallback = VehicleInfo::getSendMavMessageCallback();
 
-        //telemetryRunWorkerThread = std::thread(
-        //    &telemetry_source::telemetryRunWorker, this);
-
-        telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
-
-        return telemetry_interface_ret(telemetry_interface_ret::resultEnum::success);    
+      telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
+      return telemetry_interface_ret(telemetry_interface_ret::resultEnum::success);    
    }
 
    static uint64_t microsSinceEpoch()
@@ -135,15 +133,15 @@ class telemetry_source
    virtual telemetry_interface_ret stopTelemetry(){};
    std::shared_ptr<ros::Rate> workerRosRate;
 
-   int mavlinkSystemId = 1;      //*** TODO * Set This
-   int mavlinkComponentId = 0;   //*** TODO * Set This
+   int mavlinkSystemId = 1;      
+   int mavlinkComponentId = 0;   
 
  private:
 
    std::thread telemetryRunWorkerThread;
    Trigger trigger_;
    telemetryRunWorkerType telemetryRunWorker_;
-   MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  //*** TODO * Set This
+   MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
     
 };
 
@@ -160,7 +158,7 @@ class vehicle_telemetry
 
     //int init();
    telemetry_interface_ret addTelemetrySource(
-        telemetry_source* telemSource, telemetry_source::Trigger trigger)
+        std::shared_ptr<telemetry_source> telemSource, telemetry_source::Trigger trigger)
    {
       telemSource->init(trigger);
       telemSources.push_back(telemSource);
@@ -168,7 +166,7 @@ class vehicle_telemetry
     
    telemetry_interface_ret startTelemetrySourceAsync()
    {
-      for(telemetry_source* ts : telemSources)
+      for(auto ts : telemSources)
       {
          ts->startTelemetryAsync();
       }
@@ -176,7 +174,7 @@ class vehicle_telemetry
 
    telemetry_interface_ret stopTelemetrySource()
    {
-      for(telemetry_source* ts : telemSources)
+      for(auto ts : telemSources)
       {
          ts->stopTelemetry();
       }
@@ -184,7 +182,7 @@ class vehicle_telemetry
 
  private:
 
-    std::vector<telemetry_source*> telemSources;
+    std::vector<std::shared_ptr<telemetry_source>> telemSources;
 
 };
 

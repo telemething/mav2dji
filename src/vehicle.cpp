@@ -99,6 +99,12 @@ int vehicle::startVehicle()
 
     udpConnection->startConnection();
 
+    //vehicleTelemetry = std::make_shared<vehicle_telemetry>();
+
+    //vehicleTelemetry->addTelemetrySource(
+    //  std::make_shared<telemetry_source_global_position_int>(), 
+    //  telemetry_source::Trigger(telemetry_source::Trigger::triggeTypeEnum::period, 1000) );
+
     return 0;
 }
 
