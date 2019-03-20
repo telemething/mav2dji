@@ -68,7 +68,7 @@ int vehicle::init()
   vehicleInterface = std::make_shared<vehicle_interface_djiros>();
   vehicleInfo.setVehicleInterface(vehicleInterface);
 
-  vehicleTelemetry = std::make_shared<vehicle_telemetry>();
+  vehicleTelemetry = std::make_shared<VehicleTelemetry>();
 }
 
 //*****************************************************************************
@@ -114,8 +114,24 @@ int vehicle::startTelemetry()
 {
 
   auto ret = vehicleTelemetry->addTelemetrySource(
-    std::make_shared<telemetry_source_global_position_int>(), 
-    telemetry_source::Trigger(telemetry_source::Trigger::triggeTypeEnum::period, 1000) );
+    std::make_shared<TelemetrySource_GlobalPositionInt>(), 
+    TelemetrySource::Trigger(1000) );
+
+  ret = vehicleTelemetry->addTelemetrySource(
+    std::make_shared<TelemetrySource_Attitude>(), 
+    TelemetrySource::Trigger(1000) );
+
+  ret = vehicleTelemetry->addTelemetrySource(
+    std::make_shared<TelemetrySource_LocalPositionNed>(), 
+    TelemetrySource::Trigger(1000) );
+
+  ret = vehicleTelemetry->addTelemetrySource(
+    std::make_shared<TelemetrySource_Heartbeat>(), 
+    TelemetrySource::Trigger(1000) );
+
+  ret = vehicleTelemetry->addTelemetrySource(
+    std::make_shared<TelemetrySource_SysStatus>(), 
+    TelemetrySource::Trigger(1000) );
 
   ret = vehicleTelemetry->startTelemetrySourcesAsync(); //*** TODO * Inspect ret
 

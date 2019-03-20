@@ -47,7 +47,7 @@ class vehicle
    std::shared_ptr<mavvehiclelib::mav_udp> udpConnection;
    std::shared_ptr<mav_message> mavMessageProcessor;
    std::shared_ptr<vehicle_interface> vehicleInterface;
-   std::shared_ptr<vehicle_telemetry> vehicleTelemetry;
+   std::shared_ptr<VehicleTelemetry> vehicleTelemetry;
 
    int startTelemetry();
    int init();

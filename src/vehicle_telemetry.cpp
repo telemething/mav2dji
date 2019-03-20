@@ -21,37 +21,13 @@ namespace mav2dji
 
 //*****************************************************************************
 //*
-//*
-//*
-//******************************************************************************
-
-telemetry_source_global_position_int::telemetry_source_global_position_int()
-{
-    setTlemetryWorker(std::bind(
-      &telemetry_source_global_position_int::telemetryRunWorker, this));
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//******************************************************************************
-
-telemetry_source_global_position_int::~telemetry_source_global_position_int()
-{
-}
-
-//*****************************************************************************
-//*
 //* 
 //*
 //******************************************************************************
 
-void telemetry_source_global_position_int::telemetryRunWorker()
+void TelemetrySource_GlobalPositionInt::telemetryRunWorker()
 {
-    ROS_INFO("telemetry_source_global_position_int : Worker Thread Started OK");
-
-    mavlink_message_t mavlinkMsg;
+    ROS_INFO("TelemetrySource_GlobalPositionInt : Worker Thread Started OK");
 
     while (ros::ok())
     {
@@ -78,7 +54,91 @@ void telemetry_source_global_position_int::telemetryRunWorker()
 			microsSinceEpoch(), lat, lon, alt, relative_alt, vx, vy, vz, hdg );
 
 		sendMavMessageToGcs(&mavlinkMsg);
+        workerRosRate->sleep();
+    }
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+void TelemetrySource_Attitude::telemetryRunWorker()
+{
+    ROS_INFO("TelemetrySource_Attitude : Worker Thread Started OK");
+
+    while (ros::ok())
+    {
+		mavlink_msg_attitude_pack(mavlinkSystemId, mavlinkComponentId, &mavlinkMsg, 
+			microsSinceEpoch(), 1.2, 1.7, 3.14, 0.01, 0.02, 0.03);
 					
+		sendMavMessageToGcs(&mavlinkMsg);
+        workerRosRate->sleep();
+    }
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+void TelemetrySource_LocalPositionNed::telemetryRunWorker()
+{
+    ROS_INFO("TelemetrySource_LocalPositionNed : Worker Thread Started OK");
+
+	float position[6] = {};
+
+    while (ros::ok())
+    {
+		mavlink_msg_local_position_ned_pack(mavlinkSystemId, mavlinkComponentId, 
+			&mavlinkMsg, microsSinceEpoch(), 
+			position[0], position[1], position[2],
+			position[3], position[4], position[5]);
+					
+		sendMavMessageToGcs(&mavlinkMsg);
+        workerRosRate->sleep();
+    }
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+void TelemetrySource_Heartbeat::telemetryRunWorker()
+{
+    ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
+
+    while (ros::ok())
+    {
+		mavlink_msg_heartbeat_pack(mavlinkSystemId, mavlinkComponentId, 
+			&mavlinkMsg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, 
+			MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
+					
+		sendMavMessageToGcs(&mavlinkMsg);
+        workerRosRate->sleep();
+    }
+}
+
+//*****************************************************************************
+//*
+//* 
+//*
+//******************************************************************************
+
+void TelemetrySource_SysStatus::telemetryRunWorker()
+{
+    ROS_INFO("TelemetrySource_SysStatus : Worker Thread Started OK");
+
+    while (ros::ok())
+    {
+		mavlink_msg_sys_status_pack(mavlinkSystemId, mavlinkComponentId, 
+			&mavlinkMsg, 0, 0, 0, 500, 11000, -1, -1, 0, 0, 0, 0, 0, 0);
+					
+		sendMavMessageToGcs(&mavlinkMsg);
         workerRosRate->sleep();
     }
 }

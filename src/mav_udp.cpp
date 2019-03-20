@@ -144,8 +144,8 @@ MavUdpRet mav_udp::startConnection()
 
     listenWorkerThread = std::thread(
 			&mav_udp::listenWorker, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
-    sendWorkerThread = std::thread(
-			&mav_udp::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+    //sendWorkerThread = std::thread(
+		//	&mav_udp::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
 
 		return MavUdpRet();
 }
@@ -341,7 +341,7 @@ void mav_udp::parseMavlink(uint8_t chan, uint8_t* in, mavlink_message_t* r_messa
 //*
 //******************************************************************************
 
-void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
+/*void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 {
 	char target_ip[100];
 	
@@ -366,31 +366,30 @@ void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 	
 	//for (;;) 
   while(listenWorkerThreadShouldRun)
-  {
-		
-		/*Send Heartbeat */
+  {		
+		/*Send Heartbeat 
 		mavlink_msg_heartbeat_pack(mavlinkSystemId, mavlinkComponentId, &msg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
 		
-		/* Send Status */
+		//* Send Status 
 		mavlink_msg_sys_status_pack(mavlinkSystemId, mavlinkComponentId, &msg, 0, 0, 0, 500, 11000, -1, -1, 0, 0, 0, 0, 0, 0);
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcSockAddr, sizeof (struct sockaddr_in));
 		
-		/* Send Local Position */
+		//* Send Local Position 
 		mavlink_msg_local_position_ned_pack(mavlinkSystemId, mavlinkComponentId, &msg, microsSinceEpoch(), 
 										position[0], position[1], position[2],
 										position[3], position[4], position[5]);
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
 		
-		/* Send attitude */
+		// Send attitude 
 		mavlink_msg_attitude_pack(mavlinkSystemId, mavlinkComponentId, &msg, microsSinceEpoch(), 1.2, 1.7, 3.14, 0.01, 0.02, 0.03);
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
 
-/*
+
 		//* @param time_boot_ms [ms] Timestamp (time since system boot).
  		//* @param lat [degE7] Latitude, expressed
  		//* @param lon [degE7] Longitude, expressed
@@ -414,11 +413,10 @@ void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 			microsSinceEpoch(), lat, lon, alt, relative_alt, vx, vy, vz, hdg );
 
 		sendMavMessageToGcs(&msg);
-*/
 					
 		memset(buf, 0, BUFFER_LENGTH);
 		sleep(1); // Sleep one second
   }
-}
+}*/
 
 }

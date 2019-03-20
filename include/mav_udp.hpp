@@ -101,7 +101,7 @@ class mav_udp
       void parseMavlink(uint8_t chan, uint8_t* c, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status);
       int createSocket(std::string localAddress, int localPort, bool blocking);
       void listenWorker(int sock, std::string fromAddress, int fromPort);
-      void exampleLoop(int sock, std::string toAddress, int toPort);
+      //void exampleLoop(int sock, std::string toAddress, int toPort);
 };
 
 } /* namespace mavvehicle*/

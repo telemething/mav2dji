@@ -37,7 +37,7 @@ namespace mav2dji
 //*
 //*****************************************************************************
 
-class telemetry_interface_ret
+class TelemetryRet
 {
    public:
 
@@ -45,25 +45,25 @@ class telemetry_interface_ret
       resultEnum Result;
       std::string Description;
 
-      telemetry_interface_ret(resultEnum result, std::string description )
+      TelemetryRet(resultEnum result, std::string description )
       {
          Result = result;
          Description = description;
       }
 
-      telemetry_interface_ret(resultEnum result )
+      TelemetryRet(resultEnum result )
       {
          Result = result;
          Description = "";
       }
 
-      telemetry_interface_ret()
+      TelemetryRet()
       {
          Result = resultEnum::success;
          Description = "";
       }
 
-      ~telemetry_interface_ret()
+      ~TelemetryRet()
       {      }
 };
 
@@ -71,7 +71,7 @@ class telemetry_interface_ret
 //*
 //*****************************************************************************
 
-class telemetry_source 
+class TelemetrySource 
 {
  public:
 
@@ -81,8 +81,8 @@ class telemetry_source
    {
       public:
 
-        enum triggeTypeEnum {period, asAvail};
-        triggeTypeEnum getTriggeType(){return triggeType_;};
+        enum triggerTypeEnum {period, asAvail};
+        triggerTypeEnum getTriggerType(){return triggerType_;};
         int getTimeSpanMs(){return timeSpanMs_;}; 
         int getTimeSpanHz(){return 1000.0/(double)timeSpanMs_;}; 
         std::shared_ptr<ros::Rate> getTimeSpanRate()
@@ -91,20 +91,26 @@ class telemetry_source
         explicit Trigger(){};
         ~Trigger(){};
 
-        Trigger(triggeTypeEnum triggeType, int timeSpanMs)
+        Trigger(triggerTypeEnum triggerType, int timeSpanMs)
         {
-            triggeType_ = triggeType;
+            triggerType_ = triggerType;
+            timeSpanMs_ = timeSpanMs;
+        }
+
+        Trigger(int timeSpanMs)
+        {
+            triggerType_ = triggerTypeEnum::period;
             timeSpanMs_ = timeSpanMs;
         }
 
       private:
 
-        triggeTypeEnum triggeType_;
+        triggerTypeEnum triggerType_;
         int timeSpanMs_; 
    };
 
-   telemetry_source(){};
-   ~telemetry_source(){};
+   TelemetrySource(){};
+   ~TelemetrySource(){};
 
    Trigger getTrigger(){ return trigger_;}
 
@@ -117,14 +123,14 @@ class telemetry_source
    virtual int init(Trigger trigger)
    { trigger_ = trigger; workerRosRate = trigger_.getTimeSpanRate(); };
 
-   virtual telemetry_interface_ret startTelemetryAsync()
+   virtual TelemetryRet startTelemetryAsync()
    {
       mavlinkSystemId = VehicleInfo::getMavlinkSystemId();
       mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
       sendMavMessageCallback = VehicleInfo::getSendMavMessageCallback();
 
       telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
-      return telemetry_interface_ret(telemetry_interface_ret::resultEnum::success);    
+      return TelemetryRet(TelemetryRet::resultEnum::success);    
    }
 
    static uint64_t microsSinceEpoch()
@@ -139,8 +145,9 @@ class telemetry_source
       return micros;
    }
     
-   virtual telemetry_interface_ret stopTelemetry(){};
+   virtual TelemetryRet stopTelemetry(){};
    std::shared_ptr<ros::Rate> workerRosRate;
+   mavlink_message_t mavlinkMsg;
 
    int mavlinkSystemId = 1;      
    int mavlinkComponentId = 0;   
@@ -158,48 +165,48 @@ class telemetry_source
 //*
 //*****************************************************************************
 
-class vehicle_telemetry 
+class VehicleTelemetry 
 {
  public:
 
-   typedef std::shared_ptr<telemetry_interface_ret> TelemRet;
+   typedef std::shared_ptr<TelemetryRet> TelemRet;
 
-   explicit vehicle_telemetry(){};
-   ~vehicle_telemetry(){};
+   explicit VehicleTelemetry(){};
+   ~VehicleTelemetry(){};
 
     //int init();
-   telemetry_interface_ret addTelemetrySource(
-        std::shared_ptr<telemetry_source> telemSource, telemetry_source::Trigger trigger)
+   TelemetryRet addTelemetrySource(
+        std::shared_ptr<TelemetrySource> telemSource, TelemetrySource::Trigger trigger)
    {
       telemSource->init(trigger);
       telemSources.push_back(telemSource);
 
-      return telemetry_interface_ret();
+      return TelemetryRet();
    };
     
-   telemetry_interface_ret startTelemetrySourcesAsync()
+   TelemetryRet startTelemetrySourcesAsync()
    {
       for(auto ts : telemSources)
       {
          ts->startTelemetryAsync();
       }
 
-      return telemetry_interface_ret();
+      return TelemetryRet();
    }
 
-   telemetry_interface_ret stopTelemetrySources()
+   TelemetryRet stopTelemetrySources()
    {
       for(auto ts : telemSources)
       {
          ts->stopTelemetry();
       }
 
-      return telemetry_interface_ret();
+      return TelemetryRet();
    }
 
  private:
 
-    std::vector<std::shared_ptr<telemetry_source>> telemSources;
+    std::vector<std::shared_ptr<TelemetrySource>> telemSources;
 
 };
 
@@ -207,16 +214,94 @@ class vehicle_telemetry
 //*
 //*****************************************************************************
 
-class telemetry_source_global_position_int : public telemetry_source
+class TelemetrySource_GlobalPositionInt : public TelemetrySource
 {
  public:
 
-    explicit telemetry_source_global_position_int();
-    ~telemetry_source_global_position_int();
+   explicit TelemetrySource_GlobalPositionInt()
+   { setTlemetryWorker(std::bind(
+         &TelemetrySource_GlobalPositionInt::telemetryRunWorker, this)); };
+   ~TelemetrySource_GlobalPositionInt(){};
 
  private:
 
     void telemetryRunWorker();
 };
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_Attitude : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_Attitude()
+   { setTlemetryWorker(std::bind(
+         &TelemetrySource_Attitude::telemetryRunWorker, this)); };
+   ~TelemetrySource_Attitude(){};
+
+ private:
+
+    void telemetryRunWorker();
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_LocalPositionNed : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_LocalPositionNed()
+   { setTlemetryWorker(std::bind(
+         &TelemetrySource_LocalPositionNed::telemetryRunWorker, this)); };
+   ~TelemetrySource_LocalPositionNed(){};
+
+ private:
+
+    void telemetryRunWorker();
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_Heartbeat : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_Heartbeat()
+   { setTlemetryWorker(std::bind(
+         &TelemetrySource_Heartbeat::telemetryRunWorker, this)); };
+   ~TelemetrySource_Heartbeat(){};
+
+ private:
+
+    void telemetryRunWorker();
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_SysStatus : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_SysStatus()
+   { setTlemetryWorker(std::bind(
+         &TelemetrySource_SysStatus::telemetryRunWorker, this)); };
+   ~TelemetrySource_SysStatus(){};
+
+ private:
+
+    void telemetryRunWorker();
+};
+
+
+
+
 
 } /* namespace mav2dji*/
