@@ -95,7 +95,7 @@ class mav2dji_message_base
 
     MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;
 
-    uint64_t microsSinceEpoch();
+    static uint64_t microsSinceEpoch();
     uint64_t hrt_absolute_time();
     void send_statustext_critical(const char *string);
 

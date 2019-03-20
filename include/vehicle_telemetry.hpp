@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <vehicle_Info.hpp>
 #include <vehicle_interface.hpp>
 #include <thread>
 #include <chrono>
@@ -65,13 +66,18 @@ class telemetry_source
 {
  public:
 
-    class Trigger
-    {
+   typedef std::function<void()> telemetryRunWorkerType;
+
+   class Trigger
+   {
       public:
 
         enum triggeTypeEnum {period, asAvail};
         triggeTypeEnum getTriggeType(){return triggeType_;};
         int getTimeSpanMs(){return timeSpanMs_;}; 
+        int getTimeSpanHz(){return 1000.0/(double)timeSpanMs_;}; 
+        std::shared_ptr<ros::Rate> getTimeSpanRate()
+        { return std::make_shared<ros::Rate>(1000.0/(double)timeSpanMs_); }
 
         explicit Trigger(){};
         ~Trigger(){};
@@ -86,29 +92,58 @@ class telemetry_source
 
         triggeTypeEnum triggeType_;
         int timeSpanMs_; 
-    };
+   };
 
-    telemetry_source(){};
-    ~telemetry_source(){};
+   telemetry_source(){};
+   ~telemetry_source(){};
 
-    virtual int init(Trigger trigger){trigger_ = trigger;};
-    virtual telemetry_interface_ret startTelemetryAsync()
-    {
+   Trigger getTrigger(){ return trigger_;}
+
+   int sendMavMessageToGcs(const mavlink_message_t* msg)
+   { return sendMavMessageCallback(msg); };
+
+   void setTlemetryWorker(telemetryRunWorkerType telemetryRunWorker)
+   { telemetryRunWorker_ = telemetryRunWorker; }
+
+   virtual int init(Trigger trigger)
+   { trigger_ = trigger; workerRosRate = trigger_.getTimeSpanRate(); };
+
+   virtual telemetry_interface_ret startTelemetryAsync()
+   {
         ROS_INFO("telemetry_interface::startVehicleAsync() : Starting Worker Thread");
 
-        telemetryRunWorkerThread = std::thread(
-            &telemetry_source::telemetryRunWorker, this);
+        //telemetryRunWorkerThread = std::thread(
+        //    &telemetry_source::telemetryRunWorker, this);
+
+        telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
 
         return telemetry_interface_ret(telemetry_interface_ret::resultEnum::success);    
-    }
+   }
+
+   static uint64_t microsSinceEpoch()
+   {
+      struct timeval tv;
+      
+      uint64_t micros = 0;
+      
+      gettimeofday(&tv, NULL);  
+      micros =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
+      
+      return micros;
+   }
     
-    virtual telemetry_interface_ret stopTelemetry(){};
-    virtual void telemetryRunWorker(){};
+   virtual telemetry_interface_ret stopTelemetry(){};
+   std::shared_ptr<ros::Rate> workerRosRate;
+
+   int mavlinkSystemId = 1;      //*** TODO * Set This
+   int mavlinkComponentId = 0;   //*** TODO * Set This
 
  private:
 
-    std::thread telemetryRunWorkerThread;
-    Trigger trigger_;
+   std::thread telemetryRunWorkerThread;
+   Trigger trigger_;
+   telemetryRunWorkerType telemetryRunWorker_;
+   MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  //*** TODO * Set This
     
 };
 
@@ -147,7 +182,6 @@ class vehicle_telemetry
       }
    }
 
-    
  private:
 
     std::vector<telemetry_source*> telemSources;
@@ -165,17 +199,9 @@ class telemetry_source_global_position_int : public telemetry_source
     explicit telemetry_source_global_position_int();
     ~telemetry_source_global_position_int();
 
-    int init(Trigger trigger){ telemetry_source::init(trigger); };
-    telemetry_interface_ret startTelemetryAsync();
-    telemetry_interface_ret stopTelemetry();
-
  private:
 
-    std::thread telemetryRunWorkerThread;
     void telemetryRunWorker();
 };
-
-
-
 
 } /* namespace mav2dji*/
