@@ -49,6 +49,8 @@ int vehicle::init()
   mavlinkSystemId = 1;
   mavlinkComponentId = 1;
 
+  mav2dji::ParamsRet ret = vehicleInfo.readParams();
+
   // register the vehicle's mavlink system and component IDs
   vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
   vehicleInfo.setMavlinkComponentId(mavlinkComponentId);
@@ -63,12 +65,10 @@ int vehicle::init()
 
   // create an instance of the vehicle specific interface class, cast as the 
   // interface base class
-
   vehicleInterface = std::make_shared<vehicle_interface_djiros>();
   vehicleInfo.setVehicleInterface(vehicleInterface);
 
-  //vehicleInfo.setVehicleInterface( std::static_pointer_cast<vehicle_interface>
-  //  (std::make_shared<vehicle_interface_djiros>()));
+  vehicleTelemetry = std::make_shared<vehicle_telemetry>();
 }
 
 //*****************************************************************************
@@ -85,7 +85,7 @@ int vehicle::startVehicle()
   udpConnection->addGotMavMessageCallback(std::bind(
     &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
-  vehicle_interface_ret ret = vehicleInterface->activate();  
+  auto ret = vehicleInterface->activate();  
 
   if( ret.Result != vehicle_interface_ret::resultEnum::success )
   {
@@ -97,13 +97,9 @@ int vehicle::startVehicle()
     return -1;
   }
 
-  udpConnection->startConnection();
+  auto ret2 = udpConnection->startConnection();  //*** TODO * Inspect ret
 
-  vehicleTelemetry = std::make_shared<vehicle_telemetry>();
-
-  vehicleTelemetry->addTelemetrySource(
-    std::make_shared<telemetry_source_global_position_int>(), 
-    telemetry_source::Trigger(telemetry_source::Trigger::triggeTypeEnum::period, 1000) );
+  auto ret3 = startTelemetry();    //*** TODO * Inspect ret
 
   return 0;
 }
@@ -116,11 +112,12 @@ int vehicle::startVehicle()
 
 int vehicle::startTelemetry()
 {
-  vehicleTelemetry = std::make_shared<vehicle_telemetry>();
 
-  vehicleTelemetry->addTelemetrySource(
+  auto ret = vehicleTelemetry->addTelemetrySource(
     std::make_shared<telemetry_source_global_position_int>(), 
     telemetry_source::Trigger(telemetry_source::Trigger::triggeTypeEnum::period, 1000) );
+
+  ret = vehicleTelemetry->startTelemetrySourcesAsync(); //*** TODO * Inspect ret
 
   return 0;
 }
@@ -133,6 +130,9 @@ int vehicle::startTelemetry()
 
 int vehicle::stopVehicle()
 {
+  if(nullptr != vehicleTelemetry)
+    vehicleTelemetry->stopTelemetrySources();
+    
   if(nullptr != udpConnection)
     udpConnection->stopConnection();
     

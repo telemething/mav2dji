@@ -56,6 +56,15 @@ class telemetry_interface_ret
          Result = result;
          Description = "";
       }
+
+      telemetry_interface_ret()
+      {
+         Result = resultEnum::success;
+         Description = "";
+      }
+
+      ~telemetry_interface_ret()
+      {      }
 };
 
 //*****************************************************************************
@@ -153,6 +162,8 @@ class vehicle_telemetry
 {
  public:
 
+   typedef std::shared_ptr<telemetry_interface_ret> TelemRet;
+
    explicit vehicle_telemetry(){};
    ~vehicle_telemetry(){};
 
@@ -162,22 +173,28 @@ class vehicle_telemetry
    {
       telemSource->init(trigger);
       telemSources.push_back(telemSource);
+
+      return telemetry_interface_ret();
    };
     
-   telemetry_interface_ret startTelemetrySourceAsync()
+   telemetry_interface_ret startTelemetrySourcesAsync()
    {
       for(auto ts : telemSources)
       {
          ts->startTelemetryAsync();
       }
+
+      return telemetry_interface_ret();
    }
 
-   telemetry_interface_ret stopTelemetrySource()
+   telemetry_interface_ret stopTelemetrySources()
    {
       for(auto ts : telemSources)
       {
          ts->stopTelemetry();
       }
+
+      return telemetry_interface_ret();
    }
 
  private:

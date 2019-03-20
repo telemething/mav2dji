@@ -9,6 +9,7 @@
 #pragma once
 
 #include <vehicle_interface.hpp>
+#include <vehicle_Info.hpp>
 #include <thread>
 
 // ROS

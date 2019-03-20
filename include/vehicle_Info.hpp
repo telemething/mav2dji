@@ -4,6 +4,7 @@
 #include <functional>
 #include <mavlink/common/mavlink.h>
 #include <vehicle_interface_djiros.hpp>
+#include <params.hpp>
 
 //typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
 
@@ -25,15 +26,6 @@ class VehicleInfo
     VehicleInfo();
     ~VehicleInfo();
 
-    // instance members for setters
-
-    int setMavlinkSystemId(int val);
-    int setMavlinkComponentId(int val);
-    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-    void setVehicleInterface(
-      std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface);
-
     // static accessors for consumers
 
     static int getMavlinkSystemId();
@@ -42,5 +34,20 @@ class VehicleInfo
     static MavlinkMessageInfo::mavMessageCallbackType getAddMavMessageCallback();
     static std::shared_ptr<mav2dji::vehicle_interface> getVehicleInterface();
     static uint8_t* getPx4GitVersion();
+    static std::shared_ptr<mav2dji::Params> params;
+
+    // instance members for setters
+
+    int setMavlinkSystemId(int val);
+    int setMavlinkComponentId(int val);
+    void setSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+    void setGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
+    void setVehicleInterface(
+      std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface);
+    mav2dji::ParamsRet readParams();
+
+  private:
+
+    std::shared_ptr<mav2dji::Params> params_;
 };
 

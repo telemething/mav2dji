@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+//#include <vehicle_Info.hpp>
 
 namespace mav2dji
 {

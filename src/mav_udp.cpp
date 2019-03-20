@@ -136,15 +136,18 @@ uint64_t mav_udp::microsSinceEpoch()
 //*
 //******************************************************************************
 
-void mav_udp::startConnection()
+MavUdpRet mav_udp::startConnection()
 {
     listenWorkerThreadShouldRun = true;
 
 		vehicleMavlinkSocket = createSocket(vehicleUdpAddress, vehicleUdpPort, true);
-		//int socket2 = createSocket(vehicleUdpAddress, vehicleUdpPort);
 
-    listenWorkerThread = std::thread(&mav_udp::listenWorker, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
-    sendWorkerThread = std::thread(&mav_udp::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+    listenWorkerThread = std::thread(
+			&mav_udp::listenWorker, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+    sendWorkerThread = std::thread(
+			&mav_udp::exampleLoop, this, vehicleMavlinkSocket, qgcUdpAddress, qgcUdpPort);
+
+		return MavUdpRet();
 }
 
 //*****************************************************************************
@@ -166,12 +169,16 @@ void mav_udp::stopConnection()
 
 int mav_udp::sendMavMessageToGcs(const mavlink_message_t* pMsg)
 {
-		auto len = mavlink_msg_to_send_buffer(udpSendBuffer, pMsg);
+	// one thread at a time, lck unlocks when out of scope
+	std::unique_lock<std::mutex> lck (sendMavMessageToGcsMutex);
 
-		auto bytes_sent = sendto(vehicleMavlinkSocket, udpSendBuffer, len, 0, 
-			(struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
+	auto len = mavlink_msg_to_send_buffer(udpSendBuffer, pMsg);
 
-		memset(udpSendBuffer, 0, BUFFER_LENGTH);
+	auto bytes_sent = sendto(vehicleMavlinkSocket, udpSendBuffer, len, 0, 
+		(struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
+
+	// we reuse the same buffer every time, clean it
+	memset(udpSendBuffer, 0, BUFFER_LENGTH);
 }
 
 //*****************************************************************************
@@ -383,6 +390,7 @@ void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 		len = mavlink_msg_to_send_buffer(buf, &msg);
 		bytes_sent = sendto(sock, buf, len, 0, (struct sockaddr*)&gcSockAddr, sizeof(struct sockaddr_in));
 
+/*
 		//* @param time_boot_ms [ms] Timestamp (time since system boot).
  		//* @param lat [degE7] Latitude, expressed
  		//* @param lon [degE7] Longitude, expressed
@@ -406,6 +414,7 @@ void mav_udp::exampleLoop(int sock, std::string toAddress, int toPort)
 			microsSinceEpoch(), lat, lon, alt, relative_alt, vx, vy, vz, hdg );
 
 		sendMavMessageToGcs(&msg);
+*/
 					
 		memset(buf, 0, BUFFER_LENGTH);
 		sleep(1); // Sleep one second

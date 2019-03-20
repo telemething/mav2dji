@@ -33,7 +33,7 @@ class vehicle
    int getMavlinkComponentId() { return mavlinkComponentId; }
    int sendMavMessageToGcs(const mavlink_message_t* msg){ return udpConnection->sendMavMessageToGcs(msg);};
    bool isVehicleRunning();
-
+   
  private:
 
    VehicleInfo vehicleInfo;

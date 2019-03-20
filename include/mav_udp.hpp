@@ -7,26 +7,53 @@
  */
 
 #pragma once
-//#include <mavlink/common/mavlink.h>
-//#include <functional>
 
 #include <vehicle_Info.hpp>
-
-#include <thread>
+#include <thread>      
+#include <mutex> 
 #include <arpa/inet.h>
 
 namespace mavvehiclelib
 {
 
-/*class mavvehicleclient
-{
-  public:
-
-   virtual int vehicleMavMessageCallback(int arg)
-   { return arg; }
-};*/
-
+// this needs to be at least MAVLINK_MAX_PAYLOAD_LEN + MAVLINK_NUM_CHECKSUM_BYTES 
+//    + 7 + MAVLINK_SIGNATURE_BLOCK_LEN + 14. Let's round way up. 
 #define UDP_BUFFER_LENGTH 2041
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class MavUdpRet
+{
+   public:
+
+      enum resultEnum {success, failure};
+      resultEnum Result;
+      std::string Description;
+
+      MavUdpRet(resultEnum result, std::string description )
+      {
+         Result = result;
+         Description = description;
+      }
+
+      MavUdpRet(resultEnum result )
+      {
+         Result = result;
+         Description = "";
+      }
+
+      MavUdpRet()
+      {
+         Result = resultEnum::success;
+         Description = "";
+      }
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
 
 class mav_udp
 {
@@ -38,13 +65,10 @@ class mav_udp
     explicit mav_udp(MavlinkMessageInfo::mavMessageCallbackType callback);
     ~mav_udp();
 
-    //uint8_t* getGitVersion();
-
     int getMavlinkSystemId() { return mavlinkSystemId; }
     int getMavlinkComponentId() { return mavlinkComponentId; }
 
-
-    void startConnection();
+    MavUdpRet startConnection();
     void stopConnection();
 
     void addGotMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
@@ -67,6 +91,7 @@ class mav_udp
 
       std::thread listenWorkerThread;
       std::thread sendWorkerThread;
+      std::mutex sendMavMessageToGcsMutex; 
       bool listenWorkerThreadShouldRun = false;
       bool sendWorkerThreadShouldRun = false;
       uint64_t microsSinceEpoch();

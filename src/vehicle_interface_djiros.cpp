@@ -9,7 +9,6 @@
 #include <vehicle_interface_djiros.hpp>
 #include <chrono>
 
-
 //*****************************************************************************
 //*
 //*
@@ -112,6 +111,11 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
     auto ret = vehicle_interface_djiros::connectToRos();
 
     if(!ret.Result == vehicle_interface_ret::resultEnum::success)
+        return ret;
+
+    // This is here for testing. It allows us to proceed without requiring
+    // a connection to a live vehicle.
+    if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
         return ret;
 
     try

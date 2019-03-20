@@ -19,6 +19,7 @@ class ffxxcc
 };
 
 static std::shared_ptr<ffxxcc> singleton;
+std::shared_ptr<mav2dji::Params> VehicleInfo::params;
 
 //*****************************************************************************
 //*
@@ -28,6 +29,8 @@ static std::shared_ptr<ffxxcc> singleton;
 
 VehicleInfo::VehicleInfo()
 {
+    params = std::make_shared<mav2dji::Params>();
+
     if( nullptr == singleton )
         singleton = std::make_shared<ffxxcc>();
 }
@@ -41,6 +44,17 @@ VehicleInfo::VehicleInfo()
 VehicleInfo::~VehicleInfo()
 {
 }
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
+mav2dji::ParamsRet VehicleInfo::readParams()
+{ 
+    return params->readParams();
+};
 
 //*****************************************************************************
 //*
