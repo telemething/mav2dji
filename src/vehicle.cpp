@@ -25,7 +25,6 @@ namespace mav2dji
 
 vehicle::vehicle()
 {
-  init();
 }
 
 //*****************************************************************************
@@ -46,29 +45,47 @@ vehicle::~vehicle()
 
 int vehicle::init()
 {
-  mavlinkSystemId = 1;
-  mavlinkComponentId = 1;
+  try
+  {
+    mavlinkSystemId = 1;
+    mavlinkComponentId = 1;
 
-  mav2dji::ParamsRet ret = vehicleInfo.readParams();
+    mav2dji::ParamsRet ret = vehicleInfo.readParams();
 
-  // register the vehicle's mavlink system and component IDs
-  vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
-  vehicleInfo.setMavlinkComponentId(mavlinkComponentId);
+    // register the vehicle's mavlink system and component IDs
+    vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
+    vehicleInfo.setMavlinkComponentId(mavlinkComponentId);
 
-  // register the 'send a mav message' callback
-  vehicleInfo.setSendMavMessageCallback( std::bind(
-  &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
+    // register the 'send a mav message' callback
+    vehicleInfo.setSendMavMessageCallback( std::bind(
+    &vehicle::sendMavMessageCallback, this, std::placeholders::_1));
 
-  // regsiter the 'got mav message' callback
-  vehicleInfo.setGotMavMessageCallback( std::bind(
-  &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
+    // regsiter the 'got mav message' callback
+    vehicleInfo.setGotMavMessageCallback( std::bind(
+    &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
-  // create an instance of the vehicle specific interface class, cast as the 
-  // interface base class
-  vehicleInterface = std::make_shared<vehicle_interface_djiros>();
-  vehicleInfo.setVehicleInterface(vehicleInterface);
+    // create an instance of the vehicle specific interface class, cast as the 
+    // interface base class
+    vehicleInterface = std::make_shared<vehicle_interface_djiros>();
+    vehicleInfo.setVehicleInterface(vehicleInterface);
 
-  vehicleTelemetry = std::make_shared<VehicleTelemetry>();
+    vehicleTelemetry = std::make_shared<VehicleTelemetry>();
+  }
+  catch(const std::exception& e)
+  {
+    printf("\n\n\n###### vehicle::init() Exception : %s ######\n\n\n", 
+    e.what() );    
+    stopVehicle();
+    return -1;
+  }
+  catch(...)
+  {
+    printf("\n\n\n###### vehicle::init() Uncategorized Exception ######\n\n\n" );    
+    stopVehicle();
+    return -1;
+  }
+
+  return 0;
 }
 
 //*****************************************************************************
@@ -79,28 +96,58 @@ int vehicle::init()
 
 int vehicle::startVehicle()
 {
-  udpConnection = std::make_shared<mavvehiclelib::mav_udp>();
-  mavMessageProcessor  = std::make_shared<mav_message>();
+  try
+  {
+    udpConnection = std::make_shared<mavvehiclelib::mav_udp>();
+    mavMessageProcessor  = std::make_shared<mav_message>();
 
-  udpConnection->addGotMavMessageCallback(std::bind(
-    &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
+    udpConnection->addGotMavMessageCallback(std::bind(
+      &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
-  auto ret = vehicleInterface->activate();  
+    auto ret = vehicleInterface->activate();  
 
-  if( ret.Result != vehicle_interface_ret::resultEnum::success )
+    if( ret.Result != vehicle_interface_ret::resultEnum::success )
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start vehicle interface %s ######\n\n\n", 
+        ret.Description.c_str() );
+      stopVehicle();
+      return -1;
+    }
+
+    auto ret2 = udpConnection->startConnection();  
+
+    if( ret2.Result != mavvehiclelib::MavUdpRet::resultEnum::success )
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start UDP connection : %s ######\n\n\n", 
+        ret.Description.c_str() );    
+      stopVehicle();
+      return -1;
+    }
+
+    auto ret3 = startTelemetry();    
+
+    if( ret3.Result != TelemetryRet::resultEnum::success )
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start telemetry : %s ######\n\n\n", 
+        ret.Description.c_str() );    
+      stopVehicle();
+      return -1;
+    }
+  }
+  catch(const std::exception& e)
   {
     printf("\n\n\n###### vehicle::startVehicle() Exception : %s ######\n\n\n", 
-      ret.Description.c_str() );
-      
+    e.what() );    
     stopVehicle();
-
     return -1;
   }
-
-  auto ret2 = udpConnection->startConnection();  //*** TODO * Inspect ret
-
-  auto ret3 = startTelemetry();    //*** TODO * Inspect ret
-
+  catch(...)
+  {
+    printf("\n\n\n###### vehicle::startVehicle() Uncategorized Exception ######\n\n\n" );    
+    stopVehicle();
+    return -1;
+  }
+  
   return 0;
 }
 
@@ -110,32 +157,29 @@ int vehicle::startVehicle()
 //*
 //*****************************************************************************
 
-int vehicle::startTelemetry()
+TelemetryRet vehicle::startTelemetry()
 {
-
-  auto ret = vehicleTelemetry->addTelemetrySource(
-    std::make_shared<TelemetrySource_GlobalPositionInt>(), 
-    TelemetrySource::Trigger(1000) );
-
-  ret = vehicleTelemetry->addTelemetrySource(
+  std::vector<std::shared_ptr<TelemetrySource>> telemSources = 
+    {std::make_shared<TelemetrySource_GlobalPositionInt>(), 
     std::make_shared<TelemetrySource_Attitude>(), 
-    TelemetrySource::Trigger(1000) );
-
-  ret = vehicleTelemetry->addTelemetrySource(
     std::make_shared<TelemetrySource_LocalPositionNed>(), 
-    TelemetrySource::Trigger(1000) );
-
-  ret = vehicleTelemetry->addTelemetrySource(
     std::make_shared<TelemetrySource_Heartbeat>(), 
-    TelemetrySource::Trigger(1000) );
+    std::make_shared<TelemetrySource_SysStatus>() 
+    };
 
-  ret = vehicleTelemetry->addTelemetrySource(
-    std::make_shared<TelemetrySource_SysStatus>(), 
-    TelemetrySource::Trigger(1000) );
+  auto trigger = TelemetrySource::Trigger(1000);
+  TelemetryRet ret;
 
-  ret = vehicleTelemetry->startTelemetrySourcesAsync(); //*** TODO * Inspect ret
+  for( auto TS : telemSources )
+  {
+    ret = vehicleTelemetry->addTelemetrySource( TS, trigger );
+    if( ret.Result == TelemetryRet::resultEnum::failure )
+      return ret;
+  }
 
-  return 0;
+  ret = vehicleTelemetry->startTelemetrySourcesAsync(); 
+
+  return ret;
 }
 
 //*****************************************************************************
@@ -146,15 +190,22 @@ int vehicle::startTelemetry()
 
 int vehicle::stopVehicle()
 {
-  if(nullptr != vehicleTelemetry)
-    vehicleTelemetry->stopTelemetrySources();
-    
-  if(nullptr != udpConnection)
-    udpConnection->stopConnection();
-    
-  if(nullptr != vehicleInterface)
-    vehicleInterface->stopVehicle();
-
+  try
+  {
+    if(nullptr != vehicleTelemetry)
+      vehicleTelemetry->stopTelemetrySources();
+      
+    if(nullptr != udpConnection)
+      udpConnection->stopConnection();
+      
+    if(nullptr != vehicleInterface)
+      vehicleInterface->stopVehicle();
+  }
+  catch(...)
+  {
+    //*** Just leave
+  }
+  
   stopRunning = true;
   return 0;
 }

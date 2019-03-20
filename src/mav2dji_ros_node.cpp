@@ -27,7 +27,11 @@ int main(int argc, char** argv)
 {
   mav2dji::vehicle djiVehicle;
 
-  djiVehicle.startVehicle();
+  if( 0 > djiVehicle.init() )
+    return -1;
+
+  if( 0 > djiVehicle.startVehicle())
+    return -1;
 
   //*** TODO : Do we need something better here?
   while(djiVehicle.isVehicleRunning())
