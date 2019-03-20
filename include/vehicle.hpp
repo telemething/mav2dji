@@ -49,6 +49,7 @@ class vehicle
    std::shared_ptr<vehicle_interface> vehicleInterface;
    std::shared_ptr<vehicle_telemetry> vehicleTelemetry;
 
+   int startTelemetry();
    int init();
 };
 

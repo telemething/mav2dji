@@ -153,8 +153,8 @@ class vehicle_telemetry
 {
  public:
 
-   explicit vehicle_telemetry();
-   ~vehicle_telemetry();
+   explicit vehicle_telemetry(){};
+   ~vehicle_telemetry(){};
 
     //int init();
    telemetry_interface_ret addTelemetrySource(
