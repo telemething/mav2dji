@@ -33,6 +33,12 @@ class vehicle_interface_ret
          Result = result;
          Description = "";
       }
+
+      vehicle_interface_ret()
+      {
+         Result = resultEnum::success;
+         Description = "";
+      }
 };
 
 class vehicle_interface 
@@ -43,6 +49,7 @@ class vehicle_interface
     ~vehicle_interface();
 
     virtual int init();
+    virtual vehicle_interface_ret connectToPlatform() = 0;
     virtual vehicle_interface_ret activate() = 0;
     virtual vehicle_interface_ret startVehicleAsync() = 0;
     virtual vehicle_interface_ret stopVehicle() = 0;

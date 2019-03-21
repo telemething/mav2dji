@@ -40,6 +40,7 @@ class vehicle_interface_djiros : public vehicle_interface
    ~vehicle_interface_djiros();
 
    int init();
+   vehicle_interface_ret connectToPlatform();
    vehicle_interface_ret activate();
    vehicle_interface_ret startVehicleAsync();
    vehicle_interface_ret stopVehicle();
@@ -54,7 +55,6 @@ class vehicle_interface_djiros : public vehicle_interface
    std::shared_ptr<ros::NodeHandle> rosNodeHandle;
    ros::ServiceClient   drone_activation_service;
 
-   vehicle_interface_ret connectToRos();
    void vehicleRunWorker();
 
 };

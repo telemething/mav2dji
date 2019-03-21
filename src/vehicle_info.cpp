@@ -51,10 +51,10 @@ VehicleInfo::~VehicleInfo()
 //*
 //******************************************************************************
 
-mav2dji::ParamsRet VehicleInfo::readParams()
-{ 
-    return params->readParams();
-};
+//mav2dji::ParamsRet VehicleInfo::readParams()
+//{ 
+//    return params->readParams();
+//};
 
 //*****************************************************************************
 //*

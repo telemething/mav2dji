@@ -56,7 +56,7 @@ int vehicle_interface_djiros::init()
 //*
 //******************************************************************************
 
-vehicle_interface_ret vehicle_interface_djiros::connectToRos()
+vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
 {
     int argc = 0;
     char* argv = (char*)"";
@@ -76,6 +76,8 @@ vehicle_interface_ret vehicle_interface_djiros::connectToRos()
                 "Could not contact ROS master node. Make sure ROS is running.");
 
         rosNodeHandle = std::make_shared<ros::NodeHandle>("~");
+
+        VehicleInfo::params->readParams(rosNodeHandle);
     }
     catch(const std::exception& e)
     {
@@ -108,15 +110,15 @@ vehicle_interface_ret vehicle_interface_djiros::connectToRos()
 
 vehicle_interface_ret vehicle_interface_djiros::activate()
 {
-    auto ret = vehicle_interface_djiros::connectToRos();
+    //auto ret = vehicle_interface_djiros::connectToPlatform();
 
-    if(!ret.Result == vehicle_interface_ret::resultEnum::success)
-        return ret;
+    //if(!ret.Result == vehicle_interface_ret::resultEnum::success)
+    //    return ret;
 
     // This is here for testing. It allows us to proceed without requiring
     // a connection to a live vehicle.
     if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
-        return ret;
+        return vehicle_interface_ret();
 
     try
     {

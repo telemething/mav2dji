@@ -23,26 +23,6 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-vehicle::vehicle()
-{
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//******************************************************************************
-
-vehicle::~vehicle()
-{
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//******************************************************************************
-
 int vehicle::init()
 {
   try
@@ -50,7 +30,7 @@ int vehicle::init()
     mavlinkSystemId = 1;
     mavlinkComponentId = 1;
 
-    mav2dji::ParamsRet ret = vehicleInfo.readParams();
+    //mav2dji::ParamsRet ret = vehicleInfo.readParams();
 
     // register the vehicle's mavlink system and component IDs
     vehicleInfo.setMavlinkSystemId(mavlinkSystemId);
@@ -98,17 +78,27 @@ int vehicle::startVehicle()
 {
   try
   {
+    auto ret = vehicleInterface->connectToPlatform();
+
+    if(!ret.Result == vehicle_interface_ret::resultEnum::success)
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to connect to platform : %s ######\n\n\n", 
+        ret.Description.c_str() );
+      stopVehicle();
+      return -1;
+    }
+
     udpConnection = std::make_shared<mavvehiclelib::mav_udp>();
     mavMessageProcessor  = std::make_shared<mav_message>();
 
     udpConnection->addGotMavMessageCallback(std::bind(
       &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
-    auto ret = vehicleInterface->activate();  
+    ret = vehicleInterface->activate();  
 
     if( ret.Result != vehicle_interface_ret::resultEnum::success )
     {
-      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start vehicle interface %s ######\n\n\n", 
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start vehicle interface : %s ######\n\n\n", 
         ret.Description.c_str() );
       stopVehicle();
       return -1;

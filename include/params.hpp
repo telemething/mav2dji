@@ -87,7 +87,7 @@ class ParamsVehicleInterface
 
    ParamsVehicleInterface(){};
    ~ParamsVehicleInterface(){};
-   ParamsRet readParams(){return ParamsRet();};   
+   ParamsRet readParams();   
 
    bool verbose = false;
    bool fakeVehicleConnection = true;
@@ -104,9 +104,9 @@ class Params
 {
  public:
 
-   explicit Params();
-   ~Params();
-   ParamsRet readParams();
+   explicit Params(){ init(); };
+   ~Params(){};
+   ParamsRet readParams(std::shared_ptr<ros::NodeHandle> nodeHandle);
 
    std::shared_ptr<ParamsApp> App;
    std::shared_ptr<ParamsVehicleInterface> VehicleInterface;

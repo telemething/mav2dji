@@ -21,8 +21,8 @@ class vehicle
 {
  public:
 
-  explicit vehicle();
-  ~vehicle();
+  explicit vehicle(){};
+  ~vehicle(){};
 
   int init();
   int startVehicle();
