@@ -20,6 +20,10 @@ namespace mav2dji
 {
 
 //*****************************************************************************
+// Heartbeat
+//*****************************************************************************
+
+//*****************************************************************************
 //*
 //* 
 //*
@@ -27,18 +31,22 @@ namespace mav2dji
 
 void TelemetrySource_Heartbeat::telemetryRunWorker()
 {
-    ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
+  ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
 
-    while (ros::ok())
-    {
+  while (ros::ok())
+  {
 		mavlink_msg_heartbeat_pack(mavlinkSystemId, mavlinkComponentId, 
 			&mavlinkMsg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, 
 			MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
 					
 		sendMavMessageToGcs(&mavlinkMsg);
         workerRosRate->sleep();
-    }
+  }
 }
+
+//*****************************************************************************
+// SystemStatus
+//*****************************************************************************
 
 //*****************************************************************************
 //*
@@ -48,25 +56,17 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 
 void TelemetrySource_SysStatus::telemetryRunWorker()
 {
-    ROS_INFO("TelemetrySource_SysStatus : Worker Thread Started OK");
+  ROS_INFO("TelemetrySource_SysStatus : Worker Thread Started OK");
 
-    while (ros::ok())
-    {
+  while (ros::ok())
+  {
 		mavlink_msg_sys_status_pack(mavlinkSystemId, mavlinkComponentId, 
 			&mavlinkMsg, 0, 0, 0, 500, 11000, -1, -1, 0, 0, 0, 0, 0, 0);
 					
 		sendMavMessageToGcs(&mavlinkMsg);
         workerRosRate->sleep();
-    }
+  }
 }
-
-
-
-
-
-
-
-
 
 //*****************************************************************************
 // GPS
@@ -114,14 +114,14 @@ void TelemetrySource_GlobalPositionInt::telemetryRunWorker()
 
 void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  static ros::Time start_time = ros::Time::now();
-  ros::Duration elapsed_time = ros::Time::now() - start_time;
-  //sensor_msgs::NavSatFix gPosition = *msg;
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
 
   // don't waste power collecting faster than we report
-  //if(elapsed_time > ros::Duration(0.02))
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     sensor_msgs::NavSatFix gPosition = *msg;
     int32_t tbs = getTimeBootMs(gPosition.header);
 
@@ -156,12 +156,14 @@ void TelemetrySource_Velocity::telemetryInit()
 
 void TelemetrySource_Velocity::callback(const geometry_msgs::Vector3Stamped &msg)
 {
-  static ros::Time start_time = ros::Time::now();
-  ros::Duration elapsed_time = ros::Time::now() - start_time;
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
 
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     int32_t tbs = getTimeBootMs(msg.header);
 
     vehicleTelemetry->telemGlobalPositionInt.setVelocity(
@@ -194,20 +196,20 @@ void TelemetrySource_Attitude::telemetryInit()
 
 void TelemetrySource_Attitude::telemetryRunWorker()
 {
-    ROS_INFO("TelemetrySource_Attitude : Worker Thread Started OK");
+  ROS_INFO("TelemetrySource_Attitude : Worker Thread Started OK");
 
-    while (ros::ok())
-    {
-		  /*mavlink_msg_attitude_pack(mavlinkSystemId, mavlinkComponentId, &mavlinkMsg, 
-			microsSinceEpoch(), 1.2, 1.7, 3.14, 0.01, 0.02, 0.03);*/
+  while (ros::ok())
+  {
+	  /*mavlink_msg_attitude_pack(mavlinkSystemId, mavlinkComponentId, &mavlinkMsg, 
+		microsSinceEpoch(), 1.2, 1.7, 3.14, 0.01, 0.02, 0.03);*/
 
-      mavlink_msg_attitude_encode( 
-        mavlinkSystemId, mavlinkComponentId, &mavlinkMsg,
-        vehicleTelemetry->telemAttitude.getDataPtr());
+    mavlink_msg_attitude_encode( 
+      mavlinkSystemId, mavlinkComponentId, &mavlinkMsg,
+      vehicleTelemetry->telemAttitude.getDataPtr());
 
-		  sendMavMessageToGcs(&mavlinkMsg);
-      workerRosRate->sleep();
-    }
+		sendMavMessageToGcs(&mavlinkMsg);
+    workerRosRate->sleep();
+  }
 }
 
 //*****************************************************************************
@@ -218,12 +220,14 @@ void TelemetrySource_Attitude::telemetryRunWorker()
 
 void TelemetrySource_Attitude::callback(const geometry_msgs::QuaternionStamped &msg)
 {
-  static ros::Time start_time = ros::Time::now();
-  ros::Duration elapsed_time = ros::Time::now() - start_time;
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
 
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     int32_t tbs = getTimeBootMs(msg.header);
     float wx = 0; //*** TODO
     float wy = 0;
@@ -260,24 +264,24 @@ void TelemetrySource_LocalPositionNed::telemetryInit()
 
 void TelemetrySource_LocalPositionNed::telemetryRunWorker()
 {
-    ROS_INFO("TelemetrySource_LocalPositionNed : Worker Thread Started OK");
+  ROS_INFO("TelemetrySource_LocalPositionNed : Worker Thread Started OK");
 
-	  //float position[6] = {};
+	//float position[6] = {};
 
-    while (ros::ok())
-    {
+  while (ros::ok())
+  {
 		/*mavlink_msg_local_position_ned_pack(mavlinkSystemId, mavlinkComponentId, 
 			&mavlinkMsg, microsSinceEpoch(), 
 			position[0], position[1], position[2],
 			position[3], position[4], position[5]);*/
 					
-      mavlink_msg_local_position_ned_encode( 
-        mavlinkSystemId, mavlinkComponentId, &mavlinkMsg,
-        vehicleTelemetry->telemLocalPositionNed.getDataPtr());
+    mavlink_msg_local_position_ned_encode( 
+      mavlinkSystemId, mavlinkComponentId, &mavlinkMsg,
+      vehicleTelemetry->telemLocalPositionNed.getDataPtr());
 
-		  sendMavMessageToGcs(&mavlinkMsg);
+	  sendMavMessageToGcs(&mavlinkMsg);
       workerRosRate->sleep();
-    }
+  }
 }
 
 //*****************************************************************************
@@ -288,12 +292,14 @@ void TelemetrySource_LocalPositionNed::telemetryRunWorker()
 
 void TelemetrySource_LocalPositionNed::callback(const geometry_msgs::PointStamped &msg)
 {
-  static ros::Time start_time = ros::Time::now();
-  ros::Duration elapsed_time = ros::Time::now() - start_time;
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
 
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     int32_t tbs = getTimeBootMs(msg.header);
     float x = msg.point.x;
     float y = msg.point.y;
