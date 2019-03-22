@@ -52,7 +52,7 @@ class vehicle_interface_djiros : public vehicle_interface
 
    std::thread vehicleRunWorkerThread;
 
-   std::shared_ptr<ros::NodeHandle> rosNodeHandle;
+   //std::shared_ptr<ros::NodeHandle> rosNodeHandle;
    ros::ServiceClient   drone_activation_service;
 
    void vehicleRunWorker();

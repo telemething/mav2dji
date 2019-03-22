@@ -154,7 +154,8 @@ TelemetryRet vehicle::startTelemetry()
     std::make_shared<TelemetrySource_Attitude>(), 
     std::make_shared<TelemetrySource_LocalPositionNed>(), 
     std::make_shared<TelemetrySource_Heartbeat>(), 
-    std::make_shared<TelemetrySource_SysStatus>() 
+    std::make_shared<TelemetrySource_SysStatus>(),
+    std::make_shared<TelemetrySource_Velocity>() 
     };
 
   auto trigger = TelemetrySource::Trigger(1000);
@@ -162,7 +163,7 @@ TelemetryRet vehicle::startTelemetry()
 
   for( auto TS : telemSources )
   {
-    ret = vehicleTelemetry->addTelemetrySource( TS, trigger );
+    ret = vehicleTelemetry->addTelemetrySource( TS, trigger, vehicleTelemetry );
     if( ret.Result == TelemetryRet::resultEnum::failure )
       return ret;
   }

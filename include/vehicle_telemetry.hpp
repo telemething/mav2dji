@@ -24,14 +24,26 @@
 #include <geometry_msgs/Point.h>
 #include <image_transport/image_transport.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/QuaternionStamped.h>
+#include <geometry_msgs/PointStamped.h>
 
 // DJI SDK includes
 #include <dji_sdk/Activation.h>
 #include <dji_sdk/CameraAction.h>
 #include <dji_sdk/Gimbal.h>
 
+#include <sensor_msgs/NavSatFix.h>
+
+#include <sensors/sensor_attitude.hpp>
+#include <sensors/sensor_global_position_int.hpp>
+#include <sensors/sensor_local_position_ned.hpp>
+
 namespace mav2dji
 {
+
+class TelemetryRet;
+class VehicleTelemetry;
+class TelemetrySource;
 
 //*****************************************************************************
 //*
@@ -75,7 +87,8 @@ class TelemetrySource
 {
  public:
 
-   typedef std::function<void()> telemetryRunWorkerType;
+   //typedef std::function<void()> telemetryInitType;
+   //typedef std::function<void()> telemetryRunWorkerType;
 
    class Trigger
    {
@@ -117,11 +130,24 @@ class TelemetrySource
    int sendMavMessageToGcs(const mavlink_message_t* msg)
    { return sendMavMessageCallback(msg); };
 
-   void setTlemetryWorker(telemetryRunWorkerType telemetryRunWorker)
-   { telemetryRunWorker_ = telemetryRunWorker; }
+   //void setTelemetryInit(telemetryInitType telemetryInit)
+   //{ telemetryInit_ = telemetryInit; }
 
-   virtual int init(Trigger trigger)
-   { trigger_ = trigger; workerRosRate = trigger_.getTimeSpanRate(); };
+   //void setSelf(TelemetrySource)
+
+   //void setTelemetryWorker(telemetryRunWorkerType telemetryRunWorker)
+   //{ telemetryRunWorker_ = telemetryRunWorker; }
+
+   virtual int init(Trigger trigger, std::shared_ptr<VehicleTelemetry> parent)
+   { 
+      vehicleTelemetry = parent;
+      rosNodeHandle = VehicleInfo::getVehicleInterface()->rosNodeHandle;
+      trigger_ = trigger; 
+      workerRosRate = trigger_.getTimeSpanRate(); 
+      
+      //telemetryInit_();
+      telemetryInit();
+   };
 
    virtual TelemetryRet startTelemetryAsync()
    {
@@ -129,7 +155,8 @@ class TelemetrySource
       mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
       sendMavMessageCallback = VehicleInfo::getSendMavMessageCallback();
 
-      telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
+      //telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
+      telemetryRunWorkerThread = std::thread(&TelemetrySource::telemetryRunWorker, this);
       return TelemetryRet(TelemetryRet::resultEnum::success);    
    }
 
@@ -144,6 +171,11 @@ class TelemetrySource
       
       return micros;
    }
+
+   int32_t getTimeBootMs(std_msgs::Header header)
+   {
+      return header.stamp.sec + header.stamp.nsec * 1000000;
+   }
     
    virtual TelemetryRet stopTelemetry(){};
    std::shared_ptr<ros::Rate> workerRosRate;
@@ -151,14 +183,19 @@ class TelemetrySource
 
    int mavlinkSystemId = 1;      
    int mavlinkComponentId = 0;   
+   std::shared_ptr<ros::NodeHandle> rosNodeHandle;
+   std::shared_ptr<VehicleTelemetry> vehicleTelemetry;
+
+   virtual void telemetryRunWorker() = 0;
+   virtual void telemetryInit() = 0;
 
  private:
 
    std::thread telemetryRunWorkerThread;
    Trigger trigger_;
-   telemetryRunWorkerType telemetryRunWorker_;
+   //telemetryInitType telemetryInit_;
+   //telemetryRunWorkerType telemetryRunWorker_;
    MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
-    
 };
 
 //*****************************************************************************
@@ -171,14 +208,20 @@ class VehicleTelemetry
 
    typedef std::shared_ptr<TelemetryRet> TelemRet;
 
+   SensorLocalPositionNed  telemLocalPositionNed;
+   SensorAttitude          telemAttitude;
+   SensorGlobalPositionInt telemGlobalPositionInt;
+
    explicit VehicleTelemetry(){};
    ~VehicleTelemetry(){};
 
     //int init();
    TelemetryRet addTelemetrySource(
-        std::shared_ptr<TelemetrySource> telemSource, TelemetrySource::Trigger trigger)
+        std::shared_ptr<TelemetrySource> telemSource, 
+        TelemetrySource::Trigger trigger, 
+        std::shared_ptr<VehicleTelemetry> parent)
    {
-      telemSource->init(trigger);
+      telemSource->init(trigger, parent);
       telemSources.push_back(telemSource);
 
       return TelemetryRet();
@@ -218,14 +261,14 @@ class TelemetrySource_GlobalPositionInt : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_GlobalPositionInt()
-   { setTlemetryWorker(std::bind(
-         &TelemetrySource_GlobalPositionInt::telemetryRunWorker, this)); };
+   explicit TelemetrySource_GlobalPositionInt(){};
    ~TelemetrySource_GlobalPositionInt(){};
 
  private:
 
+    void telemetryInit();
     void telemetryRunWorker();
+    void callback(const sensor_msgs::NavSatFix::ConstPtr& msg);
 };
 
 //*****************************************************************************
@@ -236,14 +279,14 @@ class TelemetrySource_Attitude : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_Attitude()
-   { setTlemetryWorker(std::bind(
-         &TelemetrySource_Attitude::telemetryRunWorker, this)); };
+   explicit TelemetrySource_Attitude(){};
    ~TelemetrySource_Attitude(){};
 
  private:
 
-    void telemetryRunWorker();
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const geometry_msgs::QuaternionStamped &msg);
 };
 
 //*****************************************************************************
@@ -254,14 +297,14 @@ class TelemetrySource_LocalPositionNed : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_LocalPositionNed()
-   { setTlemetryWorker(std::bind(
-         &TelemetrySource_LocalPositionNed::telemetryRunWorker, this)); };
+   explicit TelemetrySource_LocalPositionNed(){};
    ~TelemetrySource_LocalPositionNed(){};
 
  private:
 
-    void telemetryRunWorker();
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const geometry_msgs::PointStamped &msg);
 };
 
 //*****************************************************************************
@@ -272,14 +315,13 @@ class TelemetrySource_Heartbeat : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_Heartbeat()
-   { setTlemetryWorker(std::bind(
-         &TelemetrySource_Heartbeat::telemetryRunWorker, this)); };
+   explicit TelemetrySource_Heartbeat(){};
    ~TelemetrySource_Heartbeat(){};
 
  private:
 
-    void telemetryRunWorker();
+   void telemetryInit(){};
+   void telemetryRunWorker();
 };
 
 //*****************************************************************************
@@ -290,18 +332,32 @@ class TelemetrySource_SysStatus : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_SysStatus()
-   { setTlemetryWorker(std::bind(
-         &TelemetrySource_SysStatus::telemetryRunWorker, this)); };
+   explicit TelemetrySource_SysStatus(){};
    ~TelemetrySource_SysStatus(){};
 
  private:
 
-    void telemetryRunWorker();
+   void telemetryInit(){};
+   void telemetryRunWorker();
 };
 
 
+//*****************************************************************************
+//*
+//*****************************************************************************
 
+class TelemetrySource_Velocity : public TelemetrySource
+{
+ public:
 
+   explicit TelemetrySource_Velocity(){};
+   ~TelemetrySource_Velocity(){};
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker(){};
+   void callback(const geometry_msgs::Vector3Stamped &msg);
+};
 
 } /* namespace mav2dji*/

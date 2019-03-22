@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-//#include <vehicle_Info.hpp>
+#include <ros/ros.h>
 
 namespace mav2dji
 {
@@ -47,6 +47,8 @@ class vehicle_interface
 
     explicit vehicle_interface();
     ~vehicle_interface();
+
+    std::shared_ptr<ros::NodeHandle> rosNodeHandle;
 
     virtual int init();
     virtual vehicle_interface_ret connectToPlatform() = 0;
