@@ -30,7 +30,7 @@ int main(int argc, char** argv)
   if( 0 > djiVehicle.init() )
     return -1;
 
-  if( 0 > djiVehicle.startVehicle())
+  if( 0 > djiVehicle.startVehicleAsync())
     return -1;
 
   //*** TODO : Do we need something better here?

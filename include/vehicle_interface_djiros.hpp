@@ -23,6 +23,7 @@
 #include <geometry_msgs/Point.h>
 #include <image_transport/image_transport.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/NavSatFix.h>
 
 // DJI SDK includes
 #include <dji_sdk/Activation.h>
@@ -51,6 +52,8 @@ class vehicle_interface_djiros : public vehicle_interface
    int DjiActivationTimeoutMs = 10000;
 
    std::thread vehicleRunWorkerThread;
+
+   void testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
 
    //std::shared_ptr<ros::NodeHandle> rosNodeHandle;
    ros::ServiceClient   drone_activation_service;

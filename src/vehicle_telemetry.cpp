@@ -80,8 +80,8 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 
 void TelemetrySource_GlobalPositionInt::telemetryInit()
 {
-	ros::Subscriber gpsSub = rosNodeHandle->subscribe(
-		"dji_sdk/gps_position", 1,
+	topicSubscription = rosNodeHandle->subscribe(
+		"/dji_sdk/gps_position", 1,
         &TelemetrySource_GlobalPositionInt::callback, this);
 }
 
@@ -143,7 +143,7 @@ void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::C
 
 void TelemetrySource_Velocity::telemetryInit()
 {
-	ros::Subscriber gpsSub = rosNodeHandle->subscribe(
+	topicSubscription = rosNodeHandle->subscribe(
 		"/dji_sdk/velocity", 1,
         &TelemetrySource_Velocity::callback, this);
 }
@@ -183,8 +183,8 @@ void TelemetrySource_Velocity::callback(const geometry_msgs::Vector3Stamped &msg
 
 void TelemetrySource_Attitude::telemetryInit()
 {
-	ros::Subscriber gpsSub = rosNodeHandle->subscribe(
-		"/dji_sdk/attitude_quaternion", 1,
+	topicSubscription = rosNodeHandle->subscribe(
+		"/dji_sdk/attitude", 1,
         &TelemetrySource_Attitude::callback, this);
 }
 
@@ -251,7 +251,7 @@ void TelemetrySource_Attitude::callback(const geometry_msgs::QuaternionStamped &
 
 void TelemetrySource_LocalPositionNed::telemetryInit()
 {
-	ros::Subscriber gpsSub = rosNodeHandle->subscribe(
+	topicSubscription = rosNodeHandle->subscribe(
 		"/dji_sdk/local_position", 1,
         &TelemetrySource_LocalPositionNed::callback, this);
 }

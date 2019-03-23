@@ -74,6 +74,45 @@ int vehicle::init()
 //*
 //*****************************************************************************
 
+int vehicle::startVehicleAsync()
+{
+  auto timeout = std::chrono::milliseconds(50);
+
+  // start the vehicle on its own thread
+  vehicleThread = std::thread(&vehicle::worker, this);
+
+  // wait for a signal that startup has completed
+  while(!initHasCompleted)
+    std::this_thread::sleep_for(timeout);
+
+  // return startup retcode
+  return startVehicleRetCode;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void vehicle::worker()
+{
+  // start the vehicle 
+  startVehicleRetCode = startVehicle();
+
+  // send the signal that startup has completed
+  initHasCompleted = true;
+
+  // we must spin on the thread which created the node
+  ros::spin();
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 int vehicle::startVehicle()
 {
   try

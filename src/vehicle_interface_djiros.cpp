@@ -52,6 +52,19 @@ int vehicle_interface_djiros::init()
 
 //*****************************************************************************
 //*
+//* 
+//*
+//******************************************************************************
+
+void vehicle_interface_djiros::testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+{
+  ros::Time startTime = ros::Time::now();
+}
+
+ros::Subscriber topicSubscription2;
+
+//*****************************************************************************
+//*
 //*
 //*
 //******************************************************************************
@@ -97,6 +110,16 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
             vehicle_interface_ret::resultEnum::failure, 
             "Could not initialize ROS node. Unrecognized Exception" );
     }
+
+    ///*** TEST **************
+
+    //topicSubscription2 = rosNodeHandle->subscribe(
+	//	"/dji_sdk/gps_position", 1,
+      //  &vehicle_interface_djiros::testCallback, this);
+
+    //ros::spin();   
+ 
+    ///*** TEST **************
     
     ROS_INFO("vehicle_interface_djiros::connectToRos() : Connected to Master Node OK");
     return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);

@@ -181,6 +181,7 @@ class TelemetrySource
    std::shared_ptr<ros::Rate> workerRosRate;
    mavlink_message_t mavlinkMsg;
    ros::Time lastCallbackStartTime = ros::Time::now();
+   ros::Subscriber topicSubscription;
 
    int mavlinkSystemId = 1;      
    int mavlinkComponentId = 0;   

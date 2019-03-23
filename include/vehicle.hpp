@@ -13,6 +13,8 @@
 #include <mav_udp.hpp>
 #include <mav_message_processor.hpp>
 #include <vehicle_telemetry.hpp>
+#include <condition_variable>
+#include <condition_variable>
 
 namespace mav2dji
 {
@@ -26,6 +28,7 @@ class vehicle
 
   int init();
   int startVehicle();
+  int startVehicleAsync();
   int stopVehicle();
   int gotMavMessageCallback(const mavlink_message_t* msg);
   int sendMavMessageCallback(const mavlink_message_t* msg);
@@ -41,15 +44,20 @@ class vehicle
    
   int mavlinkSystemId;
   int mavlinkComponentId;
+  int startVehicleRetCode;
 
   bool verbose = false;
   bool stopRunning = false;
+  bool initHasCompleted = false;
 
   std::shared_ptr<mavvehiclelib::mav_udp> udpConnection;
   std::shared_ptr<mav_message> mavMessageProcessor;
   std::shared_ptr<vehicle_interface> vehicleInterface;
   std::shared_ptr<VehicleTelemetry> vehicleTelemetry;
 
+  std::thread vehicleThread;
+
+  void worker();
   mav2dji::TelemetryRet startTelemetry();
 };
 
