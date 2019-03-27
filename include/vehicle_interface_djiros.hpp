@@ -31,6 +31,9 @@
 #include <dji_sdk/CameraAction.h>
 #include <dji_sdk/Gimbal.h>
 #include <dji_sdk/DroneArmControl.h>
+#include <dji_sdk/DroneTaskControl.h>
+#include <dji_sdk/SetLocalPosRef.h>
+
 
 namespace mav2dji
 {
@@ -40,6 +43,7 @@ class vehicle_interface_djiros : public vehicle_interface
  public:
 
   enum CameraActionEnum {TakePhoto, StartVideo, StopVideo};
+  enum VehicleTaskEnum {Takeoff, Land, GoHome};
 
   explicit vehicle_interface_djiros();
   ~vehicle_interface_djiros();
@@ -132,7 +136,6 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
- 
   Util::OpRet ArmVehicle(bool arm)
   {
     try
@@ -179,7 +182,48 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
-  //***************************************************************************
+  Util::OpRet VehicleTask(VehicleTaskEnum task)
+  {
+    try
+    {
+        dji_sdk::DroneTaskControl vehTask;
+
+        switch(task)
+        {
+          case Takeoff: 
+            vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_TAKEOFF; 
+            break;
+          case Land: 
+            vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_LAND; 
+            break;
+          case GoHome: 
+            vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_GOHOME; 
+            break;
+        }
+
+        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
+            ("/dji_sdk/drone_task_control");
+
+        service.call(vehTask);
+
+        if(!vehTask.response.result) 
+          return Util::OpRet::BuildError(true, true, 
+            "Vehicle task could not be performed");
+    }
+    catch(const std::exception& e)
+    {
+      return Util::OpRet::UnwindStdException(e,"Vehicle task could not be performed", true, true);
+    }
+    catch(...)
+    {
+        return Util::OpRet::BuildError("Vehicle task could not be performed. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Vehicle task erformed OK");
+    return Util::OpRet();
+  }
+
+ //***************************************************************************
   //*
   //* /dji_sdk/mfio_config (dji_sdk/MFIOConfig)
   //*
@@ -420,6 +464,34 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet SetLocalPosRef()
+  {
+    try
+    {
+        dji_sdk::SetLocalPosRef localPosRef;
+
+        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
+            ("/dji_sdk/set_local_pos_ref");
+
+        service.call(localPosRef);
+
+        if(!localPosRef.response.result) 
+          return Util::OpRet::BuildError( 
+            "Could not set local position reference to current GPS coords", true, true);
+    }
+    catch(const std::exception& e)
+    {
+      return Util::OpRet::UnwindStdException(e,"Could not set local position reference to current GPS coords", true, true);
+    }
+    catch(...)
+    {
+        return Util::OpRet::BuildError("Could not set local position reference to current GPS coords. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Set local position reference to current GPS coords OK");
+    return Util::OpRet();
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/stereo_240p_subscription (dji_sdk/Stereo240pSubscription)
@@ -441,6 +513,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet Stereo240pSubscription()
+  {
+    return Util::OpRet::BuildError( 
+      "Stereo240pSubscription not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/stereo_depth_subscription (dji_sdk/StereoDepthSubscription)
@@ -457,6 +535,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*       bool result 	true--succeed 	false--failed
   //*
   //***************************************************************************
+
+  Util::OpRet StereoDepthSubscription()
+  {
+    return Util::OpRet::BuildError( 
+      "StereoDepthSubscription not implemented", true, true);
+  }
 
   //***************************************************************************
   //*
@@ -476,6 +560,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet StereoVGASubscription()
+  {
+    return Util::OpRet::BuildError( 
+      "StereoVGASubscription not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/setup_camera_stream (dji_sdk/SetupCameraStream)
@@ -491,6 +581,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*        bool result 	true--succeed 	false--failed
   //*
   //***************************************************************************
+
+  Util::OpRet SetupCameraStream()
+  {
+    return Util::OpRet::BuildError( 
+      "SetupCameraStream not implemented", true, true);
+  }
 
  private:
 
