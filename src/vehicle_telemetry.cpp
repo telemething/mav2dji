@@ -143,9 +143,8 @@ void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::C
 
 void TelemetrySource_Velocity::telemetryInit()
 {
-	topicSubscription = rosNodeHandle->subscribe(
-		"/dji_sdk/velocity", 1,
-        &TelemetrySource_Velocity::callback, this);
+	topicSubscription = rosNodeHandle->subscribe( 
+    sourceTopicName, 1, &TelemetrySource_Velocity::callback, this);
 }
 
 //*****************************************************************************
