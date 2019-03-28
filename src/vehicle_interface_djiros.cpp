@@ -24,7 +24,7 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-vehicle_interface_djiros::vehicle_interface_djiros()
+VehicleInterfaceDjiros::VehicleInterfaceDjiros()
 {
   init();
 }
@@ -35,7 +35,7 @@ vehicle_interface_djiros::vehicle_interface_djiros()
 //*
 //******************************************************************************
 
-vehicle_interface_djiros::~vehicle_interface_djiros()
+VehicleInterfaceDjiros::~VehicleInterfaceDjiros()
 {
 }
 
@@ -45,7 +45,7 @@ vehicle_interface_djiros::~vehicle_interface_djiros()
 //*
 //******************************************************************************
 
-int vehicle_interface_djiros::init()
+int VehicleInterfaceDjiros::init()
 {
     droneActivationService = 
         rosNodeHandle->serviceClient<dji_sdk::Activation>
@@ -96,12 +96,10 @@ int vehicle_interface_djiros::init()
 //*
 //******************************************************************************
 
-void vehicle_interface_djiros::testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void VehicleInterfaceDjiros::testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
   ros::Time startTime = ros::Time::now();
 }
-
-ros::Subscriber topicSubscription2;
 
 //*****************************************************************************
 //*
@@ -109,7 +107,7 @@ ros::Subscriber topicSubscription2;
 //*
 //******************************************************************************
 
-vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
+Util::OpRet VehicleInterfaceDjiros::connectToPlatform()
 {
     int argc = 0;
     char* argv = (char*)"";
@@ -124,8 +122,8 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
         contactedMaster = !ros::master::check();
 
         if( contactedMaster )
-            return vehicle_interface_ret(
-                vehicle_interface_ret::resultEnum::failure, 
+            return Util::OpRet(
+                Util::OpRet::resultEnum::failure, 
                 "Could not contact ROS master node. Make sure ROS is running.");
 
         rosNodeHandle = std::make_shared<ros::NodeHandle>("~");
@@ -137,8 +135,8 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
         if(contactedMaster)
             ROS_ERROR("Could not initialize ROS node. Exception: %s", e.what() );
 
-        return vehicle_interface_ret(
-            vehicle_interface_ret::resultEnum::failure, 
+        return Util::OpRet(
+            Util::OpRet::resultEnum::failure, 
             "Could not initialize ROS node. Exception: " + std::string(e.what()) );
     }
     catch(...)
@@ -146,8 +144,8 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
         if(contactedMaster)
             ROS_ERROR("Could not initialize ROS node. Unrecognized Exception" );
 
-        return vehicle_interface_ret(
-            vehicle_interface_ret::resultEnum::failure, 
+        return Util::OpRet(
+            Util::OpRet::resultEnum::failure, 
             "Could not initialize ROS node. Unrecognized Exception" );
     }
 
@@ -155,14 +153,14 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
 
     //topicSubscription2 = rosNodeHandle->subscribe(
 	//	"/dji_sdk/gps_position", 1,
-      //  &vehicle_interface_djiros::testCallback, this);
+      //  &VehicleInterfaceDjiros::testCallback, this);
 
     //ros::spin();   
  
     ///*** TEST **************
     
-    ROS_INFO("vehicle_interface_djiros::connectToRos() : Connected to Master Node OK");
-    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+    ROS_INFO("VehicleInterfaceDjiros::connectToRos() : Connected to Master Node OK");
+    return Util::OpRet();
 }
 
 //*****************************************************************************
@@ -171,9 +169,9 @@ vehicle_interface_ret vehicle_interface_djiros::connectToPlatform()
 //*
 //******************************************************************************
 
-vehicle_interface_ret vehicle_interface_djiros::activate()
+Util::OpRet VehicleInterfaceDjiros::activate()
 {
-    //auto ret = vehicle_interface_djiros::connectToPlatform();
+    //auto ret = VehicleInterfaceDjiros::connectToPlatform();
 
     //if(!ret.Result == vehicle_interface_ret::resultEnum::success)
     //    return ret;
@@ -181,7 +179,7 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
     // This is here for testing. It allows us to proceed without requiring
     // a connection to a live vehicle.
     if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
-        return vehicle_interface_ret();
+        return Util::OpRet();
 
     try
     {
@@ -191,22 +189,22 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
 
         if(!droneActivationService.isValid())
         {
-            ROS_ERROR("vehicle_interface_djiros::activate() : '/dji_sdk/activation' is not installed.");
+            ROS_ERROR("VehicleInterfaceDjiros::activate() : '/dji_sdk/activation' is not installed.");
             rosNodeHandle->shutdown();
-            return vehicle_interface_ret(
-                vehicle_interface_ret::resultEnum::failure, 
+            return Util::OpRet(
+                Util::OpRet::resultEnum::failure, 
                 "Could not activate DJI vehicle. '/dji_sdk/activation' is not installed.");
         }
 
         ros::Duration timeout(20,0);
 
-        ROS_INFO("vehicle_interface_djiros::activate() : waiting for '/dji_sdk/activation' to become available.");
+        ROS_INFO("VehicleInterfaceDjiros::activate() : waiting for '/dji_sdk/activation' to become available.");
         if(!droneActivationService.waitForExistence(timeout))
         {
-            ROS_ERROR("vehicle_interface_djiros::activate() : '/dji_sdk/activation' service is not running. Check Drone connection.");
+            ROS_ERROR("VehicleInterfaceDjiros::activate() : '/dji_sdk/activation' service is not running. Check Drone connection.");
             rosNodeHandle->shutdown();
-            return vehicle_interface_ret(
-                vehicle_interface_ret::resultEnum::failure, 
+            return Util::OpRet(
+                Util::OpRet::resultEnum::failure, 
                 "Could not activate DJI vehicle. '/dji_sdk/activation' service is not running. Check Drone connection.");
         }
 
@@ -214,35 +212,35 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
 
         if(!activation.response.result) 
         {
-            ROS_ERROR("vehicle_interface_djiros::activate() : Could not activate DJI vehicle : ack.info: set = %i id = %i data=%i", 
+            ROS_ERROR("VehicleInterfaceDjiros::activate() : Could not activate DJI vehicle : ack.info: set = %i id = %i data=%i", 
                 activation.response.cmd_set, activation.response.cmd_id, activation.response.ack_data);
             rosNodeHandle->shutdown();
-            return vehicle_interface_ret(
-                vehicle_interface_ret::resultEnum::failure, "Could not activate DJI vehicle. Check credentials");
+            return Util::OpRet(
+                Util::OpRet::resultEnum::failure, "Could not activate DJI vehicle. Check credentials");
         }
     }
     catch(const std::exception& e)
     {
-        ROS_ERROR("vehicle_interface_djiros::activate() : Exception : %s", e.what() );
+        ROS_ERROR("VehicleInterfaceDjiros::activate() : Exception : %s", e.what() );
         rosNodeHandle->shutdown();
-        return vehicle_interface_ret(
-            vehicle_interface_ret::resultEnum::failure, 
+        return Util::OpRet(
+            Util::OpRet::resultEnum::failure, 
             "Could not activate DJI vehicle. Exception: " + std::string(e.what()) );
     }
     catch(...)
     {
         ROS_ERROR("Could not initialize ROS node. Unrecognized Exception" );
         rosNodeHandle->shutdown();
-        return vehicle_interface_ret(
-            vehicle_interface_ret::resultEnum::failure, 
+        return Util::OpRet(
+            Util::OpRet::resultEnum::failure, 
             "Could not initialize ROS node. Unrecognized Exception" );
     }
 
     //return {activation.response.result, activation.response.cmd_set,
     //        activation.response.cmd_id, activation.response.ack_data};
 
-    ROS_INFO("vehicle_interface_djiros::activate() : Drone activated OK");
-    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+    ROS_INFO("VehicleInterfaceDjiros::activate() : Drone activated OK");
+    return Util::OpRet();
 }
 
 //*****************************************************************************
@@ -251,14 +249,14 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
 //*
 //******************************************************************************
 
-vehicle_interface_ret vehicle_interface_djiros::startVehicleAsync()
+Util::OpRet VehicleInterfaceDjiros::startVehicleAsync()
 {
-    ROS_INFO("vehicle_interface_djiros::startVehicleAsync() : Starting Worker Thread");
+    ROS_INFO("VehicleInterfaceDjiros::startVehicleAsync() : Starting Worker Thread");
 
     vehicleRunWorkerThread = std::thread(
-        &vehicle_interface_djiros::vehicleRunWorker, this);
+        &VehicleInterfaceDjiros::vehicleRunWorker, this);
 
-    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+    return Util::OpRet();
 }
 
 //*****************************************************************************
@@ -267,9 +265,9 @@ vehicle_interface_ret vehicle_interface_djiros::startVehicleAsync()
 //*
 //******************************************************************************
 
-void vehicle_interface_djiros::vehicleRunWorker()
+void VehicleInterfaceDjiros::vehicleRunWorker()
 {
-    ROS_INFO("vehicle_interface_djiros::vehicleRunWorker() : Worker Thread Started OK");
+    ROS_INFO("VehicleInterfaceDjiros::vehicleRunWorker() : Worker Thread Started OK");
     ros::spin();    
 }
 
@@ -279,11 +277,11 @@ void vehicle_interface_djiros::vehicleRunWorker()
 //*
 //******************************************************************************
 
-vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
+Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 {
-    ROS_INFO("vehicle_interface_djiros::vehicleRunWorker() : Stopping Worker Thread");
+    ROS_INFO("VehicleInterfaceDjiros::vehicleRunWorker() : Stopping Worker Thread");
     ros::shutdown();
-    return vehicle_interface_ret(vehicle_interface_ret::resultEnum::success);
+    return Util::OpRet();
 }
 
   //***************************************************************************
@@ -299,7 +297,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::Activation()
+  Util::OpRet VehicleInterfaceDjiros::Activation()
   {
     return Util::OpRet::BuildError( 
       "Activation not implemented", true, true);
@@ -319,7 +317,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::CameraAction(CameraActionEnum action)
+  Util::OpRet VehicleInterfaceDjiros::CameraAction(CameraActionEnum action)
   {
     try
     {
@@ -377,7 +375,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::ArmVehicle(bool arm)
+  Util::OpRet VehicleInterfaceDjiros::ArmVehicle(bool arm)
   {
     try
     {
@@ -424,7 +422,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::VehicleTask(VehicleTaskEnum task)
+  Util::OpRet VehicleInterfaceDjiros::VehicleTask(VehicleTaskEnum task)
   {
     try
     {
@@ -479,7 +477,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MFIOConfig()
+  Util::OpRet VehicleInterfaceDjiros::MFIOConfig()
   {
     return Util::OpRet::BuildError( 
       "MFIOConfig not implemented", true, true);
@@ -498,7 +496,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MFIOSetValue()
+  Util::OpRet VehicleInterfaceDjiros::MFIOSetValue()
   {
     return Util::OpRet::BuildError( 
       "MFIOSetValue not implemented", true, true);
@@ -518,7 +516,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpAction()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpAction()
   {
     return Util::OpRet::BuildError( 
       "MissionHpAction not implemented", true, true);
@@ -537,7 +535,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpGetInfo()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpGetInfo()
   {
     return Util::OpRet::BuildError( 
       "MissionHpGetInfo not implemented", true, true);
@@ -555,7 +553,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpResetYaw()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpResetYaw()
   {
     return Util::OpRet::BuildError( 
       "MissionHpResetYaw not implemented", true, true);
@@ -575,7 +573,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpUpdateRadius()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpUpdateRadius()
   {
     return Util::OpRet::BuildError( 
       "MissionHpUpdateRadius not implemented", true, true);
@@ -596,7 +594,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpUpdateYawRate()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpUpdateYawRate()
   {
     return Util::OpRet::BuildError( 
       "MissionHpUpdateYawRate not implemented", true, true);
@@ -617,7 +615,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionHpUpload()
+  Util::OpRet VehicleInterfaceDjiros::MissionHpUpload()
   {
     return Util::OpRet::BuildError( 
       "MissionHpUpload not implemented", true, true);
@@ -637,7 +635,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionWpAction()
+  Util::OpRet VehicleInterfaceDjiros::MissionWpAction()
   {
     return Util::OpRet::BuildError( 
       "MissionWpAction not implemented", true, true);
@@ -656,7 +654,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionWpGetInfo(
+  Util::OpRet VehicleInterfaceDjiros::MissionWpGetInfo(
     std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask)
   {
     try
@@ -694,7 +692,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  float vehicle_interface_djiros::MissionWpGetSpeed()
+  float VehicleInterfaceDjiros::MissionWpGetSpeed()
   {
     try
     {
@@ -735,7 +733,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionWpGetSpeed(float speed)
+  Util::OpRet VehicleInterfaceDjiros::MissionWpGetSpeed(float speed)
   {
     try
     {
@@ -783,7 +781,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask)
+  Util::OpRet VehicleInterfaceDjiros::MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask)
   {
     try
     {
@@ -831,7 +829,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::SDKControlAuthority(ControlAutority authority)
+  Util::OpRet VehicleInterfaceDjiros::SDKControlAuthority(ControlAutority authority)
   {
     try
     {
@@ -888,7 +886,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::SendMobileData()
+  Util::OpRet VehicleInterfaceDjiros::SendMobileData()
   {
     return Util::OpRet::BuildError( 
       "SendMobileData not implemented", true, true);
@@ -909,7 +907,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::SetHardSync()
+  Util::OpRet VehicleInterfaceDjiros::SetHardSync()
   {
     return Util::OpRet::BuildError( 
       "SetHardSync not implemented", true, true);
@@ -924,7 +922,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  vehicle_interface_djiros::DroneVersion vehicle_interface_djiros::QueryDroneVersion()
+  VehicleInterfaceDjiros::DroneVersion VehicleInterfaceDjiros::QueryDroneVersion()
   {
     DroneVersion droneVersion;
 
@@ -964,7 +962,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::SetLocalPosRef()
+  Util::OpRet VehicleInterfaceDjiros::SetLocalPosRef()
   {
     try
     {
@@ -1012,7 +1010,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::Stereo240pSubscription()
+  Util::OpRet VehicleInterfaceDjiros::Stereo240pSubscription()
   {
     return Util::OpRet::BuildError( 
       "Stereo240pSubscription not implemented", true, true);
@@ -1035,7 +1033,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::StereoDepthSubscription()
+  Util::OpRet VehicleInterfaceDjiros::StereoDepthSubscription()
   {
     return Util::OpRet::BuildError( 
       "StereoDepthSubscription not implemented", true, true);
@@ -1059,7 +1057,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::StereoVGASubscription()
+  Util::OpRet VehicleInterfaceDjiros::StereoVGASubscription()
   {
     return Util::OpRet::BuildError( 
       "StereoVGASubscription not implemented", true, true);
@@ -1081,7 +1079,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet vehicle_interface_djiros::SetupCameraStream()
+  Util::OpRet VehicleInterfaceDjiros::SetupCameraStream()
   {
     return Util::OpRet::BuildError( 
       "SetupCameraStream not implemented", true, true);

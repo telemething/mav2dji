@@ -46,7 +46,7 @@ int vehicle::init()
 
     // create an instance of the vehicle specific interface class, cast as the 
     // interface base class
-    vehicleInterface = std::make_shared<vehicle_interface_djiros>();
+    vehicleInterface = std::make_shared<VehicleInterfaceDjiros>();
     vehicleInfo.setVehicleInterface(vehicleInterface);
 
     vehicleTelemetry = std::make_shared<VehicleTelemetry>();
@@ -119,7 +119,7 @@ int vehicle::startVehicle()
   {
     auto ret = vehicleInterface->connectToPlatform();
 
-    if(!ret.Result == vehicle_interface_ret::resultEnum::success)
+    if(!ret.Result == Util::OpRet::resultEnum::success)
     {
       printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to connect to platform : %s ######\n\n\n", 
         ret.Description.c_str() );
@@ -135,7 +135,7 @@ int vehicle::startVehicle()
 
     ret = vehicleInterface->activate();  
 
-    if( ret.Result != vehicle_interface_ret::resultEnum::success )
+    if( ret.Result != Util::OpRet::resultEnum::success )
     {
       printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start vehicle interface : %s ######\n\n\n", 
         ret.Description.c_str() );

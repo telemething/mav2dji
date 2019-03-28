@@ -10,36 +10,10 @@
 
 #include <string>
 #include <ros/ros.h>
+#include <util.hpp>
 
 namespace mav2dji
 {
-
-class vehicle_interface_ret
-{
-   public:
-
-      enum resultEnum {success, failure};
-      resultEnum Result;
-      std::string Description;
-
-      vehicle_interface_ret(resultEnum result, std::string description )
-      {
-         Result = result;
-         Description = description;
-      }
-
-      vehicle_interface_ret(resultEnum result )
-      {
-         Result = result;
-         Description = "";
-      }
-
-      vehicle_interface_ret()
-      {
-         Result = resultEnum::success;
-         Description = "";
-      }
-};
 
 class vehicle_interface 
 {
@@ -51,10 +25,10 @@ class vehicle_interface
     std::shared_ptr<ros::NodeHandle> rosNodeHandle;
 
     virtual int init();
-    virtual vehicle_interface_ret connectToPlatform() = 0;
-    virtual vehicle_interface_ret activate() = 0;
-    virtual vehicle_interface_ret startVehicleAsync() = 0;
-    virtual vehicle_interface_ret stopVehicle() = 0;
+    virtual Util::OpRet connectToPlatform() = 0;
+    virtual Util::OpRet activate() = 0;
+    virtual Util::OpRet startVehicleAsync() = 0;
+    virtual Util::OpRet stopVehicle() = 0;
 
     
 };

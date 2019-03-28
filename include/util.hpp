@@ -1,16 +1,5 @@
-  //***************************************************************************
-  //*
-  //* /dji_sdk/drone_arm_control (dji_sdk/DroneArmControl)
-  //*
-  //*  Enable or disable vehicle's arm motors. 
-  //*
-  //*  Usage:
-  //*      Request 	
-  //*      uint8 arm 	1--enable vehicle arm motor 	else: disable arm motor
-  //*      Response 	
-  //*      bool result 	true--succeed 	false--invalid action
-  //*
-  //***************************************************************************
+
+#pragma once
 
 #include <iostream>
 #include <ros/ros.h>

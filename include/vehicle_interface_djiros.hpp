@@ -41,7 +41,7 @@
 namespace mav2dji
 {
 
-class vehicle_interface_djiros : public vehicle_interface
+class VehicleInterfaceDjiros : public vehicle_interface
 {
  private:
 
@@ -74,14 +74,14 @@ class vehicle_interface_djiros : public vehicle_interface
   enum ControlAutority {TakeAuthority, ReleaseAuthority};
   struct DroneVersion{ std::string Hardware; uint32_t Version; bool IsValid = false; };
 
-  explicit vehicle_interface_djiros();
-  ~vehicle_interface_djiros();
+  explicit VehicleInterfaceDjiros();
+  ~VehicleInterfaceDjiros();
 
   int init();
-  vehicle_interface_ret connectToPlatform();
-  vehicle_interface_ret activate();
-  vehicle_interface_ret startVehicleAsync();
-  vehicle_interface_ret stopVehicle();
+  Util::OpRet connectToPlatform();
+  Util::OpRet activate();
+  Util::OpRet startVehicleAsync();
+  Util::OpRet stopVehicle();
 
   Util::OpRet Activation();
   Util::OpRet CameraAction(CameraActionEnum action);
