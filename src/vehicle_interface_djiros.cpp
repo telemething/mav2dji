@@ -47,6 +47,46 @@ vehicle_interface_djiros::~vehicle_interface_djiros()
 
 int vehicle_interface_djiros::init()
 {
+    droneActivationService = 
+        rosNodeHandle->serviceClient<dji_sdk::Activation>
+            ("/dji_sdk/activation");
+            
+    cameraActionService  = 
+        rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
+            ("/dji_sdk/camera_action");
+
+    armVehicleService  = 
+        rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
+            ("/dji_sdk/drone_arm_control");
+
+    vehicleTaskService  = 
+        rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
+            ("/dji_sdk/drone_task_control");
+
+    missionWpSetSpeedService  = 
+          rosNodeHandle->serviceClient<dji_sdk::MissionWpGetInfo>
+            ("/dji_sdk/mission_waypoint_getInfo");
+
+    missionWpGetSpeedService = 
+          rosNodeHandle->serviceClient<dji_sdk::MissionWpGetSpeed>
+            ("/dji_sdk/mission_waypoint_getSpeed");
+
+    missionWpUploadService  = 
+          rosNodeHandle->serviceClient<dji_sdk::MissionWpUpload>
+            ("/dji_sdk/mission_waypoint_upload");
+
+    sDKControlAuthorityService  = 
+        rosNodeHandle->serviceClient<dji_sdk::SDKControlAuthority>
+            ("/dji_sdk/sdk_control_authority");
+
+    queryDroneVersionService  = 
+        rosNodeHandle->serviceClient<dji_sdk::QueryDroneVersion>
+            ("/dji_sdk/query_drone_version");
+
+    setLocalPosRefService  = 
+        rosNodeHandle->serviceClient<dji_sdk::SetLocalPosRef>
+            ("/dji_sdk/set_local_pos_ref");
+
     return 0;
 }
 
@@ -149,10 +189,7 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
         int RetryCountLimit = DjiActivationTimeoutMs / DjiActivationSleepMs;
         dji_sdk::Activation activation;
 
-        drone_activation_service  = rosNodeHandle->serviceClient<dji_sdk::Activation>
-            ("/dji_sdk/activation");
-
-        if(!drone_activation_service.isValid())
+        if(!droneActivationService.isValid())
         {
             ROS_ERROR("vehicle_interface_djiros::activate() : '/dji_sdk/activation' is not installed.");
             rosNodeHandle->shutdown();
@@ -164,7 +201,7 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
         ros::Duration timeout(20,0);
 
         ROS_INFO("vehicle_interface_djiros::activate() : waiting for '/dji_sdk/activation' to become available.");
-        if(!drone_activation_service.waitForExistence(timeout))
+        if(!droneActivationService.waitForExistence(timeout))
         {
             ROS_ERROR("vehicle_interface_djiros::activate() : '/dji_sdk/activation' service is not running. Check Drone connection.");
             rosNodeHandle->shutdown();
@@ -173,7 +210,7 @@ vehicle_interface_ret vehicle_interface_djiros::activate()
                 "Could not activate DJI vehicle. '/dji_sdk/activation' service is not running. Check Drone connection.");
         }
 
-        drone_activation_service.call(activation);
+        droneActivationService.call(activation);
 
         if(!activation.response.result) 
         {

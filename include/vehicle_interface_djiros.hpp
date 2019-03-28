@@ -39,6 +39,9 @@
 
 #include <dji_sdk/MissionWaypoint.h>
 #include <dji_sdk/MissionWaypointAction.h>
+#include <dji_sdk/MissionWpSetSpeed.h>
+#include <dji_sdk/MissionWpGetSpeed.h>
+#include <dji_sdk/MissionWpGetInfo.h>
 
 
 
@@ -248,6 +251,30 @@ struct MissionWaypointTask
 
 class vehicle_interface_djiros : public vehicle_interface
 {
+ private:
+
+  int DjiActivationSleepMs = 1000;
+  int DjiActivationTimeoutMs = 10000;
+
+  std::thread vehicleRunWorkerThread;
+
+  void testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
+
+  //std::shared_ptr<ros::NodeHandle> rosNodeHandle;
+  ros::ServiceClient droneActivationService;
+  ros::ServiceClient armVehicleService;
+  ros::ServiceClient vehicleTaskService;
+  ros::ServiceClient missionWpSetSpeedService;
+  ros::ServiceClient missionWpGetSpeedService;
+  ros::ServiceClient missionWpUploadService;
+  ros::ServiceClient sDKControlAuthorityService;
+  ros::ServiceClient queryDroneVersionService;
+  ros::ServiceClient setLocalPosRefService;
+
+  void vehicleRunWorker();
+
+  ros::ServiceClient cameraActionService;
+
  public:
 
   enum CameraActionEnum {TakePhoto, StartVideo, StopVideo};
@@ -266,6 +293,34 @@ class vehicle_interface_djiros : public vehicle_interface
 
   //***************************************************************************
   //*
+  //* Convert
+  //*
+  //***************************************************************************
+
+  std::shared_ptr<dji_sdk::MissionWaypointTask> 
+    Convert( mav2dji::MissionWaypointTask waypointTask )
+  {
+    auto wpt = std::make_shared<dji_sdk::MissionWaypointTask>();
+
+    return wpt; 
+  }
+
+  //***************************************************************************
+  //*
+  //* Convert
+  //*
+  //***************************************************************************
+
+  std::shared_ptr<mav2dji::MissionWaypointTask> 
+    Convert( dji_sdk::MissionWaypointTask waypointTask )
+  {
+    auto wpt = std::make_shared<mav2dji::MissionWaypointTask>();
+
+    return wpt; 
+  }
+
+  //***************************************************************************
+  //*
   //* /dji_sdk/activation (dji_sdk/Activation)
   //*
   //* The service to activate the drone with app ID and key pair. The 
@@ -276,6 +331,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*   bool result 	true--succeed 	false--invalid action
   //*
   //***************************************************************************
+
+  Util::OpRet Activation()
+  {
+    return Util::OpRet::BuildError( 
+      "Activation not implemented", true, true);
+  }
 
   //***************************************************************************
   //*
@@ -300,32 +361,35 @@ class vehicle_interface_djiros : public vehicle_interface
         switch(action)
         {
           case TakePhoto: 
-            camAction.request.camera_action = dji_sdk::CameraAction::RequestType::CAMERA_ACTION_TAKE_PICTURE; 
+            camAction.request.camera_action = 
+              dji_sdk::CameraAction::RequestType::CAMERA_ACTION_TAKE_PICTURE; 
             break;
           case StartVideo: 
-            camAction.request.camera_action = dji_sdk::CameraAction::RequestType::CAMERA_ACTION_START_RECORD; 
+            camAction.request.camera_action = 
+              dji_sdk::CameraAction::RequestType::CAMERA_ACTION_START_RECORD; 
             break;
           case StopVideo: 
-            camAction.request.camera_action = dji_sdk::CameraAction::RequestType::CAMERA_ACTION_STOP_RECORD; 
+            camAction.request.camera_action = 
+              dji_sdk::CameraAction::RequestType::CAMERA_ACTION_STOP_RECORD; 
             break;
         }
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/camera_action");
-
-        service.call(camAction);
+        cameraActionService.call(camAction);
 
         if(!camAction.response.result) 
-          return Util::OpRet::BuildError(true, true, "Could not perform camera action");
+          return Util::OpRet::BuildError(true, true, 
+            "Could not perform camera action");
 
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Could not perform camera action", true, true);
+      return Util::OpRet::UnwindStdException(e,
+        "Could not perform camera action", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Could not perform camera action. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Could not perform camera action. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Camera action performed OK");
@@ -355,23 +419,24 @@ class vehicle_interface_djiros : public vehicle_interface
         arm ? armControl.request.arm = armControl.request.ARM_COMMAND 
             : armControl.request.arm = armControl.request.DISARM_COMMAND;
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/drone_arm_control");
-
-        service.call(armControl);
+        armVehicleService.call(armControl);
 
         if(!armControl.response.result) 
           return Util::OpRet::BuildError(true, true, 
             "Could not arm vehicle : ack.info: set = %i id = %i data=%i", 
-            armControl.response.cmd_set, armControl.response.cmd_id, armControl.response.ack_data);
+            armControl.response.cmd_set, 
+            armControl.response.cmd_id, 
+            armControl.response.ack_data);
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Could not arm vehicle", true, true);
+      return Util::OpRet::UnwindStdException(e,
+        "Could not arm vehicle", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Could not arm vehicle. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Could not arm vehicle. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Vehicle Armed OK");
@@ -411,10 +476,7 @@ class vehicle_interface_djiros : public vehicle_interface
             break;
         }
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/drone_task_control");
-
-        service.call(vehTask);
+        vehicleTaskService.call(vehTask);
 
         if(!vehTask.response.result) 
           return Util::OpRet::BuildError(true, true, 
@@ -422,11 +484,13 @@ class vehicle_interface_djiros : public vehicle_interface
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Vehicle task could not be performed", true, true);
+      return Util::OpRet::UnwindStdException(e,
+        "Vehicle task could not be performed", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Vehicle task could not be performed. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Vehicle task could not be performed. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Vehicle task erformed OK");
@@ -448,6 +512,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MFIOConfig()
+  {
+    return Util::OpRet::BuildError( 
+      "MFIOConfig not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mfio_set_value (dji_sdk/MFIOSetValue)
@@ -460,6 +530,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*        uint32 init_on_time_us
   //*
   //***************************************************************************
+
+  Util::OpRet MFIOSetValue()
+  {
+    return Util::OpRet::BuildError( 
+      "MFIOSetValue not implemented", true, true);
+  }
 
   //***************************************************************************
   //*
@@ -475,6 +551,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MissionHpAction()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionHpAction not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mission_hotpoint_getInfo (dji_sdk/MissionHpGetInfo)
@@ -488,6 +570,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet xxx()
+  {
+    return Util::OpRet::BuildError( 
+      "xxx not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mission_hotpoint_resetYaw (dji_sdk/MissionHpResetYaw)
@@ -499,6 +587,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*        bool result 	true--succeed 	false--failed
   //*
   //***************************************************************************
+
+  Util::OpRet MissionHpGetInfo()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionHpGetInfo not implemented", true, true);
+  }
 
   //***************************************************************************
   //*
@@ -513,6 +607,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*       bool result 	true--succeed 	false--failed
   //*
   //***************************************************************************
+
+  Util::OpRet MissionHpUpdateRadius()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionHpUpdateRadius not implemented", true, true);
+  }
 
   //***************************************************************************
   //*
@@ -529,6 +629,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MissionHpUpdateYawRate()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionHpUpdateYawRate not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mission_hotpoint_upload (dji_sdk/MissionHpUpload)
@@ -544,6 +650,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MissionHpUpload()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionHpUpload not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mission_waypoint_action (dji_sdk/MissionWpAction)
@@ -558,6 +670,12 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MissionWpAction()
+  {
+    return Util::OpRet::BuildError( 
+      "MissionWpAction not implemented", true, true);
+  }
+
   //***************************************************************************
   //*
   //* v/dji_sdk/mission_waypoint_getInfo (dji_sdk/MissionWpGetInfo)
@@ -571,6 +689,32 @@ class vehicle_interface_djiros : public vehicle_interface
   //*
   //***************************************************************************
 
+  Util::OpRet MissionWpGetInfo(
+    std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask)
+  {
+    try
+    {
+        dji_sdk::MissionWpGetInfo missionWpGetInfo;
+
+        missionWpSetSpeedService.call(missionWpGetInfo);
+
+        *waypointTask = Convert(missionWpGetInfo.response.waypoint_task);
+    }
+    catch(const std::exception& e)
+    {
+      return Util::OpRet::UnwindStdException(e,
+        "Could not set mission speed", true, true);
+    }
+    catch(...)
+    {
+        return Util::OpRet::BuildError(
+          "Could not set mission speed. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Set mission speed OK");
+    return Util::OpRet();
+  }
+
   //***************************************************************************
   //*
   //* /dji_sdk/mission_waypoint_getSpeed (dji_sdk/MissionWpGetSpeed)
@@ -582,6 +726,33 @@ class vehicle_interface_djiros : public vehicle_interface
   //*        float32 speed
   //*
   //***************************************************************************
+
+  float MissionWpGetSpeed()
+  {
+    try
+    {
+        dji_sdk::MissionWpGetSpeed missionWpGetSpeed;
+
+        missionWpGetSpeedService.call(missionWpGetSpeed);
+
+        //*** TODO * Can we validate the result?
+
+        return missionWpGetSpeed.response.speed;
+    }
+    catch(const std::exception& e)
+    {
+      Util::OpRet::UnwindStdException(e,
+        "Could not set mission speed", true, true);
+    }
+    catch(...)
+    {
+      Util::OpRet::BuildError(
+        "Could not set mission speed. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Set mission speed OK");
+    return -1; //*** TODO * we can do better
+  }
 
   //***************************************************************************
   //*
@@ -596,6 +767,39 @@ class vehicle_interface_djiros : public vehicle_interface
   //*       bool result 	true--succeed 	false--failed
   //*
   //***************************************************************************
+
+  Util::OpRet MissionWpGetSpeed(float speed)
+  {
+    try
+    {
+        dji_sdk::MissionWpSetSpeed missionWpSetSpeed;
+
+        ros::ServiceClient missionWpSetSpeedService  = 
+          rosNodeHandle->serviceClient<dji_sdk::MissionWpGetSpeed>
+            ("/dji_sdk/mission_waypoint_setSpeed");
+
+        missionWpSetSpeed.request.speed = speed;
+
+        missionWpSetSpeedService.call(missionWpSetSpeed);
+
+        if(!missionWpSetSpeed.response.result) 
+          return Util::OpRet::BuildError(true, true, 
+            "Could not set mission speed");
+    }
+    catch(const std::exception& e)
+    {
+      return Util::OpRet::UnwindStdException(e,
+        "Could not set mission speed", true, true);
+    }
+    catch(...)
+    {
+        return Util::OpRet::BuildError(
+          "Could not set mission speed. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Set mission speed OK");
+    return Util::OpRet();
+  }
 
   //***************************************************************************
   //*
@@ -618,25 +822,28 @@ class vehicle_interface_djiros : public vehicle_interface
     {
         dji_sdk::MissionWpUpload missionWaypoint;
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/mission_waypoint_upload");
+        auto wpt = Convert(waypointTask);
 
-            //missionWaypoint.request.waypoint_task
+        missionWaypoint.request.waypoint_task = *wpt;
 
-        service.call(missionWaypoint);
+        missionWpUploadService.call(missionWaypoint);
 
         if(!missionWaypoint.response.result) 
           return Util::OpRet::BuildError(true, true, 
             "Could not upload mission waypoint : ack.info: set = %i id = %i data=%i", 
-            missionWaypoint.response.cmd_set, missionWaypoint.response.cmd_id, missionWaypoint.response.ack_data);
+            missionWaypoint.response.cmd_set, 
+            missionWaypoint.response.cmd_id, 
+            missionWaypoint.response.ack_data);
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Could not upload mission waypoint", true, true);
+      return Util::OpRet::UnwindStdException(e,
+      "Could not upload mission waypoint", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Could not upload mission waypoint. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Could not upload mission waypoint. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Upload mission waypoint OK");
@@ -666,30 +873,33 @@ class vehicle_interface_djiros : public vehicle_interface
         switch(authority)
         {
           case TakeAuthority: 
-            controlAuthority.request.control_enable = dji_sdk::SDKControlAuthority::RequestType::REQUEST_CONTROL; 
+            controlAuthority.request.control_enable = 
+              dji_sdk::SDKControlAuthority::RequestType::REQUEST_CONTROL; 
             break;
           case ReleaseAuthority: 
-            controlAuthority.request.control_enable = dji_sdk::SDKControlAuthority::RequestType::RELEASE_CONTROL; 
+            controlAuthority.request.control_enable = 
+              dji_sdk::SDKControlAuthority::RequestType::RELEASE_CONTROL; 
             break;
         }
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/sdk_control_authority");
-
-        service.call(controlAuthority);
+        sDKControlAuthorityService.call(controlAuthority);
 
         if(!controlAuthority.response.result) 
           return Util::OpRet::BuildError(true, true, 
             "Could not take/release authority : ack.info: set = %i id = %i data=%i", 
-            controlAuthority.response.cmd_set, controlAuthority.response.cmd_id, controlAuthority.response.ack_data);
+            controlAuthority.response.cmd_set, 
+            controlAuthority.response.cmd_id, 
+            controlAuthority.response.ack_data);
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Could not take/release authority", true, true);
+      return Util::OpRet::UnwindStdException(e,
+        "Could not take/release authority", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Could not take/release authority. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Could not take/release authority. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Take/release authority OK");
@@ -755,10 +965,7 @@ class vehicle_interface_djiros : public vehicle_interface
     {
         dji_sdk::QueryDroneVersion queryDroneVersion;
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/query_drone_version");
-
-        service.call(queryDroneVersion);
+        queryDroneVersionService.call(queryDroneVersion);
 
         droneVersion.Hardware = queryDroneVersion.response.hardware;
         droneVersion.Version = queryDroneVersion.response.version;
@@ -768,11 +975,13 @@ class vehicle_interface_djiros : public vehicle_interface
     }
     catch(const std::exception& e)
     {
-      Util::OpRet::UnwindStdException(e,"Unable to query drone version", true, true);
+      Util::OpRet::UnwindStdException(e,
+        "Unable to query drone version", true, true);
     }
     catch(...)
     {
-      Util::OpRet::BuildError("Unable to query drone version. Unrecognized Exception", true, true);
+      Util::OpRet::BuildError(
+        "Unable to query drone version. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Query drone version OK");
@@ -795,10 +1004,7 @@ class vehicle_interface_djiros : public vehicle_interface
     {
         dji_sdk::SetLocalPosRef localPosRef;
 
-        auto service  = rosNodeHandle->serviceClient<dji_sdk::DroneArmControl>
-            ("/dji_sdk/set_local_pos_ref");
-
-        service.call(localPosRef);
+        setLocalPosRefService.call(localPosRef);
 
         if(!localPosRef.response.result) 
           return Util::OpRet::BuildError( 
@@ -806,11 +1012,13 @@ class vehicle_interface_djiros : public vehicle_interface
     }
     catch(const std::exception& e)
     {
-      return Util::OpRet::UnwindStdException(e,"Could not set local position reference to current GPS coords", true, true);
+      return Util::OpRet::UnwindStdException(e,
+        "Could not set local position reference to current GPS coords", true, true);
     }
     catch(...)
     {
-        return Util::OpRet::BuildError("Could not set local position reference to current GPS coords. Unrecognized Exception", true, true);
+        return Util::OpRet::BuildError(
+          "Could not set local position reference to current GPS coords. Unrecognized Exception", true, true);
     }
 
     ROS_INFO_STREAM("Set local position reference to current GPS coords OK");
@@ -912,21 +1120,6 @@ class vehicle_interface_djiros : public vehicle_interface
     return Util::OpRet::BuildError( 
       "SetupCameraStream not implemented", true, true);
   }
-
- private:
-
-   int DjiActivationSleepMs = 1000;
-   int DjiActivationTimeoutMs = 10000;
-
-   std::thread vehicleRunWorkerThread;
-
-   void testCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
-
-   //std::shared_ptr<ros::NodeHandle> rosNodeHandle;
-   ros::ServiceClient   drone_activation_service;
-
-   void vehicleRunWorker();
-
 };
 
 } /* namespace mav2dji*/
