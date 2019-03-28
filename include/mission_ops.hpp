@@ -216,11 +216,13 @@ class MissionOps
 {
  public:
 
+    MissionOps(){}
+    ~MissionOps(){}
+
     static std::shared_ptr<dji_sdk::MissionWaypointTask> 
         Convert(const mav2dji::MissionWaypointTask* waypointTask );
     static std::shared_ptr<mav2dji::MissionWaypointTask> 
         Convert( const dji_sdk::MissionWaypointTask* waypointTask );
-
 };
 
 

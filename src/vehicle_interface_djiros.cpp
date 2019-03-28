@@ -924,7 +924,7 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
   //*
   //***************************************************************************
 
-  DroneVersion vehicle_interface_djiros::QueryDroneVersion()
+  vehicle_interface_djiros::DroneVersion vehicle_interface_djiros::QueryDroneVersion()
   {
     DroneVersion droneVersion;
 
@@ -954,7 +954,6 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
     ROS_INFO_STREAM("Query drone version OK");
     return droneVersion;
   }
-
 
   //***************************************************************************
   //*
@@ -1087,7 +1086,4 @@ vehicle_interface_ret vehicle_interface_djiros::stopVehicle()
     return Util::OpRet::BuildError( 
       "SetupCameraStream not implemented", true, true);
   }
-};
-
-
 }
