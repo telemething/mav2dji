@@ -14,6 +14,9 @@
 #include <dji_sdk/MissionWpGetSpeed.h>
 #include <dji_sdk/MissionWpGetInfo.h>
 
+#include <vehicle_interface.hpp>
+#include <vehicle_Info.hpp>
+
 namespace mav2dji
 {
 
@@ -28,8 +31,10 @@ namespace mav2dji
 //* 
 //***************************************************************************** 
 
-struct MissionWaypointAction
+/*class MissionWaypointAction
 {
+ public:
+
   MissionWaypointAction() 
     : action_repeat(0)
     , command_list()
@@ -42,10 +47,10 @@ struct MissionWaypointAction
   typedef uint8_t _action_repeat_type;
   _action_repeat_type action_repeat;
 
-  typedef boost::array<uint8_t, 16>  _command_list_type;
+  typedef boost::array<uint8_t, 16> _command_list_type;
   _command_list_type command_list;
 
-  typedef boost::array<uint16_t, 16>  _command_parameter_type;
+  typedef boost::array<uint16_t, 16> _command_parameter_type;
   _command_parameter_type command_parameter;
 }; // struct MissionWaypointAction
 
@@ -64,8 +69,22 @@ struct MissionWaypointAction
 //* 
 //***************************************************************************** 
 
-struct MissionWaypoint
+class MissionWaypoint
 {
+  public:
+
+  enum turnModeEnum 
+  {
+    turnModeClockwise = 0u,
+    turnModeCounterClockwise = 1u,
+  };
+
+  enum hasActionEnum 
+  {
+    hasActionNo = 0u,
+    hasActionYes = 1u,
+  };
+
   MissionWaypoint()
     : latitude(0.0)
     , longitude(0.0)
@@ -78,6 +97,21 @@ struct MissionWaypoint
     , action_time_limit(0)
     , waypoint_action()
     {}
+
+  MissionWaypoint( double latitude, double longitude, float relativeAltitude, 
+    float dampingDistance, int16_t targetYaw, int16_t targetGimbalPitch, 
+    turnModeEnum turnMode, hasActionEnum hasAction, uint16_t actionTime, 
+    MissionWaypointAction missionWaypointAction )
+    : latitude(latitude)
+    , longitude(longitude)
+    , altitude(relativeAltitude)
+    , damping_distance(dampingDistance)
+    , target_yaw(targetYaw)
+    , target_gimbal_pitch(targetGimbalPitch)
+    , turn_mode(turnMode)
+    , has_action(hasAction)
+    , action_time_limit(actionTime)
+    , waypoint_action(missionWaypointAction){}
 
   typedef double _latitude_type;
   _latitude_type latitude;
@@ -152,8 +186,40 @@ struct MissionWaypoint
 //* 
 //***************************************************************************** 
 
-struct MissionWaypointTask
+class MissionWaypointTask
 {
+ public:
+
+  enum finishActionEnum {
+    FINISH_NO_ACTION = 0u,
+    FINISH_RETURN_TO_HOME = 1u,
+    FINISH_AUTO_LANDING = 2u,
+    FINISH_RETURN_TO_POINT = 3u,
+    FINISH_NO_EXIT = 4u
+  };
+  
+  enum yawModeEnum {
+    YAW_MODE_AUTO = 0u,
+    YAW_MODE_LOCK = 1u,
+    YAW_MODE_RC = 2u,
+    YAW_MODE_WAYPOINT = 3u,
+  };
+
+  enum traceModeEnum {
+    TRACE_POINT = 0u,
+    TRACE_COORDINATED = 1u,
+  };
+  
+  enum rcLostActionEnum {
+    ACTION_FREE = 0u,
+    ACTION_AUTO = 1u,
+  };
+  
+  enum gimbalPitchModeEnum {
+    GIMBAL_PITCH_FREE = 0u,
+    GIMBAL_PITCH_AUTO = 1u,
+  };
+
   MissionWaypointTask()
     : velocity_range(0.0)
     , idle_velocity(0.0)
@@ -164,6 +230,21 @@ struct MissionWaypointTask
     , action_on_rc_lost(0)
     , gimbal_pitch_mode(0)
     , mission_waypoint() {}
+
+  MissionWaypointTask(float velocityRange, float idleVelocity, 
+    finishActionEnum actionOnFinish, uint8_t  missionExecTimes, 
+    yawModeEnum yawMode, traceModeEnum traceMode, 
+    rcLostActionEnum actionOnRcLost, gimbalPitchModeEnum gimbalPitchMode,
+    const std::vector<mav2dji::MissionWaypoint> missionWaypointList)
+    : velocity_range(velocityRange)
+    , idle_velocity(idleVelocity)
+    , action_on_finish(actionOnFinish)
+    , mission_exec_times(missionExecTimes)
+    , yaw_mode(yawMode)
+    , trace_mode(traceMode)
+    , action_on_rc_lost(actionOnRcLost)
+    , gimbal_pitch_mode(gimbalPitchMode)
+    , mission_waypoint(missionWaypointList) {}
 
    typedef float _velocity_range_type;
   _velocity_range_type velocity_range;
@@ -189,28 +270,10 @@ struct MissionWaypointTask
    typedef uint8_t _gimbal_pitch_mode_type;
   _gimbal_pitch_mode_type gimbal_pitch_mode;
 
-   //typedef std::vector<dji_sdk::MissionWaypoint>  _mission_waypoint_typey;
    typedef std::vector<mav2dji::MissionWaypoint>  _mission_waypoint_type;
   _mission_waypoint_type mission_waypoint;
 
-  enum {
-    FINISH_NO_ACTION = 0u,
-    FINISH_RETURN_TO_HOME = 1u,
-    FINISH_AUTO_LANDING = 2u,
-    FINISH_RETURN_TO_POINT = 3u,
-    FINISH_NO_EXIT = 4u,
-    YAW_MODE_AUTO = 0u,
-    YAW_MODE_LOCK = 1u,
-    YAW_MODE_RC = 2u,
-    YAW_MODE_WAYPOINT = 3u,
-    TRACE_POINT = 0u,
-    TRACE_COORDINATED = 1u,
-    ACTION_FREE = 0u,
-    ACTION_AUTO = 1u,
-    GIMBAL_PITCH_FREE = 0u,
-    GIMBAL_PITCH_AUTO = 1u,
-  };
-}; // struct MissionWaypointTask
+  }; // struct MissionWaypointTask*/
 
 class MissionOps
 {
@@ -223,6 +286,28 @@ class MissionOps
         Convert(const mav2dji::MissionWaypointTask* waypointTask );
     static std::shared_ptr<mav2dji::MissionWaypointTask> 
         Convert( const dji_sdk::MissionWaypointTask* waypointTask );
+
+    //*** temp area ***
+
+    bool runWaypointMission(uint8_t numWaypoints, int responseTimeout);
+
+    std::vector<mav2dji::MissionWaypoint> createWaypoints(
+      int numWaypoints, double distanceIncrement, float start_alt);
+
+    /*void setWaypointDefaults(WayPointSettings* wp);
+
+    void setWaypointInitDefaults(dji_sdk::MissionWaypointTask& waypointTask);
+
+    std::vector<DJI::OSDK::WayPointSettings>
+    createWaypoints(int numWaypoints, double distanceIncrement,
+                    float start_alt);
+
+    std::vector<DJI::OSDK::WayPointSettings>
+    generateWaypointsPolygon(WayPointSettings* start_data, double increment,
+                            int num_wp);
+
+    void uploadWaypoints(std::vector<DJI::OSDK::WayPointSettings>& wp_list,
+                    int responseTimeout, dji_sdk::MissionWaypointTask& waypointTask);*/
 };
 
 

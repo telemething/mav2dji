@@ -69,11 +69,6 @@ class VehicleInterfaceDjiros : public vehicle_interface
 
  public:
 
-  enum CameraActionEnum {TakePhoto, StartVideo, StopVideo};
-  enum VehicleTaskEnum {Takeoff, Land, GoHome};
-  enum ControlAutority {TakeAuthority, ReleaseAuthority};
-  struct DroneVersion{ std::string Hardware; uint32_t Version; bool IsValid = false; };
-
   explicit VehicleInterfaceDjiros();
   ~VehicleInterfaceDjiros();
 
@@ -84,9 +79,9 @@ class VehicleInterfaceDjiros : public vehicle_interface
   Util::OpRet stopVehicle();
 
   Util::OpRet Activation();
-  Util::OpRet CameraAction(CameraActionEnum action);
+  Util::OpRet CameraAction(const vehicle_interface::CameraActionEnum action);
   Util::OpRet ArmVehicle(bool arm);
-  Util::OpRet VehicleTask(VehicleTaskEnum task);
+  Util::OpRet VehicleTask(const VehicleTaskEnum task);
   Util::OpRet MFIOConfig();
   Util::OpRet MFIOSetValue();
   Util::OpRet MissionHpAction();
@@ -101,7 +96,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   float MissionWpGetSpeed();
   Util::OpRet MissionWpGetSpeed(float speed);
   Util::OpRet MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask);
-  Util::OpRet SDKControlAuthority(ControlAutority authority);
+  Util::OpRet SDKControlAuthority(const ControlAutority authority);
   Util::OpRet SendMobileData();
   Util::OpRet SetHardSync();
   DroneVersion QueryDroneVersion();
