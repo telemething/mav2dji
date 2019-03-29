@@ -37,6 +37,7 @@
 #include <dji_sdk/QueryDroneVersion.h>
 #include <dji_sdk/SDKControlAuthority.h>
 #include <dji_sdk/MissionWpUpload.h>
+#include <dji_sdk/MissionWpAction.h>
 
 namespace mav2dji
 {
@@ -62,6 +63,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   ros::ServiceClient sDKControlAuthorityService;
   ros::ServiceClient queryDroneVersionService;
   ros::ServiceClient setLocalPosRefService;
+  ros::ServiceClient missionWpActionService;
 
   void vehicleRunWorker();
 
@@ -90,7 +92,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   Util::OpRet MissionHpUpdateRadius();
   Util::OpRet MissionHpUpdateYawRate();
   Util::OpRet MissionHpUpload();
-  Util::OpRet MissionWpAction();
+  Util::OpRet MissionWpAction(const MissionWpActionEnum missionWpAction);
   Util::OpRet MissionWpGetInfo(
     std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask);
   float MissionWpGetSpeed();
@@ -105,6 +107,13 @@ class VehicleInterfaceDjiros : public vehicle_interface
   Util::OpRet StereoDepthSubscription();
   Util::OpRet StereoVGASubscription();
   Util::OpRet SetupCameraStream();
+
+ private:
+
+  std::shared_ptr<dji_sdk::MissionWaypointTask> 
+    Convert(const mav2dji::MissionWaypointTask* waypointTask );
+  std::shared_ptr<mav2dji::MissionWaypointTask> 
+    Convert( const dji_sdk::MissionWaypointTask* waypointTask );
 };
 
 } /* namespace mav2dji*/

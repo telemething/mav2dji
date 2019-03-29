@@ -278,6 +278,9 @@ class vehicle_interface
     enum CameraActionEnum {TakePhoto, StartVideo, StopVideo};
     enum VehicleTaskEnum {Takeoff, Land, GoHome};
     enum ControlAutority {TakeAuthority, ReleaseAuthority};
+    enum MissionWpActionEnum 
+    { MissionWpActionStart, MissionWpActionStop,
+      MissionWpActionPause, MissionWpActionResume };
 
     struct DroneVersion{ std::string Hardware; uint32_t Version; bool IsValid = false; };
 
@@ -301,7 +304,7 @@ class vehicle_interface
     virtual Util::OpRet MissionHpUpdateRadius() = 0;
     virtual Util::OpRet MissionHpUpdateYawRate() = 0;
     virtual Util::OpRet MissionHpUpload() = 0;
-    virtual Util::OpRet MissionWpAction() = 0;
+    virtual Util::OpRet MissionWpAction( const MissionWpActionEnum missionWpAction) = 0;
     virtual Util::OpRet MissionWpGetInfo(
         std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask) = 0;
     virtual float MissionWpGetSpeed() = 0;

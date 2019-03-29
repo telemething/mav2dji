@@ -87,8 +87,110 @@ int VehicleInterfaceDjiros::init()
         rosNodeHandle->serviceClient<dji_sdk::SetLocalPosRef>
             ("/dji_sdk/set_local_pos_ref");
 
+    missionWpActionService  = 
+        rosNodeHandle->serviceClient<dji_sdk::SetLocalPosRef>
+            ("/dji_sdk/mission_waypoint_action");
+
     return 0;
 }
+
+//***************************************************************************
+//*
+//* Convert
+//*
+//***************************************************************************
+
+std::shared_ptr<dji_sdk::MissionWaypointTask> 
+  VehicleInterfaceDjiros::Convert(const mav2dji::MissionWaypointTask* waypointTask )
+{
+    auto wpt = std::make_shared<dji_sdk::MissionWaypointTask>();
+
+    wpt->velocity_range     = waypointTask->velocity_range;
+    wpt->idle_velocity      = waypointTask->idle_velocity;
+    wpt->action_on_finish   = waypointTask->action_on_finish;
+    wpt->mission_exec_times = waypointTask->mission_exec_times;
+    wpt->yaw_mode           = waypointTask->yaw_mode;
+    wpt->trace_mode         = waypointTask->trace_mode;
+    wpt->action_on_rc_lost  = waypointTask->action_on_rc_lost;
+    wpt->gimbal_pitch_mode  = waypointTask->gimbal_pitch_mode;
+
+    for(auto wPointIn : wpt->mission_waypoint )
+    {
+        dji_sdk::MissionWaypoint wPointOut;
+
+        wPointOut.latitude                      = wPointIn.latitude;
+        wPointOut.longitude                     = wPointIn.longitude;
+        wPointOut.altitude                      = wPointIn.altitude;
+        wPointOut.damping_distance              = wPointIn.damping_distance;
+        wPointOut.target_yaw                    = wPointIn.target_yaw;
+        wPointOut.target_gimbal_pitch           = wPointIn.target_gimbal_pitch;
+        wPointOut.turn_mode                     = wPointIn.turn_mode;
+        wPointOut.has_action                    = wPointIn.has_action;
+        wPointOut.action_time_limit             = wPointIn.action_time_limit;
+        wPointOut.waypoint_action.action_repeat = wPointIn.waypoint_action.action_repeat;
+
+        std::copy(std::begin(wPointIn.waypoint_action.command_list),
+                  std::end(wPointIn.waypoint_action.command_list), 
+                  wPointOut.waypoint_action.command_list.begin());
+
+        std::copy(std::begin(wPointIn.waypoint_action.command_parameter),
+                  std::end(wPointIn.waypoint_action.command_parameter), 
+                  wPointOut.waypoint_action.command_parameter.begin());
+
+        wpt->mission_waypoint.push_back(wPointOut);
+    }
+
+    return wpt; 
+}
+
+  //***************************************************************************
+  //*
+  //* Convert
+  //*
+  //***************************************************************************
+
+  std::shared_ptr<mav2dji::MissionWaypointTask> 
+    VehicleInterfaceDjiros::Convert( const dji_sdk::MissionWaypointTask* waypointTask )
+  {
+    auto wpt = std::make_shared<mav2dji::MissionWaypointTask>();
+
+    wpt->velocity_range     = waypointTask->velocity_range;
+    wpt->idle_velocity      = waypointTask->idle_velocity;
+    wpt->action_on_finish   = waypointTask->action_on_finish;
+    wpt->mission_exec_times = waypointTask->mission_exec_times;
+    wpt->yaw_mode           = waypointTask->yaw_mode;
+    wpt->trace_mode         = waypointTask->trace_mode;
+    wpt->action_on_rc_lost  = waypointTask->action_on_rc_lost;
+    wpt->gimbal_pitch_mode  = waypointTask->gimbal_pitch_mode;
+
+    for(auto wPointIn : wpt->mission_waypoint )
+    {
+        mav2dji::MissionWaypoint wPointOut;
+
+        wPointOut.latitude                      = wPointIn.latitude;
+        wPointOut.longitude                     = wPointIn.longitude;
+        wPointOut.altitude                      = wPointIn.altitude;
+        wPointOut.damping_distance              = wPointIn.damping_distance;
+        wPointOut.target_yaw                    = wPointIn.target_yaw;
+        wPointOut.target_gimbal_pitch           = wPointIn.target_gimbal_pitch;
+        wPointOut.turn_mode                     = wPointIn.turn_mode;
+        wPointOut.has_action                    = wPointIn.has_action;
+        wPointOut.action_time_limit             = wPointIn.action_time_limit;
+        wPointOut.waypoint_action.action_repeat = wPointIn.waypoint_action.action_repeat;
+
+        std::copy(std::begin(wPointIn.waypoint_action.command_list),
+                  std::end(wPointIn.waypoint_action.command_list), 
+                  wPointOut.waypoint_action.command_list.begin());
+
+        std::copy(std::begin(wPointIn.waypoint_action.command_parameter),
+                  std::end(wPointIn.waypoint_action.command_parameter), 
+                  wPointOut.waypoint_action.command_parameter.begin());
+
+        wpt->mission_waypoint.push_back(wPointOut);
+    }
+
+    return wpt; 
+  }
 
 //*****************************************************************************
 //*
@@ -635,10 +737,51 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet VehicleInterfaceDjiros::MissionWpAction()
+  Util::OpRet VehicleInterfaceDjiros::MissionWpAction( 
+    const vehicle_interface::MissionWpActionEnum action )
   {
-    return Util::OpRet::BuildError( 
-      "MissionWpAction not implemented", true, true);
+    try
+    {
+      dji_sdk::MissionWpAction missionWpAction;
+
+      switch(action)
+      {
+        case MissionWpActionStart :
+          missionWpAction.request.action = dji_sdk::MissionWpActionRequest::ACTION_START; 
+          break;
+        case MissionWpActionStop :
+          missionWpAction.request.action = dji_sdk::MissionWpActionRequest::ACTION_STOP; 
+          break;
+        case MissionWpActionPause :
+          missionWpAction.request.action = dji_sdk::MissionWpActionRequest::ACTION_PAUSE; 
+          break;
+        case MissionWpActionResume :
+          missionWpAction.request.action = dji_sdk::MissionWpActionRequest::ACTION_RESUME; 
+          break;
+      }
+
+      missionWpActionService.call(missionWpAction);
+
+      if(!missionWpAction.response.result)
+        return Util::OpRet::BuildError(true, true, 
+            "Could not upload mission waypoint : ack.info: set = %i id = %i data=%i", 
+            missionWpAction.response.cmd_set, 
+            missionWpAction.response.cmd_id, 
+            missionWpAction.response.ack_data);
+    }
+    catch(const std::exception& e)
+    {
+      return Util::OpRet::UnwindStdException(e,
+        "Could not set mission action", true, true);
+    }
+    catch(...)
+    {
+        return Util::OpRet::BuildError(
+          "Could not set mission action. Unrecognized Exception", true, true);
+    }
+
+    ROS_INFO_STREAM("Set mission action OK");
+    return Util::OpRet();
   }
 
   //***************************************************************************
@@ -663,7 +806,7 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 
         missionWpSetSpeedService.call(missionWpGetInfo);
 
-        *waypointTask = MissionOps::Convert(&missionWpGetInfo.response.waypoint_task);
+        *waypointTask = Convert(&missionWpGetInfo.response.waypoint_task);
     }
     catch(const std::exception& e)
     {
@@ -787,7 +930,7 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
     {
         dji_sdk::MissionWpUpload missionWaypoint;
 
-        auto wpt = MissionOps::Convert(waypointTask);
+        auto wpt = Convert(waypointTask);
 
         missionWaypoint.request.waypoint_task = *wpt;
 
