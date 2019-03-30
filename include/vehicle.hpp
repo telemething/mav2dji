@@ -14,7 +14,7 @@
 #include <mav_message_processor.hpp>
 #include <vehicle_telemetry.hpp>
 #include <condition_variable>
-#include <condition_variable>
+//#include <condition_variable>
 
 namespace mav2dji
 {

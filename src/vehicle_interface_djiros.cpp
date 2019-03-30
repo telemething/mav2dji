@@ -26,7 +26,7 @@ namespace mav2dji
 
 VehicleInterfaceDjiros::VehicleInterfaceDjiros()
 {
-  init();
+  //init();
 }
 
 //*****************************************************************************
@@ -47,6 +47,9 @@ VehicleInterfaceDjiros::~VehicleInterfaceDjiros()
 
 int VehicleInterfaceDjiros::init()
 {
+    //*** TODO * Acquire the ROS node
+
+
     droneActivationService = 
         rosNodeHandle->serviceClient<dji_sdk::Activation>
             ("/dji_sdk/activation");

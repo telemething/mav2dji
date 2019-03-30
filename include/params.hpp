@@ -91,6 +91,7 @@ class ParamsVehicleInterface
 
    bool verbose = false;
    bool fakeVehicleConnection = true;
+   bool fakeTelemtry = true;
 
  private:
 

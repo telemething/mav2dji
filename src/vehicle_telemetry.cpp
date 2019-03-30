@@ -80,6 +80,19 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 
 void TelemetrySource_GlobalPositionInt::telemetryInit()
 {
+  if( VehicleInfo::params->VehicleInterface->fakeTelemtry )
+  {
+    int32_t tbs = 0;   //getTimeBootMs(gPosition.header);
+
+    double latitude = 47.4684818;
+    double longitude = -121.76819669999999;
+    double altitude = 174;
+    double height = 5;
+
+    vehicleTelemetry->telemGlobalPositionInt.setLatLonAlt(
+      &tbs, &latitude, &longitude, &altitude, &height);
+  }
+
 	topicSubscription = rosNodeHandle->subscribe(
 		"/dji_sdk/gps_position", 1,
         &TelemetrySource_GlobalPositionInt::callback, this);

@@ -236,6 +236,17 @@ int mav2dji_mission::update_safepoint_count(unsigned count)
 //*
 //*****************************************************************************
 
+mav2dji::MissionWaypointTask mav2dji_mission::Convert(mission_item_s missionItem)
+{
+
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 int mav2dji_mission::update_active_mission(dm_item_t dataman_id, uint16_t count, int32_t seq)
 {
 	mission_s mission;
@@ -243,6 +254,13 @@ int mav2dji_mission::update_active_mission(dm_item_t dataman_id, uint16_t count,
 	mission.dataman_id = dataman_id;
 	mission.count = count;
 	mission.current_seq = seq;
+
+	std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface = VehicleInfo::getVehicleInterface();
+
+	
+
+	//*** new ***
+	//make an async call, send missionItemList 
 
 	// update mission state in dataman 
 
@@ -946,6 +964,9 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 					else 
 					{
 						dm_item_t dm_item = _transfer_dataman_id;
+
+						//*** new ***
+						missionItemList.push_back(mission_item);
 
 						write_failed = dm_write(dm_item, wp.seq, DM_PERSIST_POWER_ON_RESET, &mission_item,
 									sizeof(struct mission_item_s)) != sizeof(struct mission_item_s);

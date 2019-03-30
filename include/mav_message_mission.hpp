@@ -9,6 +9,7 @@
 #pragma once 
 
 #include <mav_message_base.hpp>
+#include <vehicle_Info.hpp>
 
 #  define NUM_MISSIONS_SUPPORTED 2000 // This allocates a file of around 181 kB on the SD card.
 
@@ -358,6 +359,12 @@ class mav2dji_mission : mav2dji_message_base
 	void handle_mission_clear_all(const mavlink_message_t* msg);
 
     void processMAVLINK_MSG_ID_MISSION_ITEM(const mavlink_message_t* msg);
+
+    //*** new below ***
+
+    mav2dji::MissionWaypointTask Convert(mission_item_s missionItem);
+
+    std::vector<mission_item_s> missionItemList;
 };
 
 } /* namespace mav2dji*/
