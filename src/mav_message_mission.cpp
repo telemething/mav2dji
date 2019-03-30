@@ -232,41 +232,155 @@ int mav2dji_mission::update_safepoint_count(unsigned count)
 
 //*****************************************************************************
 //*
+//* Mavlink message:
+//* struct mission_item_s 
+//* {
+//*   double lat;			latitude in degrees	
+//*   double lon;			longitude in degrees		
+//*   union 
+//*   {
+//*    struct 
+//*     {
+//*      union 
+//*      {
+//*       float time_inside;						time that the MAV should stay inside the radius before advancing in seconds 
+//*       float pitch_min;							minimal pitch angle for fixed wing takeoff waypoints 
+//*       float circle_radius;					geofence circle radius in meters (only used for NAV_CMD_NAV_FENCE_CIRCLE*) 
+//*      };
+//*      float acceptance_radius;				default radius in which the mission is accepted as reached in meters 
+//*      float loiter_radius;						loiter radius in meters, 0 for a VTOL to hover, negative for counter-clockwise 
+//*      float yaw;											in radians NED -PI..+PI, NAN means don't change yaw		
+//*      float ___lat_float;						padding 
+//*      float ___lon_float;						padding 
+//*      float altitude;								altitude in meters	(AMSL)			
+//*     };
+//*     float params[7];								array to store mission command values for MAV_FRAME_MISSION 
+//*    };
+//*   uint16_t nav_cmd;									navigation command					
+//*   int16_t do_jump_mission_index;		index where the do jump will go to                 
+//*   uint16_t do_jump_repeat_count;		how many times do jump needs to be done            
+//*   union 
+//*   {
+//*    uint16_t do_jump_current_count;	count how many times the jump has been done	
+//*    uint16_t vertex_count;						Polygon vertex count (geofence)	*/
+//*    uint16_t land_precision;					Defines if landing should be precise: 
+//*																				0 = normal landing, 
+//*																				1 = opportunistic precision landing, 
+//*																				2 = required precision landing (with search)	
+//*   };
+//*   struct 
+//*   {
+//*    uint16_t frame : 4,							mission frame 
+//*     origin : 3,											how the mission item was generated 
+//*     loiter_exit_xtrack : 1,					exit xtrack location: 0 for center of loiter wp, 1 for exit location 
+//*     force_heading : 1,							heading needs to be reached 
+//*     altitude_is_relative : 1,				true if altitude is relative from start point	
+//*     autocontinue : 1,								true if next waypoint should follow after this one 
+//*     vtol_back_transition : 1;				part of the vtol back transition sequence 
+//*   };
+//* };
 //*
+//* ---------------------------------------------------------------------------
 //*
-//*****************************************************************************
+//*	mav2dji::MissionWaypointAction ::=
+//* uint8 action_repeat				#low 4 bit: num of actions, Up 4 bit: repeat count
+//* uint8[16] command_list
+//* uint16[16] command_parameter
+//*
+//* ----------------------------------------------------------------------------
+//* 
+//* mav2dji::MissionWaypoint ::=
+//* float64 latitude          # degree
+//* float64 longitude         # degree
+//* float32 altitude          # relative altitude from takeoff point
+//* float32 damping_distance  # Bend length (effective coordinated turn mode only)
+//* int16 target_yaw          # Yaw (degree)
+//* int16 target_gimbal_pitch # Gimbal pitch
+//* uint8 turn_mode           # 0: clockwise, 1: counter-clockwise
+//* uint8 has_action          # 0: no, 1: yes
+//* uint16 action_time_limit
+//*	MissionWaypointAction missionWaypointAction 
+//* 
+//***************************************************************************** 
 
 mav2dji::MissionWaypoint mav2dji_mission::Convert(
 	mission_item_s missionItem)
 {
-	double latitude = 0.0;
-  double longitude = 0.0;
-	float altitude = 0.0;
-
-  mav2dji::MissionWaypointAction missionWaypointAction;
+	mav2dji::MissionWaypointAction missionWaypointAction;
 
 	mav2dji::MissionWaypoint wayPoint( 
-  	latitude, longitude, altitude, 0.0, 0.0, 0.0, 
+  	missionItem.lat, 
+		missionItem.lon, 
+		missionItem.altitude, 
+		0.0, 
+		0.0, 
+		0.0, 
     mav2dji::MissionWaypoint::turnModeEnum::turnModeClockwise, 
     mav2dji::MissionWaypoint::hasActionEnum::hasActionNo, 
-    100, missionWaypointAction );
+    100, 
+		missionWaypointAction );
 
 	return wayPoint;
 }
 
 //*****************************************************************************
 //*
+//* return "# constant for action_on_finish
+//* uint8 FINISH_NO_ACTION       = 0  # no action
+//* uint8 FINISH_RETURN_TO_HOME  = 1  # return to home
+//* uint8 FINISH_AUTO_LANDING    = 2  # auto landing
+//* uint8 FINISH_RETURN_TO_POINT = 3  # return to point 0
+//* uint8 FINISH_NO_EXIT         = 4  # infinite mode， no exit
+//* 
+//* # constant for yaw_mode
+//* uint8 YAW_MODE_AUTO     = 0       # auto mode (point to next waypoint)
+//* uint8 YAW_MODE_LOCK     = 1       # lock as an initial value
+//* uint8 YAW_MODE_RC       = 2       # controlled by RC
+//* uint8 YAW_MODE_WAYPOINT = 3       # use waypoint's yaw(tgt_yaw)
+//* 
+//* # constant for trace_mode
+//* uint8 TRACE_POINT       = 0       # point to point, after reaching the target 
+//*                                     waypoint hover, complete waypt action (if any), 
+//*                                     then fly to the next waypt
+//* uint8 TRACE_COORDINATED = 1       # 1: Coordinated turn mode, smooth transition 
+//*                                     between waypts, no waypts task
+//* 
+//* # constants for action_on_rc_lost
+//* uint8 ACTION_FREE       = 0       # exit waypoint and failsafe
+//* uint8 ACTION_AUTO       = 1       # continue the waypoint
+//* 
+//* # constants for gimbal_pitch_mode
+//* uint8 GIMBAL_PITCH_FREE = 0       # free mode, no control on gimbal
+//* uint8 GIMBAL_PITCH_AUTO = 1       # auto mode, Smooth transition between waypoints on gimbal
 //*
-//*
+//* ---------------------------------------------------------------------------
+//* 
+//* mav2dji::MissionWaypointTask ::=
+//* float32 velocity_range    # Maximum speed joystick input(2~15m)
+//* float32 idle_velocity     # Cruising Speed (without joystick input, no more than vel_cmd_range)
+//* uint8 action_on_finish    # See constants above for possible actions
+//* uint8 mission_exec_times  # 1: once ; 2: twice
+//* uint8 yaw_mode            # see constants above for possible yaw modes
+//* uint8 trace_mode          # see constants above for possible trace modes
+//* uint8 action_on_rc_lost   # see constants above for possible actions
+//* uint8 gimbal_pitch_mode   # see constants above for pissible gimbal modes
+//* MissionWaypoint[] wayPointList  # a vector of waypoints
+//* 
 //*****************************************************************************
 
 mav2dji::MissionWaypointTask mav2dji_mission::Convert(
-	std::vector<mission_item_s> missionItem)
+	std::vector<mission_item_s> missionItemList)
 {
 	std::vector<mav2dji::MissionWaypoint> wayPointList;
 
-	mav2dji::MissionWaypointTask missionWaypointTask(10, 5, 
-		MissionWaypointTask::finishActionEnum::FINISH_NO_ACTION, 1,
+	for(auto mi : missionItemList)
+		wayPointList.push_back(Convert(mi));	
+
+	mav2dji::MissionWaypointTask missionWaypointTask(
+		10, 
+		5, 
+		MissionWaypointTask::finishActionEnum::FINISH_NO_ACTION, 
+		1,
 		MissionWaypointTask::yawModeEnum::YAW_MODE_AUTO,
 		MissionWaypointTask::traceModeEnum::TRACE_POINT,
 		MissionWaypointTask::rcLostActionEnum::ACTION_AUTO,
