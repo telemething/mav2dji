@@ -236,7 +236,8 @@ int mav2dji_mission::update_safepoint_count(unsigned count)
 //*
 //*****************************************************************************
 
-mav2dji::MissionWaypointTask mav2dji_mission::Convert(mission_item_s missionItem)
+mav2dji::MissionWaypointTask mav2dji_mission::Convert(
+	mission_item_s missionItem)
 {
 
 }
@@ -247,7 +248,20 @@ mav2dji::MissionWaypointTask mav2dji_mission::Convert(mission_item_s missionItem
 //*
 //*****************************************************************************
 
-int mav2dji_mission::update_active_mission(dm_item_t dataman_id, uint16_t count, int32_t seq)
+mav2dji::MissionWaypointTask mav2dji_mission::Convert(
+	std::vector<mission_item_s> missionItem)
+{
+
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int mav2dji_mission::update_active_mission(
+	dm_item_t dataman_id, uint16_t count, int32_t seq)
 {
 	mission_s mission;
 	mission.timestamp = hrt_absolute_time();
@@ -255,12 +269,15 @@ int mav2dji_mission::update_active_mission(dm_item_t dataman_id, uint16_t count,
 	mission.count = count;
 	mission.current_seq = seq;
 
+	//*** new below ***
+
 	std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface = VehicleInfo::getVehicleInterface();
 
-	
+	auto missionItemListConverted = Convert(missionItemList);
 
-	//*** new ***
-	//make an async call, send missionItemList 
+	vehicleInterface->MissionWpUpload(&missionItemListConverted);
+	
+	//*** new above ***
 
 	// update mission state in dataman 
 
