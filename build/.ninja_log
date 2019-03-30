@@ -89,3 +89,8 @@
 4142	4491	1553918138	devel/lib/mav2dji/mav2dji_ros_node	c2343ce47eb5cc0a
 6	3245	1553918186	CMakeFiles/mav2dji_ros_node.dir/src/mav_message_mission.cpp.o	1f647c9187f82748
 3245	3613	1553918186	devel/lib/mav2dji/mav2dji_ros_node	c2343ce47eb5cc0a
+5	3358	1553918541	CMakeFiles/mav2dji_ros_node.dir/src/mav2dji_ros_node.cpp.o	81f0be22ca0975b5
+6	3523	1553918541	CMakeFiles/mav2dji_ros_node.dir/src/mav_message_processor.cpp.o	30ef37250fd83ba7
+6	4224	1553918542	CMakeFiles/mav2dji_ros_node.dir/src/vehicle.cpp.o	72c6d60b90dea482
+5	3302	1553918644	CMakeFiles/mav2dji_ros_node.dir/src/mav_message_mission.cpp.o	1f647c9187f82748
+3302	3644	1553918644	devel/lib/mav2dji/mav2dji_ros_node	c2343ce47eb5cc0a

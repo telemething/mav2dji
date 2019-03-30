@@ -236,10 +236,22 @@ int mav2dji_mission::update_safepoint_count(unsigned count)
 //*
 //*****************************************************************************
 
-mav2dji::MissionWaypointTask mav2dji_mission::Convert(
+mav2dji::MissionWaypoint mav2dji_mission::Convert(
 	mission_item_s missionItem)
 {
+	double latitude = 0.0;
+  double longitude = 0.0;
+	float altitude = 0.0;
 
+  mav2dji::MissionWaypointAction missionWaypointAction;
+
+	mav2dji::MissionWaypoint wayPoint( 
+  	latitude, longitude, altitude, 0.0, 0.0, 0.0, 
+    mav2dji::MissionWaypoint::turnModeEnum::turnModeClockwise, 
+    mav2dji::MissionWaypoint::hasActionEnum::hasActionNo, 
+    100, missionWaypointAction );
+
+	return wayPoint;
 }
 
 //*****************************************************************************
@@ -251,7 +263,17 @@ mav2dji::MissionWaypointTask mav2dji_mission::Convert(
 mav2dji::MissionWaypointTask mav2dji_mission::Convert(
 	std::vector<mission_item_s> missionItem)
 {
+	std::vector<mav2dji::MissionWaypoint> wayPointList;
 
+	mav2dji::MissionWaypointTask missionWaypointTask(10, 5, 
+		MissionWaypointTask::finishActionEnum::FINISH_NO_ACTION, 1,
+		MissionWaypointTask::yawModeEnum::YAW_MODE_AUTO,
+		MissionWaypointTask::traceModeEnum::TRACE_POINT,
+		MissionWaypointTask::rcLostActionEnum::ACTION_AUTO,
+		MissionWaypointTask::gimbalPitchModeEnum::GIMBAL_PITCH_FREE,
+		wayPointList );
+
+	return missionWaypointTask;
 }
 
 //*****************************************************************************

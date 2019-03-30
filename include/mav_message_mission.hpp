@@ -362,7 +362,7 @@ class mav2dji_mission : mav2dji_message_base
 
     //*** new below ***
 
-    mav2dji::MissionWaypointTask Convert(mission_item_s missionItem);
+    mav2dji::MissionWaypoint Convert(mission_item_s missionItem);
     mav2dji::MissionWaypointTask Convert(
 	    std::vector<mission_item_s> missionItem);
 
