@@ -23,41 +23,6 @@ namespace mav2dji
 //*
 //*
 //*
-//******************************************************************************
-
-//mav2dji_mission::mav2dji_mission(
-//	ros::NodeHandle nh, 
-//	std::shared_ptr<mavvehiclelib::mav_udp> mavUdp) : nodeHandle_(nh)
-//{
-//	mav_udp_ = mavUdp;
-//  ROS_INFO("[tt_tracker] Node started.");
-//}
-
-//mav2dji_mission::mav2dji_mission(
-//	ros::NodeHandle nh) : nodeHandle_(nh)
-//{
-//  ROS_INFO("[tt_tracker] Node started.");
-//}
-
-mav2dji_mission::mav2dji_mission()
-{
-  //ROS_INFO("[tt_tracker] Node started.");
-}
-
-//*****************************************************************************
-//*
-//*
-//*
-//******************************************************************************
-
-mav2dji_mission::~mav2dji_mission()
-{
-}
-
-//*****************************************************************************
-//*
-//*
-//*
 //*****************************************************************************
 
 void mav2dji_mission::printMavMessageInfo(const mavlink_message_t* msg, 
@@ -76,8 +41,6 @@ void mav2dji_mission::printMavMessageInfo(const mavlink_message_t* msg,
 
 int mav2dji_mission::ProcessMavMessage(const mavlink_message_t* msg)
 {
-  //mavlink_message_t msg = msgIn;
-
   switch (msg->msgid)
   {
 		case MAVLINK_MSG_ID_MISSION_ACK:
@@ -308,6 +271,8 @@ mav2dji::MissionWaypoint mav2dji_mission::Convert(
 {
 	mav2dji::MissionWaypointAction missionWaypointAction;
 
+	//TODO * We need to interpret waypoint action, I think its in nav_cmd
+
 	mav2dji::MissionWaypoint wayPoint( 
   	missionItem.lat, 
 		missionItem.lon, 
@@ -396,6 +361,20 @@ mav2dji::MissionWaypointTask mav2dji_mission::Convert(
 //*
 //*****************************************************************************
 
+std::shared_ptr<mav2dji::vehicle_interface> mav2dji_mission::getVehicleInterface()
+{
+	if( nullptr == vehicleInterface )
+		vehicleInterface = VehicleInfo::getVehicleInterface();
+
+	return vehicleInterface;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 int mav2dji_mission::update_active_mission(
 	dm_item_t dataman_id, uint16_t count, int32_t seq)
 {
@@ -407,11 +386,9 @@ int mav2dji_mission::update_active_mission(
 
 	//*** new below ***
 
-	std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface = VehicleInfo::getVehicleInterface();
-
 	auto missionItemListConverted = Convert(missionItemList);
 
-	vehicleInterface->MissionWpUpload(&missionItemListConverted);
+	getVehicleInterface()->MissionWpUpload(&missionItemListConverted);
 	
 	//*** new above ***
 

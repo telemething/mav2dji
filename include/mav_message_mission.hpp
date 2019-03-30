@@ -108,8 +108,8 @@ class mav2dji_mission : mav2dji_message_base
 
     //explicit mav2dji_mission(ros::NodeHandle nh, std::shared_ptr<mavvehiclelib::mav_udp> mavUdp);
     //explicit mav2dji_mission(ros::NodeHandle nh);
-    explicit mav2dji_mission();
-    ~mav2dji_mission();
+    explicit mav2dji_mission(){};
+    ~mav2dji_mission(){};
     
     int ProcessMavMessage(const mavlink_message_t* msg);
 
@@ -365,8 +365,11 @@ class mav2dji_mission : mav2dji_message_base
     mav2dji::MissionWaypoint Convert(mission_item_s missionItem);
     mav2dji::MissionWaypointTask Convert(
 	    std::vector<mission_item_s> missionItem);
+    std::shared_ptr<mav2dji::vehicle_interface> getVehicleInterface();
 
     std::vector<mission_item_s> missionItemList;
+
+    std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface;
 };
 
 } /* namespace mav2dji*/

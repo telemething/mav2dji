@@ -117,7 +117,7 @@ std::shared_ptr<dji_sdk::MissionWaypointTask>
     wpt->action_on_rc_lost  = waypointTask->action_on_rc_lost;
     wpt->gimbal_pitch_mode  = waypointTask->gimbal_pitch_mode;
 
-    for(auto wPointIn : wpt->mission_waypoint )
+    for(auto wPointIn : waypointTask->mission_waypoint )
     {
         dji_sdk::MissionWaypoint wPointOut;
 
@@ -166,7 +166,7 @@ std::shared_ptr<dji_sdk::MissionWaypointTask>
     wpt->action_on_rc_lost  = waypointTask->action_on_rc_lost;
     wpt->gimbal_pitch_mode  = waypointTask->gimbal_pitch_mode;
 
-    for(auto wPointIn : wpt->mission_waypoint )
+    for(auto wPointIn : waypointTask->mission_waypoint )
     {
         mav2dji::MissionWaypoint wPointOut;
 
