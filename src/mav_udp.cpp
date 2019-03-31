@@ -276,8 +276,9 @@ void mav_udp::listenWorker(int sock, std::string fromAddress, int fromPort)
 				printf("Bytes Received: %d\nDatagram: ", (int)recsize);
 
 			parseMavlink(MAVLINK_COMM_0, buf, &msg, &status);
-				printf("\n---> Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
-					gcPort, msg.magic, msg.sysid, msg.compid, msg.len, msg.msgid);
+			
+			//printf("\n---> Port: %i, Magic: %02X, SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", 
+				//gcPort, msg.magic, msg.sysid, msg.compid, msg.len, msg.msgid);
 
 			for (i = 0; i < recsize; ++i)
 			{

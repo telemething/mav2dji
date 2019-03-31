@@ -6,7 +6,7 @@
  *   
  */
 
-#include <vehicle_interface.hpp>
+/*#include <vehicle_interface.hpp>
 
 //*****************************************************************************
 //*
@@ -25,7 +25,6 @@ namespace mav2dji
 
 vehicle_interface::vehicle_interface()
 {
-  init();
 }
 
 //*****************************************************************************
@@ -50,4 +49,4 @@ int vehicle_interface::init()
 }
 
 
-}
+}*/

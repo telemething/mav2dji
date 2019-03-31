@@ -46,6 +46,9 @@ class mav_message : public mav2dji_message_base
 	//MavlinkLogHandler		_mavlink_log_handler;
 	//MavlinkTimesync		_mavlink_timesync;
 
+  int mavlinkSystemId;
+  int mavlinkComponentId;
+
   void init();
     
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);

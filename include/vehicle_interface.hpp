@@ -284,12 +284,12 @@ class vehicle_interface
 
     struct DroneVersion{ std::string Hardware; uint32_t Version; bool IsValid = false; };
 
-    explicit vehicle_interface();
-    ~vehicle_interface();
+    explicit vehicle_interface(){};
+    ~vehicle_interface(){};
 
     std::shared_ptr<ros::NodeHandle> rosNodeHandle;
 
-    virtual int init();
+    virtual Util::OpRet init() = 0;
     virtual Util::OpRet connectToPlatform() = 0;
     virtual Util::OpRet activate() = 0;
     virtual Util::OpRet startVehicleAsync() = 0;
@@ -308,7 +308,7 @@ class vehicle_interface
     virtual Util::OpRet MissionWpGetInfo(
         std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask) = 0;
     virtual float MissionWpGetSpeed() = 0;
-    virtual Util::OpRet MissionWpGetSpeed(float speed) = 0;
+    virtual Util::OpRet MissionWpSetSpeed(float speed) = 0;
     virtual Util::OpRet MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask) = 0;
     virtual Util::OpRet SDKControlAuthority(const ControlAutority authority) = 0;
     virtual Util::OpRet SendMobileData() = 0;

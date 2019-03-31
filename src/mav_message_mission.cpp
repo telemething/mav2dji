@@ -388,8 +388,8 @@ int mav2dji_mission::update_active_mission(
 
 	auto missionItemListConverted = Convert(missionItemList);
 
-	getVehicleInterface()->MissionWpUpload(&missionItemListConverted);
-	
+	auto ret = getVehicleInterface()->MissionWpUpload(&missionItemListConverted);
+
 	//*** new above ***
 
 	// update mission state in dataman 

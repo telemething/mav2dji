@@ -49,6 +49,9 @@ void mav_message::init()
   mission_manager = std::make_unique<mav2dji_mission>();
   
   px4_git_version_binary = VehicleInfo::getPx4GitVersion();
+    
+  mavlinkSystemId = VehicleInfo::getMavlinkSystemId(); 
+  mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
 }
 
 //*****************************************************************************
@@ -447,7 +450,21 @@ void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
+//*   https://mavlink.io/en/services/parameter.html#PARAM_VALUE
 //*
+//*  system_id ID of this system
+//*  component_id ID of this component (e.g. 200 for IMU)
+//*  msg The MAVLink message to compress the data into
+//*  
+//*  param_id  Onboard parameter id, terminated by NULL if the length is 
+//*   less than 16 human-readable chars and WITHOUT null termination (NULL) byte 
+//*   if the length is exactly 16 chars - applications have to provide 16+1 bytes 
+//*   storage if the ID is stored as string
+//*  param_value  Onboard parameter value
+//*  param_type  Onboard parameter type.
+//*  param_count  Total number of onboard parameters
+//*  param_index  Index of this onboard parameter
+//*  length of the message in bytes (excluding serial stream start sign)
 //*
 //*****************************************************************************
 
@@ -457,6 +474,32 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message
 
   mavlink_param_request_list_t req_list;
 	mavlink_msg_param_request_list_decode(msg, &req_list);
+
+  mavlink_message_t msgOut;
+
+  char paramId = 0x01;
+
+  mavlink_param_union_t param;
+  int32_t integer = 20000;
+  param.param_int32 = integer;
+  param.type = MAV_PARAM_TYPE_INT32;
+
+  uint16_t paramCount = 1;
+  uint16_t paramIndex = 0;
+
+  mavlink_msg_param_value_pack(      
+    mavlinkSystemId, 
+    mavlinkComponentId,
+    &msgOut,
+    &paramId,
+    param.param_float,
+    param.type,
+    paramCount,
+    paramIndex );
+
+    sendMavMessageToGcs(&msgOut);
+
+    printMavMessageInfo(&msgOut, "Sent response to : PARAM_REQUEST_LIST", true);
 }
 
 //*****************************************************************************
@@ -522,9 +565,16 @@ void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_
   uint8_t spec_version_hash = 0x74;
   uint8_t library_version_hash = 0x5c;
 
-  mavlink_msg_protocol_version_pack( 1, 1, &msgResp, version, 
-    minVersion, maxVersion, &spec_version_hash, &library_version_hash);
-  //mav_udp_->sendMavMessageToGcs(&msgResp);
+  mavlink_msg_protocol_version_pack(       
+    mavlinkSystemId, 
+    mavlinkComponentId, 
+    &msgResp, 
+    version, 
+    minVersion, 
+    maxVersion, 
+    &spec_version_hash, 
+    &library_version_hash);
+  
   sendMavMessageToGcs(&msgResp);
 
   printMavMessageInfo(&msgResp, "Sent response to : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
@@ -628,7 +678,7 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
     uint32_t uid3[3];
     mcu_unique_id(uid3);
 
-    uint32_t flight_sw_version = 0; 
+    uint32_t flight_sw_version = 0x01080000; 
     uint32_t middleware_sw_version = 0;
     uint32_t os_sw_version = 0; 
     uint32_t board_version = 0;
@@ -641,17 +691,23 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
     uint8_t  uid2[18];
 
     uint64_t capabilities =	
-        MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT
-		  | MAV_PROTOCOL_CAPABILITY_MISSION_INT
-		  | MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT
-		  | MAV_PROTOCOL_CAPABILITY_COMMAND_INT
-		  //| MAV_PROTOCOL_CAPABILITY_FTP
-		  | MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET
-		  | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED
-		  | MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET
-		  | MAV_PROTOCOL_CAPABILITY_MAVLINK2
-		  | MAV_PROTOCOL_CAPABILITY_MISSION_FENCE
-		  | MAV_PROTOCOL_CAPABILITY_MISSION_RALLY;
+        MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT /* Autopilot supports MISSION float message type. | */
+      | MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT /* Autopilot supports the new param float message type. | */
+      | MAV_PROTOCOL_CAPABILITY_MISSION_INT /* Autopilot supports MISSION_INT scaled integer message type. | */
+      | MAV_PROTOCOL_CAPABILITY_COMMAND_INT /* Autopilot supports COMMAND_INT scaled integer message type. | */
+      | MAV_PROTOCOL_CAPABILITY_PARAM_UNION /* Autopilot supports the new param union message type. | */
+//      | MAV_PROTOCOL_CAPABILITY_FTP /* Autopilot supports the new FILE_TRANSFER_PROTOCOL message type. | */
+      | MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET /* Autopilot supports commanding attitude offboard. | */
+      | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED /* Autopilot supports commanding position and velocity targets in local NED frame. | */
+      | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT /* Autopilot supports commanding position and velocity targets in global scaled integers. | */
+      | MAV_PROTOCOL_CAPABILITY_TERRAIN /* Autopilot supports terrain protocol / data handling. | */
+      | MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET /* Autopilot supports direct actuator control. | */
+      | MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION /* Autopilot supports the flight termination command. | */
+      | MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION /* Autopilot supports onboard compass calibration. | */
+      | MAV_PROTOCOL_CAPABILITY_MAVLINK2 /* Autopilot supports MAVLink version 2. | */
+      | MAV_PROTOCOL_CAPABILITY_MISSION_FENCE /* Autopilot supports mission fence protocol. | */
+      | MAV_PROTOCOL_CAPABILITY_MISSION_RALLY /* Autopilot supports mission rally point protocol. | */
+      | MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION;
 
     memcpy((void *)flight_custom_version, &px4_git_version_binary, sizeof(flight_custom_version));
 		memcpy((void *)middleware_custom_version, &px4_git_version_binary, sizeof(middleware_custom_version));
@@ -660,9 +716,22 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
 
     mavlink_message_t msgOut;
 
-    mavlink_msg_autopilot_version_pack(1,1,&msgOut, capabilities, flight_sw_version, 
-      middleware_sw_version, os_sw_version, board_version, flight_custom_version, 
-      middleware_custom_version, os_custom_version, vendor_id, product_id, uid, uid2 );
+    mavlink_msg_autopilot_version_pack( 
+      mavlinkSystemId, 
+      mavlinkComponentId,
+      &msgOut, 
+      capabilities, 
+      flight_sw_version, 
+      middleware_sw_version, 
+      os_sw_version, 
+      board_version, 
+      flight_custom_version, 
+      middleware_custom_version, 
+      os_custom_version, 
+      vendor_id, 
+      product_id, 
+      uid, 
+      uid2 );
 
     //mav_udp_->sendMavMessageToGcs(&msgOut);
     sendMavMessageToGcs(&msgOut);

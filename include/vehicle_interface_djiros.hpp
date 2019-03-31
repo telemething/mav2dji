@@ -74,7 +74,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   explicit VehicleInterfaceDjiros();
   ~VehicleInterfaceDjiros();
 
-  int init();
+  Util::OpRet init();
   Util::OpRet connectToPlatform();
   Util::OpRet activate();
   Util::OpRet startVehicleAsync();
@@ -96,7 +96,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   Util::OpRet MissionWpGetInfo(
     std::shared_ptr<mav2dji::MissionWaypointTask>* waypointTask);
   float MissionWpGetSpeed();
-  Util::OpRet MissionWpGetSpeed(float speed);
+  Util::OpRet MissionWpSetSpeed(float speed);
   Util::OpRet MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask);
   Util::OpRet SDKControlAuthority(const ControlAutority authority);
   Util::OpRet SendMobileData();

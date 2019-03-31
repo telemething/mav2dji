@@ -26,7 +26,6 @@ namespace mav2dji
 
 VehicleInterfaceDjiros::VehicleInterfaceDjiros()
 {
-  //init();
 }
 
 //*****************************************************************************
@@ -45,11 +44,10 @@ VehicleInterfaceDjiros::~VehicleInterfaceDjiros()
 //*
 //******************************************************************************
 
-int VehicleInterfaceDjiros::init()
+Util::OpRet VehicleInterfaceDjiros::init()
 {
-    //*** TODO * Acquire the ROS node
-
-
+  try
+  { 
     droneActivationService = 
         rosNodeHandle->serviceClient<dji_sdk::Activation>
             ("/dji_sdk/activation");
@@ -93,8 +91,20 @@ int VehicleInterfaceDjiros::init()
     missionWpActionService  = 
         rosNodeHandle->serviceClient<dji_sdk::SetLocalPosRef>
             ("/dji_sdk/mission_waypoint_action");
+  }
+  catch(const std::exception& e)
+  {
+    return Util::OpRet::UnwindStdException(e,
+      "Could not access ROS services", true, true);
+  }
+  catch(...)
+  {
+    return Util::OpRet::BuildError(
+      "Could not access ROS services. Unrecognized Exception", true, true);
+  }
 
-    return 0;
+  ROS_INFO("VehicleInterfaceDjiros::init() : Connected to ROS services OK");
+  return Util::OpRet();
 }
 
 //***************************************************************************
@@ -253,6 +263,8 @@ Util::OpRet VehicleInterfaceDjiros::connectToPlatform()
             Util::OpRet::resultEnum::failure, 
             "Could not initialize ROS node. Unrecognized Exception" );
     }
+
+    init();
 
     ///*** TEST **************
 
@@ -444,6 +456,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
             break;
         }
 
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
+
         cameraActionService.call(camAction);
 
         if(!camAction.response.result) 
@@ -488,6 +503,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 
         arm ? armControl.request.arm = armControl.request.ARM_COMMAND 
             : armControl.request.arm = armControl.request.DISARM_COMMAND;
+
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
 
         armVehicleService.call(armControl);
 
@@ -545,6 +563,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
             vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_GOHOME; 
             break;
         }
+
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
 
         vehicleTaskService.call(vehTask);
 
@@ -763,6 +784,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
           break;
       }
 
+      if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+        return Util::OpRet();
+
       missionWpActionService.call(missionWpAction);
 
       if(!missionWpAction.response.result)
@@ -879,7 +903,7 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet VehicleInterfaceDjiros::MissionWpGetSpeed(float speed)
+  Util::OpRet VehicleInterfaceDjiros::MissionWpSetSpeed(float speed)
   {
     try
     {
@@ -890,6 +914,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
             ("/dji_sdk/mission_waypoint_setSpeed");
 
         missionWpSetSpeed.request.speed = speed;
+
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
 
         missionWpSetSpeedService.call(missionWpSetSpeed);
 
@@ -927,7 +954,8 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   //*
   //***************************************************************************
 
-  Util::OpRet VehicleInterfaceDjiros::MissionWpUpload(const mav2dji::MissionWaypointTask* waypointTask)
+  Util::OpRet VehicleInterfaceDjiros::MissionWpUpload(
+    const mav2dji::MissionWaypointTask* waypointTask)
   {
     try
     {
@@ -936,6 +964,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
         auto wpt = Convert(waypointTask);
 
         missionWaypoint.request.waypoint_task = *wpt;
+
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
 
         missionWpUploadService.call(missionWaypoint);
 
@@ -1113,6 +1144,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
     try
     {
         dji_sdk::SetLocalPosRef localPosRef;
+
+        if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
+          return Util::OpRet();
 
         setLocalPosRefService.call(localPosRef);
 

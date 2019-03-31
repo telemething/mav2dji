@@ -25,7 +25,7 @@ namespace mav2dji
 
 //*****************************************************************************
 //*
-//* 
+//* http://discuss.px4.io/t/confused-with-guided-mode-in-qgroundcontrol-using-mavlink-v2-protocol/8091
 //*
 //******************************************************************************
 
@@ -33,14 +33,25 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 {
   ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
 
+  MAV_TYPE mavType = MAV_TYPE_QUADROTOR;
+  MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_GENERIC;
+  MAV_MODE mavMode = MAV_MODE_GUIDED_ARMED;   //*** TODO * This needs to changed during flight
+  MAV_STATE mavState = MAV_STATE_STANDBY;     //*** TODO * This needs to changed during flight
+
   while (ros::ok())
   {
-		mavlink_msg_heartbeat_pack(mavlinkSystemId, mavlinkComponentId, 
-			&mavlinkMsg, MAV_TYPE_HELICOPTER, MAV_AUTOPILOT_GENERIC, 
-			MAV_MODE_GUIDED_ARMED, 0, MAV_STATE_ACTIVE);
+		mavlink_msg_heartbeat_pack(
+      mavlinkSystemId, 
+      mavlinkComponentId, 
+			&mavlinkMsg, 
+      mavType,           
+      mavAutoPilot,            
+			mavMode,        
+      0, 
+      mavState);            
 					
 		sendMavMessageToGcs(&mavlinkMsg);
-        workerRosRate->sleep();
+      workerRosRate->sleep();
   }
 }
 
