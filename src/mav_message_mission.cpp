@@ -904,9 +904,162 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 //*
 //*****************************************************************************
 
+int mav2dji_mission::load_geofence_stats()
+{
+	/*mission_stats_entry_s stats;
+	// initialize fence points count
+	int ret = dm_read(DM_KEY_FENCE_POINTS, 0, &stats, sizeof(mission_stats_entry_s));
+
+	if (ret == sizeof(mission_stats_entry_s)) {
+		_count[MAV_MISSION_TYPE_FENCE] = stats.num_items;
+		_geofence_update_counter = stats.update_counter;
+	}
+	
+	return ret;*/
+
+	_count[MAV_MISSION_TYPE_FENCE] = 0;
+	_geofence_update_counter = 0;
+
+	return 0;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+int mav2dji_mission::load_safepoint_stats()
+{
+	/*mission_stats_entry_s stats;
+	// initialize safe points count
+	int ret = dm_read(DM_KEY_SAFE_POINTS, 0, &stats, sizeof(mission_stats_entry_s));
+
+	if (ret == sizeof(mission_stats_entry_s)) {
+		_count[MAV_MISSION_TYPE_RALLY] = stats.num_items;
+	}
+
+	return ret;*/
+
+	_count[MAV_MISSION_TYPE_RALLY] = 0;
+	return 0;
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+uint16_t mav2dji_mission::current_item_count()
+{
+	if (_mission_type >= sizeof(_count) / sizeof(_count[0])) {
+		PX4_ERR("WPM: _count out of bounds (%u)", _mission_type);
+		return 0;
+	}
+
+	return _count[_mission_type];
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav2dji_mission::send_mission_count(uint8_t targetSystemId, 
+	uint8_t targetComponentId, uint16_t count, MAV_MISSION_TYPE mission_type)
+{
+	_time_last_sent = hrt_absolute_time();
+
+	mavlink_mission_count_t wpc;
+	wpc.target_system = targetSystemId;
+	wpc.target_component = targetComponentId;
+	wpc.count = count;
+	wpc.mission_type = mission_type;
+
+	unsigned int tsi = targetSystemId;
+	unsigned short int ct = count;
+	int mt = mission_type;
+
+	mavlink_message_t msgOut;
+
+	mavlink_msg_mission_count_pack(getMavlinkSystemId(), getMavlinkComponentId(), 
+		&msgOut, targetSystemId, targetComponentId, count, mission_type);
+
+	sendMavMessageToGcs(&msgOut);
+
+	if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
+		printf("WPM: Send MISSION_COUNT %hhu to ID %hu, mission type=%i\n", 
+			count, targetSystemId, (int)mission_type );
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 void mav2dji_mission::handle_mission_request_list(const mavlink_message_t* msg) 
 {
   printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_REQUEST_LIST", true);  
+
+	mavlink_mission_request_list_t wprl;
+	mavlink_msg_mission_request_list_decode(msg, &wprl);
+
+	if (CHECK_SYSID_COMPID_MISSION(wprl)) 
+	{
+		if (_state == MAVLINK_WPM_STATE_IDLE || (_state == MAVLINK_WPM_STATE_SENDLIST
+				&& (uint8_t)_mission_type == wprl.mission_type)) 
+		{
+			_time_last_recv = hrt_absolute_time();
+
+			_state = MAVLINK_WPM_STATE_SENDLIST;
+			_mission_type = (MAV_MISSION_TYPE)wprl.mission_type;
+
+			// make sure our item counts are up-to-date
+			switch (_mission_type) 
+			{
+			case MAV_MISSION_TYPE_FENCE:
+				load_geofence_stats();
+				break;
+
+			case MAV_MISSION_TYPE_RALLY:
+				load_safepoint_stats();
+				break;
+
+			default:
+				break;
+			}
+
+			_transfer_seq = 0;
+			_transfer_count = current_item_count();
+			_transfer_partner_sysid = msg->sysid;
+			_transfer_partner_compid = msg->compid;
+
+			if (_transfer_count > 0) 
+			{
+				if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
+					printf("WPM: MISSION_REQUEST_LIST OK, %u mission items to send, mission type=%u\n", _transfer_count, _mission_type);
+			} 
+			else 
+			{
+				if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
+					printf("WPM: MISSION_REQUEST_LIST OK nothing to send, mission is empty, mission type=%u\n", _mission_type);
+			}
+
+			send_mission_count(msg->sysid, msg->compid, _transfer_count, _mission_type);
+			printMavMessageInfo(msg, "Sent response to : MAVLINK_MSG_ID_MISSION_REQUEST_LIST\n", true);
+		} 
+		else 
+		{
+			if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
+				printf("WPM: MISSION_REQUEST_LIST ERROR: busy\n");
+			send_statustext_critical("IGN REQUEST LIST: Busy");
+		}
+
+		switch_to_idle_state();
+	}
 }
 
 //*****************************************************************************

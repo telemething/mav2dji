@@ -201,6 +201,7 @@ include_directories(
 
 
 add_executable(mav2dji_ros_node
+  src/mav_params.cpp
   src/mission_ops.cpp
   src/params.cpp
   src/vehicle_telemetry.cpp

@@ -41,12 +41,13 @@ typedef void 	*orb_advert_t;
 		mav2dji_message_base::px4_log_modulename(level, MODULE_NAME, fmt, ##__VA_ARGS__); \
 	} while(0)
 
-#define __px4_log_omit(level, FMT, ...)   mav2dji_message_base::do_nothing(level, ##__VA_ARGS__)
+//#define __px4_log_omit(level, FMT, ...)   mav2dji_message_base::do_nothing(level, ##__VA_ARGS__)
+#define __px4_log_omit(level, FMT, ...)   mav2dji_message_base::debugPrintf(level, FMT, ##__VA_ARGS__)
 
 #define PX4_PANIC(FMT, ...)	__px4_log_modulename(_PX4_LOG_LEVEL_PANIC, FMT, ##__VA_ARGS__)
 #define PX4_ERR(FMT, ...)	__px4_log_modulename(_PX4_LOG_LEVEL_ERROR, FMT, ##__VA_ARGS__)
 #define PX4_WARN(FMT, ...) 	__px4_log_modulename(_PX4_LOG_LEVEL_WARN,  FMT, ##__VA_ARGS__)
-#define PX4_DEBUG(FMT, ...) 	__px4_log_omit(_PX4_LOG_LEVEL_DEBUG, FMT, ##__VA_ARGS__)
+//#define PX4_DEBUG(FMT, ...) 	__px4_log_omit(_PX4_LOG_LEVEL_DEBUG, FMT, ##__VA_ARGS__)
 
 //****************
 
@@ -79,6 +80,8 @@ class mav2dji_message_base
 
     explicit mav2dji_message_base();
     ~mav2dji_message_base();
+
+    const static int logLevel = _PX4_LOG_LEVEL_DEBUG;
 
     //int getMavlinkSystemId() { return mav_udp_->getMavlinkSystemId(); }
     //int getMavlinkComponentId() { return mav_udp_->getMavlinkComponentId(); }
@@ -127,7 +130,8 @@ class mav2dji_message_base
     void dm_unlock( dm_item_t item ){};
     int dm_clear( dm_item_t item ){return 0;};
     int dm_restart( dm_reset_reason restart_type){return 0;};
-    ssize_t dm_read( dm_item_t item, unsigned index, void *buffer, size_t buflen ){return buflen;};
+    ssize_t dm_read( dm_item_t item, unsigned index, void *buffer, size_t buflen )
+    { printf("\r\n###### dm_read not implemented ######\r\n"); throw std::runtime_error("dm_read not implemented");};
     ssize_t dm_write( dm_item_t  item, unsigned index, dm_persitence_t persistence, const void *buffer, size_t buflen ){return buflen;};
 	static dm_item_t    _dataman_id;				                 ///< Global Dataman storage ID for active mission
 	dm_item_t			_my_dataman_id{DM_KEY_WAYPOINTS_OFFBOARD_0}; ///< class Dataman storage ID
@@ -148,6 +152,29 @@ class mav2dji_message_base
     int	orb_publish(const struct orb_metadata *meta, orb_advert_t handle, const void *data){};
 
     static inline void do_nothing(int level, ...){(void)level;}
+    static inline void debugPrintf(int level, const char * fmt, ...)
+    {
+        if(level >= logLevel)
+        {
+            va_list args;
+            va_start(args, fmt);
+            printf(fmt, args);
+            va_end(args);
+        }
+        printf("\r\n");
+    }
+
+    static void PX4_DEBUG(const char * fmt, ...)
+    {
+        if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
+        {
+            va_list args;
+            va_start(args, fmt);
+            printf(fmt, args);
+            va_end(args);
+        }
+        printf("\r\n");
+    }
 
     static void px4_log_modulename(int level, const char *moduleName, const char *fmt, ...)
     {

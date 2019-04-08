@@ -60,6 +60,7 @@ class mav_message : public mav2dji_message_base
 
   void mcu_unique_id(uint32_t *uid_96_bit);
 
+  void handle_message_system_time(const mavlink_message_t* msg); 
   void handle_message_command_int(const mavlink_message_t* msg);
   void handle_message_command_ack(const mavlink_message_t* msg);
   void handle_message_optical_flow_rad(const mavlink_message_t* msg);

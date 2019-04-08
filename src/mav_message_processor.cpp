@@ -142,6 +142,10 @@ void mav_message::ProcessMavMessage(const mavlink_message_t* msg)
       processMAVLINK_MSG_ID_HEARTBEAT(msg);
       break;
 
+    case MAVLINK_MSG_ID_SYSTEM_TIME:
+      handle_message_system_time(msg);
+      break;
+
     case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:
       processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(msg);
       break;
@@ -284,157 +288,162 @@ void mav_message::ProcessMavMessage(const mavlink_message_t* msg)
 
 void mav_message::handle_message_command_int(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : command_int", true);  
+  printMavMessageInfo(msg, "Mav >  command_int", true);  
+}
+
+void mav_message::handle_message_system_time(const mavlink_message_t* msg) 
+{
+  printMavMessageInfo(msg, "Mav >  system time", true);  
 }
 
 void mav_message::handle_message_command_ack(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : command_ack", true);  
+  printMavMessageInfo(msg, "Mav >  command_ack", true);  
 }
 
 void mav_message::handle_message_optical_flow_rad(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : optical_flow_rad", true);  
+  printMavMessageInfo(msg, "Mav >  optical_flow_rad", true);  
 }
 
 void mav_message::handle_message_ping(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : message_ping", true);  
+  printMavMessageInfo(msg, "Mav >  message_ping", true);  
 }
 
 void mav_message::handle_message_set_mode(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : set_mode", true);  
+  printMavMessageInfo(msg, "Mav >  set_mode", true);  
 }
 
 void mav_message::handle_message_att_pos_mocap(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : att_pos_mocap", true);  
+  printMavMessageInfo(msg, "Mav >  att_pos_mocap", true);  
 }
 
 void mav_message::handle_message_set_position_target_local_ned(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : set_position_target_local_ned", true);  
+  printMavMessageInfo(msg, "Mav >  set_position_target_local_ned", true);  
 }
 
 void mav_message::handle_message_set_attitude_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : set_attitude_target", true);  
+  printMavMessageInfo(msg, "Mav >  set_attitude_target", true);  
 }
 
 void mav_message::handle_message_set_actuator_control_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : set_actuator_control_target", true);  
+  printMavMessageInfo(msg, "Mav >  set_actuator_control_target", true);  
 }
 
 void mav_message::handle_message_vision_position_estimate(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : vision_position_estimate", true);  
+  printMavMessageInfo(msg, "Mav >  vision_position_estimate", true);  
 }
 
 void mav_message::handle_message_odometry(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : odometry", true);  
+  printMavMessageInfo(msg, "Mav >  odometry", true);  
 }
 
 void mav_message::handle_message_gps_global_origin(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : gps_global_origin", true);  
+  printMavMessageInfo(msg, "Mav >  gps_global_origin", true);  
 }
 
 void mav_message::handle_message_radio_status(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : radio_status", true);  
+  printMavMessageInfo(msg, "Mav >  radio_status", true);  
 }
 
 void mav_message::handle_message_manual_control(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : manual_control", true);  
+  printMavMessageInfo(msg, "Mav >  manual_control", true);  
 }
 
 void mav_message::handle_message_rc_channels_override(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : rc_channels_override", true);  
+  printMavMessageInfo(msg, "Mav >  rc_channels_override", true);  
 }
 
 void mav_message::handle_message_distance_sensor(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : distance_sensor", true);  
+  printMavMessageInfo(msg, "Mav >  distance_sensor", true);  
 }
 
 void mav_message::handle_message_follow_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : follow_target", true);  
+  printMavMessageInfo(msg, "Mav >  follow_target", true);  
 }
 
 void mav_message::handle_message_landing_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : landing_target", true);  
+  printMavMessageInfo(msg, "Mav >  landing_target", true);  
 }
 
 void mav_message::handle_message_adsb_vehicle(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : adsb_vehicle", true);  
+  printMavMessageInfo(msg, "Mav >  adsb_vehicle", true);  
 }
 
 void mav_message::handle_message_collision(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : collision", true);  
+  printMavMessageInfo(msg, "Mav >  collision", true);  
 }
 
 void mav_message::handle_message_gps_rtcm_data(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : gps_rtcm_data", true);  
+  printMavMessageInfo(msg, "Mav >  gps_rtcm_data", true);  
 }
 
 void mav_message::handle_message_battery_status(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : battery_status", true);  
+  printMavMessageInfo(msg, "Mav >  battery_status", true);  
 }
 
 void mav_message::handle_message_serial_control(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : serial_control", true);  
+  printMavMessageInfo(msg, "Mav >  serial_control", true);  
 }
 
 void mav_message::handle_message_logging_ack(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : logging_ack", true);  
+  printMavMessageInfo(msg, "Mav >  logging_ack", true);  
 }
 
 void mav_message::handle_message_play_tune(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : play_tune", true);  
+  printMavMessageInfo(msg, "Mav >  play_tune", true);  
 }
 
 void mav_message::handle_message_obstacle_distance(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : obstacle_distance", true);  
+  printMavMessageInfo(msg, "Mav >  obstacle_distance", true);  
 }
 
 void mav_message::handle_message_trajectory_representation_waypoints(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : trajectory_representation_waypoints", true);  
+  printMavMessageInfo(msg, "Mav >  trajectory_representation_waypoints", true);  
 }
 
 void mav_message::handle_message_named_value_float(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : named_value_float", true);  
+  printMavMessageInfo(msg, "Mav >  named_value_float", true);  
 }
 
 void mav_message::handle_message_debug(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : debug", true);  
+  printMavMessageInfo(msg, "Mav >  debug", true);  
 }
 
 void mav_message::handle_message_debug_vect(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : debug_vect", true);  
+  printMavMessageInfo(msg, "Mav >  debug_vect", true);  
 }
 
 void mav_message::handle_message_debug_float_array(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : debug_float_array", true);  
+  printMavMessageInfo(msg, "Mav >  debug_float_array", true);  
 }
 
 //*****************************************************************************
@@ -445,7 +454,7 @@ void mav_message::handle_message_debug_float_array(const mavlink_message_t* msg)
 
 void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg) 
 {
-	printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_HEARTBEAT", false);
+	printMavMessageInfo(msg, "Mav >  MAVLINK_MSG_ID_HEARTBEAT", false);
 }
 
 //*****************************************************************************
@@ -470,7 +479,7 @@ void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg)
 
 void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg)
 {
-	printMavMessageInfo(msg, "Mavlink Message : PARAM_REQUEST_LIST", true);
+	printMavMessageInfo(msg, "Mav >  PARAM_REQUEST_LIST", true);
 
   mavlink_param_request_list_t req_list;
 	mavlink_msg_param_request_list_decode(msg, &req_list);
@@ -516,33 +525,33 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
   {
     case MAV_CMD_NAV_TAKEOFF:
       //dji_commands::set_takeoff();
-      printMavMessageInfo(msg, "Mavlink Message : COMMAND_LONG : MAV_CMD_NAV_TAKEOFF", true);
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_TAKEOFF", true);
     break;
 
     case MAV_CMD_NAV_LAND:
       //dji_commands::set_land();
-      printMavMessageInfo(msg, "Mavlink Message : COMMAND_LONG : MAV_CMD_NAV_LAND", true);
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_LAND", true);
     break;
 
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
       //dji_commands::set_return2home();
-      printMavMessageInfo(msg, "Mavlink Message : COMMAND_LONG : MAV_CMD_NAV_RETURN_TO_LAUNCH", true);
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_RETURN_TO_LAUNCH", true);
     break;
     
     case MAV_CMD_REQUEST_PROTOCOL_VERSION:
       //dji_commands::set_return2home();
-      printMavMessageInfo(msg, "Mavlink Message : COMMAND_LONG : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
       processMAV_CMD_REQUEST_PROTOCOL_VERSION(msg);
     break;
     
     case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
       //dji_commands::set_return2home();
-      printMavMessageInfo(msg, "Mavlink Message : COMMAND_LONG : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
       processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(msg) ;
     break;
     
     default:
-      printf("Mavlink Message : COMMAND_LONG : ??? Unhandled command ID : %d ???\n",cmd.command);
+      printf("Mav >  COMMAND_LONG : ??? Unhandled command ID : %d ???\n",cmd.command);
   }
 }
 
