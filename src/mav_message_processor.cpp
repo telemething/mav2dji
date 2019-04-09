@@ -492,8 +492,23 @@ void mav_message::sendParams()
     uint16_t paramIndex = 0;
     char paramId[17];
 
+    mavlink_param_union_t param;
+    int32_t intVal;
+
     for(auto paramVal : mavParams.paramValList)
     {
+      switch(paramVal.type)
+      {
+        case MavParams::paramTypeEnum::INT :
+        intVal = paramVal.value;
+        param.param_int32 = intVal;
+        break;
+
+        case MavParams::paramTypeEnum::FLOAT :
+        param.param_float = paramVal.value;
+        break;
+      }
+
       std::strcpy(paramId, paramVal.name);
     
       mavlink_msg_param_value_pack(      
@@ -501,7 +516,7 @@ void mav_message::sendParams()
         mavlinkComponentId,
         &msgOut,
         paramId,
-        paramVal.value,
+        param.param_float,
         paramVal.type,
         paramCount,
         paramIndex++ );
@@ -514,11 +529,11 @@ void mav_message::sendParams()
   }
   catch(const std::exception& e)
   {
-    std::cerr << "Exception inmav_message::sendParams() : " << e.what() << '\n';
+    std::cerr << "Exception in mav_message::sendParams() : " << e.what() << '\n';
   }
   catch(...)
   {
-    std::cerr << "unidentified exception inmav_message::sendParams()\n";
+    std::cerr << "unidentified exception in mav_message::sendParams()\n";
   }
   
   sendingParams = false;

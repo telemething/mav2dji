@@ -27,6 +27,8 @@ class MavParams
 
     MavParams(){}
     ~MavParams(){}
+    
+    enum paramTypeEnum {INT = 6, FLOAT = 9};
 
     class paramValStruct
     {
