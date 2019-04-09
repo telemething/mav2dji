@@ -20,12 +20,24 @@ namespace mav2dji
 {
 
 //*****************************************************************************
-// Heartbeat
-//*****************************************************************************
-
-//*****************************************************************************
+//* Heartbeat
 //*
 //* http://discuss.px4.io/t/confused-with-guided-mode-in-qgroundcontrol-using-mavlink-v2-protocol/8091
+//*
+//* type  Type of the system (quadrotor, helicopter, etc.). Components use the 
+//*   same type as their associated system.
+//* autopilot  Autopilot type / class.
+//* base_mode  System mode bitmap.
+//* custom_mode  A bitfield for use for autopilot-specific flags
+//* system_status  System status flag.
+//*
+//* PX4 SITL starts like this
+//* type            2  
+//* autopilot       12  
+//* base_mode       29
+//* custom_mode     5.05938e+07
+//* system_status   3
+//* mavlin_version  3
 //*
 //******************************************************************************
 
@@ -39,12 +51,6 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
   uint8_t base_mode = MAV_MODE_GUIDED_ARMED;   //*** TODO * This needs to changed during flight
   MAV_STATE system_status = MAV_STATE_STANDBY;     //*** TODO * This needs to changed during flight
   uint32_t custom_mode = 0;
-
-  //type  Type of the system (quadrotor, helicopter, etc.). Components use the same type as their associated system.
-  //autopilot  Autopilot type / class.
-  //base_mode  System mode bitmap.
-  //custom_mode  A bitfield for use for autopilot-specific flags
-  //system_status  System status flag.
 
   while (ros::ok())
   {
