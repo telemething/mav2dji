@@ -70,12 +70,34 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 }
 
 //*****************************************************************************
-// SystemStatus
-//*****************************************************************************
-
-//*****************************************************************************
-//*
+//* SystemStatus
 //* 
+//* @param system_id ID of this system
+//* @param component_id ID of this component (e.g. 200 for IMU)
+//* @param msg The MAVLink message to compress the data into
+//*
+//* @param onboard_control_sensors_present  Bitmap showing which onboard 
+//*   controllers and sensors are present. Value of 0: not present. Value of 1: present.
+//* @param onboard_control_sensors_enabled  Bitmap showing which onboard 
+//*   controllers and sensors are enabled:  Value of 0: not enabled. Value of 1: enabled.
+//* @param onboard_control_sensors_health  Bitmap showing which onboard controllers 
+//*   and sensors are operational or have an error:  Value of 0: not enabled. 
+//*   Value of 1: enabled.
+//* @param load [d%] Maximum usage in percent of the mainloop time. Values: 
+//*   [0-1000] - should always be below 1000
+//* @param voltage_battery [mV] Battery voltage
+//* @param current_battery [cA] Battery current, -1: autopilot does not measure 
+//*   the current
+//* @param battery_remaining [%] Remaining battery energy, -1: autopilot estimate 
+//*   the remaining battery
+//* @param drop_rate_comm [c%] Communication drop rate, (UART, I2C, SPI, CAN), 
+//*   dropped packets on all links (packets that were corrupted on reception on the MAV)
+//* @param errors_comm  Communication errors (UART, I2C, SPI, CAN), dropped packets 
+//*   on all links (packets that were corrupted on reception on the MAV)
+//* @param errors_count1  Autopilot-specific errors
+//* @param errors_count2  Autopilot-specific errors
+//* @param errors_count3  Autopilot-specific errors
+//* @param errors_count4  Autopilot-specific errors
 //*
 //******************************************************************************
 
@@ -83,12 +105,150 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 {
   ROS_INFO("TelemetrySource_SysStatus : Worker Thread Started OK");
 
+  mavlink_message_t msg;
+
+  // These values came froma PX4 SITL
+  uint32_t onboard_control_sensors_present  = 2359340;
+  uint32_t onboard_control_sensors_enabled  = 2097170; 
+  uint32_t onboard_control_sensors_health   = 2359340;
+  uint16_t load                             = 0; 
+  uint16_t voltage_battery                  = 12149;
+  int16_t current_battery                   = -100;
+  int8_t battery_remaining                  = 100; 
+  uint16_t drop_rate_comm                   = 0; 
+  uint16_t errors_comm                      = 0;
+  uint16_t errors_count1                    = 0; 
+  uint16_t errors_count2                    = 0;
+  uint16_t errors_count3                    = 0; 
+  uint16_t errors_count4                    = 0;
+
   while (ros::ok())
-  {
+  {				
 		mavlink_msg_sys_status_pack(mavlinkSystemId, mavlinkComponentId, 
-			&mavlinkMsg, 0, 0, 0, 500, 11000, -1, -1, 0, 0, 0, 0, 0, 0);
+			&msg,onboard_control_sensors_present,
+      onboard_control_sensors_enabled,
+      onboard_control_sensors_health,
+      load,voltage_battery,
+      current_battery,
+      battery_remaining,
+      drop_rate_comm,
+      errors_comm,
+      errors_count1,
+      errors_count2,
+      errors_count3,
+      errors_count4);
 					
-		sendMavMessageToGcs(&mavlinkMsg);
+		sendMavMessageToGcs(&msg);
+        workerRosRate->sleep();
+  }
+}
+
+//*****************************************************************************
+//* HomePosition
+//* 
+//* @param system_id ID of this system
+//* @param component_id ID of this component (e.g. 200 for IMU)
+//* @param msg The MAVLink message to compress the data into
+//*
+//* @param latitude [degE7] Latitude (WGS84)
+//* @param longitude [degE7] Longitude (WGS84)
+//* @param altitude [mm] Altitude (MSL). Positive for up.
+//* @param x [m] Local X position of this position in the local coordinate frame
+//* @param y [m] Local Y position of this position in the local coordinate frame
+//* @param z [m] Local Z position of this position in the local coordinate frame
+//* @param q  World to surface normal and heading transformation of the takeoff 
+//*   position. Used to indicate the heading and slope of the ground
+//* @param approach_x [m] Local X position of the end of the approach vector. 
+//*   Multicopters should set this position based on their takeoff path. Grass-landing 
+//*   fixed wing aircraft should set it the same way as multicopters. Runway-landing 
+//*   fixed wing aircraft should set it to the opposite direction of the takeoff, 
+//*   assuming the takeoff happened from the threshold / touchdown zone.
+//* @param approach_y [m] Local Y position of the end of the approach vector. 
+//*   Multicopters should set this position based on their takeoff path. Grass-landing 
+//*   fixed wing aircraft should set it the same way as multicopters. Runway-landing 
+//*   fixed wing aircraft should set it to the opposite direction of the takeoff, 
+//*   assuming the takeoff happened from the threshold / touchdown zone.
+//* @param approach_z [m] Local Z position of the end of the approach vector. 
+//*   Multicopters should set this position based on their takeoff path. Grass-landing 
+//*   fixed wing aircraft should set it the same way as multicopters. Runway-landing 
+//*   fixed wing aircraft should set it to the opposite direction of the takeoff, 
+//*   assuming the takeoff happened from the threshold / touchdown zone.
+//* @param time_usec [us] Timestamp (UNIX Epoch time or time since system boot). 
+//*   The receiving end can infer timestamp format (since 1.1.1970 or since system 
+//*   boot) by checking for the magnitude the number.
+//*
+//******************************************************************************
+
+void TelemetrySource_HomePosition::telemetryRunWorker()
+{
+  ROS_INFO("TelemetrySource_HomePosition : Worker Thread Started OK");
+
+  mavlink_message_t msg;
+
+  int32_t latitude = 47.4684818;            //*** TODO * Need to set from GPS before liftoff
+  int32_t longitude = -121.76819669999999;  //*** TODO * Need to set from GPS before liftoff
+  int32_t altitude = 174;
+  float x = 0;
+  float y = 0;
+  float z = 0;
+  float q[4] = {1,0,0,0};
+  float approach_x = 0;
+  float approach_y = 0;
+  float approach_z = 0;
+  uint64_t time_usec = getTimeBootMs();
+
+  while (ros::ok())
+  {				
+		mavlink_msg_home_position_pack(
+      mavlinkSystemId, 
+      mavlinkComponentId, 
+			&msg,
+      latitude, 
+      longitude, 
+      altitude, 
+      x, y, z, q, 
+      approach_x, 
+      approach_y, 
+      approach_z, 
+      time_usec);
+					
+		sendMavMessageToGcs(&msg);
+        workerRosRate->sleep();
+  }
+}
+
+//*****************************************************************************
+//* ExtendedSysState
+//* 
+//* @param system_id ID of this system
+//* @param component_id ID of this component (e.g. 200 for IMU)
+//* @param msg The MAVLink message to compress the data into
+//*
+//* @param vtol_state  The VTOL state if applicable. Is set to 
+//*   MAV_VTOL_STATE_UNDEFINED if UAV is not in VTOL configuration.
+//* @param landed_state  The landed state. Is set to MAV_LANDED_STATE_UNDEFINED 
+//*   if landed state is unknown.
+//*
+//******************************************************************************
+
+void TelemetrySource_ExtendedSysState::telemetryRunWorker()
+{
+  ROS_INFO("TelemetrySource_ExtendedSysState : Worker Thread Started OK");
+
+  mavlink_message_t msg;
+
+  // These values came from a PX4 SITL
+  uint8_t vtol_state    = 0;
+  uint8_t landed_state  = 1; 
+
+  while (ros::ok())
+  {			
+		mavlink_msg_extended_sys_state_pack(mavlinkSystemId, mavlinkComponentId, 
+			&msg,
+      vtol_state,
+      landed_state );
+					
+		sendMavMessageToGcs(&msg);
         workerRosRate->sleep();
   }
 }

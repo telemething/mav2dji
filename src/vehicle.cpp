@@ -194,7 +194,9 @@ TelemetryRet vehicle::startTelemetry()
     std::make_shared<TelemetrySource_LocalPositionNed>(), 
     std::make_shared<TelemetrySource_Heartbeat>(), 
     std::make_shared<TelemetrySource_SysStatus>(),
-    std::make_shared<TelemetrySource_Velocity>() 
+    std::make_shared<TelemetrySource_Velocity>(), 
+    std::make_shared<TelemetrySource_ExtendedSysState>(), 
+    std::make_shared<TelemetrySource_HomePosition>()
     };
 
   auto trigger = TelemetrySource::Trigger(1000);

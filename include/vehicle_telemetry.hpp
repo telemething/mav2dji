@@ -177,9 +177,17 @@ class TelemetrySource
       return micros;
    }
 
+   
    int32_t getTimeBootMs(std_msgs::Header header)
    {
-      return header.stamp.sec + header.stamp.nsec * 1000000;
+      //*** TODO * We need to think about synchronizing with controller time
+      return getTimeBootMs();
+      //return header.stamp.sec + header.stamp.nsec * 1000000;
+   }
+    
+   uint64_t getTimeBootMs()
+   {
+      return microsSinceEpoch() - bootTime;
    }
     
    virtual TelemetryRet stopTelemetry(){};
@@ -201,8 +209,7 @@ class TelemetrySource
 
    std::thread telemetryRunWorkerThread;
    Trigger trigger_;
-   //telemetryInitType telemetryInit_;
-   //telemetryRunWorkerType telemetryRunWorker_;
+   uint64_t bootTime = microsSinceEpoch();
    MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
 };
 
@@ -360,6 +367,39 @@ class TelemetrySource_SysStatus : public TelemetrySource
    void telemetryRunWorker();
 };
 
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_ExtendedSysState : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_ExtendedSysState(){};
+   ~TelemetrySource_ExtendedSysState(){};
+
+ private:
+
+   void telemetryInit(){};
+   void telemetryRunWorker();
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
+class TelemetrySource_HomePosition : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_HomePosition(){};
+   ~TelemetrySource_HomePosition(){};
+
+ private:
+
+   void telemetryInit(){};
+   void telemetryRunWorker();
+};
 
 //*****************************************************************************
 //*
