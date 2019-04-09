@@ -13,6 +13,7 @@
 //#include <mav_udp.hpp>
 #include <mav_message_base.hpp>
 #include <mav_message_mission.hpp>
+#include <mav_params.hpp>
 
 namespace mav2dji
 {
@@ -25,28 +26,19 @@ class mav_message : public mav2dji_message_base
   explicit mav_message();
   ~mav_message();
 
-  //void startVehicle();
-  //void stopVehicle();
-
   void ProcessMavMessage(const mavlink_message_t* msg);
   void printMavMessageInfo(const mavlink_message_t* msg, std::string prefix, bool always); 
-  //int vehicleMavMessageCallback(const mavlink_message_t* mavMsg);
 
  private:
 
   bool verbose = false;
-  //ros::NodeHandle rosNodeHandle;
-  //std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
-
   uint8_t *px4_git_version_binary;
 
   std::unique_ptr<mav2dji_mission>	mission_manager;
+
+  MavParams mavParams;            //*** TODO * We might want to share this
   std::thread sendParamsThread;
   bool sendingParams = false;
-	//MavlinkParametersManager	_parameters_manager;
-	//MavlinkFTP			_mavlink_ftp;
-	//MavlinkLogHandler		_mavlink_log_handler;
-	//MavlinkTimesync		_mavlink_timesync;
 
   int mavlinkSystemId;
   int mavlinkComponentId;
@@ -57,6 +49,7 @@ class mav_message : public mav2dji_message_base
     
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg);
+  void processMAVLINK_MSG_ID_PARAM_REQUEST_READ(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* msg);
   void processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_t* msg);
   void processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn);

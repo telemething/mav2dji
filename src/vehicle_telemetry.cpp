@@ -32,11 +32,11 @@ namespace mav2dji
 //* system_status  System status flag.
 //*
 //* PX4 SITL starts like this
-//* type            2  
-//* autopilot       12  
-//* base_mode       29
-//* custom_mode     5.05938e+07
-//* system_status   3
+//* type            2           MAV_TYPE_QUADROTOR
+//* autopilot       12          MAV_AUTOPILOT_PX4
+//* base_mode       29          11101
+//* custom_mode     5.05938e+07 11000001000000000000001000
+//* system_status   3           MAV_STATE_STANDBY
 //* mavlin_version  3
 //*
 //******************************************************************************
@@ -47,10 +47,10 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 
   MAV_TYPE mavType = MAV_TYPE_QUADROTOR;
   MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_PX4;
-  //MAV_MODE base_mode = MAV_MODE_AUTO_ARMED;   //*** TODO * This needs to changed during flight
-  uint8_t base_mode = MAV_MODE_GUIDED_ARMED;   //*** TODO * This needs to changed during flight
-  MAV_STATE system_status = MAV_STATE_STANDBY;     //*** TODO * This needs to changed during flight
-  uint32_t custom_mode = 0;
+  //MAV_MODE base_mode = MAV_MODE_AUTO_ARMED;     // TODO * This needs to changed during flight
+  uint8_t base_mode = 29;                         // TODO * This needs to changed during flight
+  MAV_STATE system_status = MAV_STATE_STANDBY;    // TODO * This needs to changed during flight
+  uint32_t custom_mode = 50593800;                // TODO * This needs to changed during flight
 
   while (ros::ok())
   {
