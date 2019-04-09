@@ -41,6 +41,8 @@ class mav_message : public mav2dji_message_base
   uint8_t *px4_git_version_binary;
 
   std::unique_ptr<mav2dji_mission>	mission_manager;
+  std::thread sendParamsThread;
+  bool sendingParams = false;
 	//MavlinkParametersManager	_parameters_manager;
 	//MavlinkFTP			_mavlink_ftp;
 	//MavlinkLogHandler		_mavlink_log_handler;
@@ -50,11 +52,12 @@ class mav_message : public mav2dji_message_base
   int mavlinkComponentId;
 
   void init();
+
+  void sendParams();
     
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* msg);
-
   void processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_t* msg);
   void processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn);
 

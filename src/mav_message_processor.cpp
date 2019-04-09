@@ -7,6 +7,9 @@
  */
 
 #include <mav_message_processor.hpp>
+#include <mav_params.hpp>
+#include <chrono>
+#include <thread>
 
 //*****************************************************************************
 //*
@@ -477,6 +480,50 @@ void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg)
 //*
 //*****************************************************************************
 
+void mav_message::sendParams()
+{
+  try
+  {
+    mavlink_message_t msgOut;
+    MavParams mavParams;
+    auto timeout = std::chrono::milliseconds(50);
+
+    uint16_t paramCount = mavParams.paramValList.size();
+    uint16_t paramIndex = 0;
+    char paramId[17];
+
+    for(auto paramVal : mavParams.paramValList)
+    {
+      std::strcpy(paramId, paramVal.name);
+    
+      mavlink_msg_param_value_pack(      
+        mavlinkSystemId, 
+        mavlinkComponentId,
+        &msgOut,
+        paramId,
+        paramVal.value,
+        paramVal.type,
+        paramCount,
+        paramIndex++ );
+
+      sendMavMessageToGcs(&msgOut);
+
+      // we must not flood the channel
+      std::this_thread::sleep_for(timeout);
+    }
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << "Exception inmav_message::sendParams() : " << e.what() << '\n';
+  }
+  catch(...)
+  {
+    std::cerr << "unidentified exception inmav_message::sendParams()\n";
+  }
+  
+  sendingParams = false;
+}
+
 void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg)
 {
 	printMavMessageInfo(msg, "Mav >  PARAM_REQUEST_LIST", true);
@@ -484,9 +531,16 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message
   mavlink_param_request_list_t req_list;
 	mavlink_msg_param_request_list_decode(msg, &req_list);
 
-  mavlink_message_t msgOut;
+  if(!sendingParams)
+  {
+    sendingParams = true;
+    sendParamsThread = std::thread(
+        &mav_message::sendParams, this);
+  }
 
-  char paramId = 0x01;
+  /*mavlink_message_t msgOut;
+
+  char paramId[17] = "aabbccdd";
 
   mavlink_param_union_t param;
   int32_t integer = 20000;
@@ -500,15 +554,15 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message
     mavlinkSystemId, 
     mavlinkComponentId,
     &msgOut,
-    &paramId,
+    paramId,
     param.param_float,
     param.type,
     paramCount,
     paramIndex );
 
-    sendMavMessageToGcs(&msgOut);
+  sendMavMessageToGcs(&msgOut);*/
 
-    printMavMessageInfo(&msgOut, "Sent response to : PARAM_REQUEST_LIST", true);
+  printMavMessageInfo(msg, "Sending response to : PARAM_REQUEST_LIST", true);
 }
 
 //*****************************************************************************

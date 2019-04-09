@@ -1,6 +1,12 @@
 [
 {
   "directory": "/Data/catkin-ws/src/mav2dji/build",
+  "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_contrib_ws/devel/.private/dji_sdk/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/geometry_msgs/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/nav_msgs/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/actionlib_msgs/include -I/home/mark/ros_catkin_contrib_ws/src/Onboard-SDK-ROS/dji_sdk/include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/mav_params.cpp.o -c /Data/catkin-ws/src/mav2dji/src/mav_params.cpp",
+  "file": "/Data/catkin-ws/src/mav2dji/src/mav_params.cpp"
+},
+
+{
+  "directory": "/Data/catkin-ws/src/mav2dji/build",
   "command": "/usr/bin/g++-7  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_PACKAGE_NAME=\\\"mav2dji\\\" -I../include -I/home/mark/ros_catkin_contrib_ws/devel/.private/dji_sdk/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/geometry_msgs/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/nav_msgs/include -I/home/mark/ros_catkin_contrib_ws/devel/.private/actionlib_msgs/include -I/home/mark/ros_catkin_contrib_ws/src/Onboard-SDK-ROS/dji_sdk/include -I/home/mark/ros_catkin_ws/install_isolated/include -I/home/mark/ros_catkin_ws/install_isolated/share/xmlrpcpp/cmake/../../../include/xmlrpcpp  -g   -o CMakeFiles/mav2dji_ros_node.dir/src/mission_ops.cpp.o -c /Data/catkin-ws/src/mav2dji/src/mission_ops.cpp",
   "file": "/Data/catkin-ws/src/mav2dji/src/mission_ops.cpp"
 },
