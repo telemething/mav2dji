@@ -18,67 +18,33 @@ namespace math
     #include <float.h>
 
     template<typename _Tp>
-    constexpr const _Tp &min(const _Tp &a, const _Tp &b)
-    {
-        return (a < b) ? a : b;
-    }
+    constexpr const _Tp &min(const _Tp &a, const _Tp &b);
 
     template<typename _Tp>
-    constexpr const _Tp &max(const _Tp &a, const _Tp &b)
-    {
-        return (a > b) ? a : b;
-    }
+    constexpr const _Tp &max(const _Tp &a, const _Tp &b);
 
     template<typename _Tp>
-    constexpr const _Tp &constrain(const _Tp &val, const _Tp &min_val, const _Tp &max_val)
-    {
-        return (val < min_val) ? min_val : ((val > max_val) ? max_val : val);
-    }
+    constexpr const _Tp &constrain(const _Tp &val, const _Tp &min_val, const _Tp &max_val);
 
     /** Constrain float values to valid values for int16_t.
      * Invalid values are just clipped to be in the range for int16_t. */
-    inline int16_t constrainFloatToInt16(float value)
-    {
-        return (int16_t)math::constrain(value, (float)INT16_MIN, (float)INT16_MAX);
-    }
+    inline int16_t constrainFloatToInt16(float value);
 
     template<typename _Tp>
-    inline constexpr bool isInRange(const _Tp &val, const _Tp &min_val, const _Tp &max_val)
-    {
-        return (min_val <= val) && (val <= max_val);
-    }
+    inline constexpr bool isInRange(const _Tp &val, const _Tp &min_val, const _Tp &max_val);
 
     template<typename T>
-    constexpr T radians(const T degrees)
-    {
-        return degrees * (static_cast<T>(M_PI) / static_cast<T>(180));
-    }
+    constexpr T radians(const T degrees);
 
     template<typename T>
-    constexpr T degrees(const T radians)
-    {
-        return radians * (static_cast<T>(180) / static_cast<T>(M_PI));
-    }
+    constexpr T degrees(const T radians);
 
     /** Save way to check if float is zero */
-    inline bool isZero(const float val)
-    {
-        return fabsf(val - 0.0f) < FLT_EPSILON;
-    }
+    inline bool isZero(const float val);
 
     /** Save way to check if double is zero */
-    inline bool isZero(const double val)
-    {
-        return fabs(val - 0.0) < DBL_EPSILON;
-    }
+    inline bool isZero(const double val);
 }
-
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
-//*****************************************************************************
 
 namespace mav2dji
 {
@@ -103,13 +69,8 @@ class mav2dji_mission : mav2dji_message_base
 {
  public:
 
-    // ROS node handle.
-    //ros::NodeHandle nodeHandle_;
-
-    //explicit mav2dji_mission(ros::NodeHandle nh, std::shared_ptr<mavvehiclelib::mav_udp> mavUdp);
-    //explicit mav2dji_mission(ros::NodeHandle nh);
-    explicit mav2dji_mission(){};
-    ~mav2dji_mission(){};
+    explicit mav2dji_mission();
+    ~mav2dji_mission();
     
     int ProcessMavMessage(const mavlink_message_t* msg);
 
@@ -243,46 +204,9 @@ class mav2dji_mission : mav2dji_message_base
     };
 
     template<typename Type>
-    bool is_finite(Type x) 
-    {
-        return std::isfinite(x);
-    }
-
+    bool is_finite(Type x);
     template<typename Type>
-    Type wrap_2pi(Type x)
-    {
-        if (!is_finite(x)) 
-        {
-            return x;
-        }
-
-        int c = 0;
-
-        while (x >= Type(2 * M_PI))
-         {
-            x -= Type(2 * M_PI);
-
-            if (c++ > 100) 
-            {
-                return INFINITY;
-            }
-        }
-
-        c = 0;
-
-        while (x < Type(0)) 
-        {
-            x += Type(2 * M_PI);
-
-            if (c++ > 100) 
-            {
-                return INFINITY;
-            }
-        }
-
-        return x;
-    }
-
+    Type wrap_2pi(Type x);
 
     struct mission_stats_entry_s 
     {
