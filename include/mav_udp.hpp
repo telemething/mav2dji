@@ -32,23 +32,9 @@ class MavUdpRet
       resultEnum Result;
       std::string Description;
 
-      MavUdpRet(resultEnum result, std::string description )
-      {
-         Result = result;
-         Description = description;
-      }
-
-      MavUdpRet(resultEnum result )
-      {
-         Result = result;
-         Description = "";
-      }
-
-      MavUdpRet()
-      {
-         Result = resultEnum::success;
-         Description = "";
-      }
+      MavUdpRet(resultEnum result, std::string description );
+      MavUdpRet(resultEnum result );
+      MavUdpRet();
 };
 
 //*****************************************************************************
@@ -59,14 +45,12 @@ class mav_udp
 {
  public:
 
-    //typedef std::function<int(const mavlink_message_t *)> mavMessageCallbackType;
-
     explicit mav_udp();
     explicit mav_udp(MavlinkMessageInfo::mavMessageCallbackType callback);
     ~mav_udp();
 
-    int getMavlinkSystemId() { return mavlinkSystemId; }
-    int getMavlinkComponentId() { return mavlinkComponentId; }
+    int getMavlinkSystemId();
+    int getMavlinkComponentId();
 
     MavUdpRet startConnection();
     void stopConnection();
@@ -101,7 +85,6 @@ class mav_udp
       void parseMavlink(uint8_t chan, uint8_t* c, mavlink_message_t* r_message, mavlink_status_t* r_mavlink_status);
       int createSocket(std::string localAddress, int localPort, bool blocking);
       void listenWorker(int sock, std::string fromAddress, int fromPort);
-      //void exampleLoop(int sock, std::string toAddress, int toPort);
 };
 
 } /* namespace mavvehicle*/

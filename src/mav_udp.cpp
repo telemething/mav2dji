@@ -35,6 +35,24 @@
 
 namespace mavvehiclelib 
 {
+	
+MavUdpRet::MavUdpRet(resultEnum result, std::string description )
+{
+  Result = result;
+  Description = description;
+}
+
+MavUdpRet::MavUdpRet(resultEnum result )
+{
+  Result = result;
+  Description = "";
+}
+
+MavUdpRet::MavUdpRet()
+{
+  Result = resultEnum::success;
+  Description = "";
+}
 
 //*****************************************************************************
 //*
@@ -53,11 +71,9 @@ mav_udp::mav_udp()
 //*
 //******************************************************************************
 
-/*mav_udp::mav_udp(mavMessageCallbackType callback)
+mav_udp::~mav_udp()
 {
-	addMavMessageCallback(callback);
-	init();
-}*/
+}
 
 //*****************************************************************************
 //*
@@ -65,9 +81,15 @@ mav_udp::mav_udp()
 //*
 //******************************************************************************
 
-mav_udp::~mav_udp()
-{
-}
+int mav_udp::getMavlinkSystemId() { return mavlinkSystemId; }
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
+int mav_udp::getMavlinkComponentId() { return mavlinkComponentId; }
 
 //*****************************************************************************
 //*
