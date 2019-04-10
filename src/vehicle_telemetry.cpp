@@ -39,6 +39,27 @@ namespace mav2dji
 //* system_status   3           MAV_STATE_STANDBY
 //* mavlin_version  3
 //*
+//* type            2           MAV_TYPE_QUADROTOR
+//* autopilot       12          MAV_AUTOPILOT_PX4
+//* base_mode       157          11101
+//* custom_mode     6.7371e+07 
+//* system_status   4           MAV_STATE_STANDBY
+//* mavlin_version  3
+//*
+//* type            2           MAV_TYPE_QUADROTOR
+//* autopilot       12          MAV_AUTOPILOT_PX4
+//* base_mode       157          11101
+//* custom_mode     8.41482e+07 
+//* system_status   4           MAV_STATE_STANDBY
+//* mavlin_version  3
+//*
+//* type            2           MAV_TYPE_QUADROTOR
+//* autopilot       12          MAV_AUTOPILOT_PX4
+//* base_mode       157          11101
+//* custom_mode     8.41482e+07 
+//* system_status   3           MAV_STATE_STANDBY
+//* mavlin_version  3
+//*
 //******************************************************************************
 
 void TelemetrySource_Heartbeat::telemetryRunWorker()
@@ -107,10 +128,10 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 
   mavlink_message_t msg;
 
-  // These values came froma PX4 SITL
-  uint32_t onboard_control_sensors_present  = 2359340;
-  uint32_t onboard_control_sensors_enabled  = 2097170; 
-  uint32_t onboard_control_sensors_health   = 2359340;
+  // These values came from a PX4 SITL
+  uint32_t onboard_control_sensors_present  = 2359340;  // 1001000000000000101100
+  uint32_t onboard_control_sensors_enabled  = 2097170;  // 1000000000000000010010
+  uint32_t onboard_control_sensors_health   = 2359340;  // 1001000000000000101100
   uint16_t load                             = 0; 
   uint16_t voltage_battery                  = 12149;
   int16_t current_battery                   = -100;

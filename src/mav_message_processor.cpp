@@ -669,7 +669,28 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
 //*****************************************************************************
 //*
 //*
+// uint16_t version; /*<  Currently active MAVLink version number * 100: v1.0 is 100, v2.0 is 200, etc.*/
+// uint16_t min_version; /*<  Minimum MAVLink version supported*/
+// uint16_t max_version; /*<  Maximum MAVLink version supported (set to the same value as version by default)*/
+// uint8_t spec_version_hash[8]; /*<  The first 8 bytes (not characters printed in hex!) of the git hash.*/
+// uint8_t library_version_hash[8]; /*<  The first 8 bytes (not characters printed in hex!) of the git hash.*/
 //*
+//
+// @param system_id ID of this system
+// @param component_id ID of this component (e.g. 200 for IMU)
+// @param msg The MAVLink message to compress the data into
+//
+// @param command  Command ID (of acknowledged command).
+// @param result  Result of command.
+// @param progress  WIP: Also used as result_param1, it can be set with a 
+//    enum containing the errors reasons of why the command was denied or the 
+//    progress percentage or 255 if unknown the progress when result is 
+//    MAV_RESULT_IN_PROGRESS.
+// @param result_param2  WIP: Additional parameter of the result, example: 
+//    which parameter of MAV_CMD_NAV_WAYPOINT caused it to be denied.
+// @param target_system  WIP: System which requested the command to be executed
+// @param target_component  WIP: Component which requested the command to be executed
+//
 //*****************************************************************************
 
 void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_t* msgIn)
@@ -678,6 +699,18 @@ void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_
 
   // lib checkin hash 5ce595557767fdf2e13ad8190e499fb53e2e92f1
   // spec checkin hash 747c3e73e9ad28e8011cdc5c98faf56752b1d32a
+
+  // print req info
+
+  mavlink_protocol_version_t versionReq;
+	mavlink_msg_protocol_version_decode(msgIn, &versionReq);
+
+  printf("Controller is requesting protocol version: %u, max: %u, min: %u", 
+    versionReq.version,
+    versionReq.max_version,
+    versionReq.min_version);
+
+  // send version
 
   uint16_t version = 200;
   uint16_t minVersion = 100;
@@ -695,6 +728,26 @@ void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_
     &spec_version_hash, 
     &library_version_hash);
   
+  sendMavMessageToGcs(&msgResp);
+
+  // send ack
+
+  uint16_t command = MAV_CMD_REQUEST_PROTOCOL_VERSION;
+  uint8_t result = 0;
+  uint8_t progress = 100;
+  int32_t result_param2 = 0;
+
+  mavlink_msg_command_ack_pack(    
+    mavlinkSystemId, 
+    mavlinkComponentId, 
+    &msgResp, 
+    command, 
+    result, 
+    progress, 
+    result_param2, 
+    msgIn->sysid, 
+    msgIn->compid);
+
   sendMavMessageToGcs(&msgResp);
 
   printMavMessageInfo(&msgResp, "< MAV : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
@@ -773,28 +826,44 @@ void mav_message::mcu_unique_id(uint32_t *uid_96_bit)
 	//}
 }*/
 
+//*****************************************************************************
+//*
+//* @param capabilities  Bitmap of capabilities
+//* @param flight_sw_version  Firmware version number
+//* @param middleware_sw_version  Middleware version number
+//* @param os_sw_version  Operating system version number
+//* @param board_version  HW / board version (last 8 bytes should be silicon ID, if any)
+//* @param flight_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+//* @param middleware_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+//* @param os_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
+//* @param vendor_id  ID of the board vendor
+//* @param product_id  ID of the product
+//* @param uid  UID if provided by hardware (see uid2)
+//* @param uid2  UID if provided by hardware (supersedes the uid field. If this is non-zero, use this field, otherwise use uid)
+//* @return length of the message in bytes (excluding serial stream start sign)
+//*
+//*****************************************************************************
+
 void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_message_t* msgIn) 
 {
+  mavlink_autopilot_version_t versionReq;
+	mavlink_msg_autopilot_version_decode(msgIn, &versionReq);
+
+  printf("Controller is requesting autopilot caps: %lu, flightVer: %u, midVer: %u, osVer: %u, boardVer: %u, vedId: %u, prodId: %u", 
+    versionReq.capabilities, 
+    versionReq.flight_sw_version, 
+    versionReq.middleware_sw_version, 
+    versionReq.os_sw_version, 
+    versionReq.board_version, 
+    versionReq.vendor_id, 
+    versionReq.product_id);
+
 	//struct vehicle_status_s status;
 
 	//MavlinkOrbSubscription *status_sub = this->add_orb_subscription(ORB_ID(vehicle_status));
 
 	//if (status_sub->update(&status)) 
-  {
-    //* @param capabilities  Bitmap of capabilities
-    //* @param flight_sw_version  Firmware version number
-    //* @param middleware_sw_version  Middleware version number
-    //* @param os_sw_version  Operating system version number
-    //* @param board_version  HW / board version (last 8 bytes should be silicon ID, if any)
-    //* @param flight_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
-    //* @param middleware_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
-    //* @param os_custom_version  Custom version field, commonly the first 8 bytes of the git hash. This is not an unique identifier, but should allow to identify the commit using the main version number even for very large code bases.
-    //* @param vendor_id  ID of the board vendor
-    //* @param product_id  ID of the product
-    //* @param uid  UID if provided by hardware (see uid2)
-    //* @param uid2  UID if provided by hardware (supersedes the uid field. If this is non-zero, use this field, otherwise use uid)
-    //* @return length of the message in bytes (excluding serial stream start sign)
-		
+  {	
     //*** These values were obtained from a PX4 SITL
     uint64_t capabilities                  = 58607;
     uint32_t flight_sw_version             = 17301500;
@@ -850,6 +919,8 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
 
     mavlink_message_t msgOut;
 
+    //*********************************
+
     mavlink_msg_autopilot_version_pack( 
       mavlinkSystemId, 
       mavlinkComponentId,
@@ -868,6 +939,29 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
       uid2 );
 
     sendMavMessageToGcs(&msgOut);
+
+    //*****************************
+
+    uint16_t command = MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES;
+    //uint8_t result = MAV_CMD_ACK_OK;
+    uint8_t result = 0;
+    uint8_t progress = 100;
+    int32_t result_param2 = 0;
+
+    mavlink_msg_command_ack_pack(    
+      mavlinkSystemId, 
+      mavlinkComponentId, 
+      &msgOut, 
+      command, 
+      result, 
+      progress, 
+      result_param2, 
+      msgIn->sysid, 
+      msgIn->compid);
+
+    sendMavMessageToGcs(&msgOut);
+
+    //*****************************
 
     printMavMessageInfo(&msgOut, "< MAV : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
 	}
