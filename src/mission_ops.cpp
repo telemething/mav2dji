@@ -7,6 +7,28 @@ namespace mav2dji
 #define C_PI (double)3.141592653589793
 #define DEG2RAD(DEG) ((DEG) * ((C_PI) / (180.0)))
 
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+MissionOps::MissionOps(){}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+MissionOps::~MissionOps(){}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 bool MissionOps::runWaypointMission(uint8_t numWaypoints, int responseTimeout)
 {
   auto vehicleInterface = VehicleInfo::getVehicleInterface();
@@ -31,6 +53,12 @@ bool MissionOps::runWaypointMission(uint8_t numWaypoints, int responseTimeout)
 
   return true;
 }
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
 
 std::vector<mav2dji::MissionWaypoint>
 MissionOps::createWaypoints(int numWaypoints, 
