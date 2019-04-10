@@ -43,10 +43,17 @@ class mav_message : public mav2dji_message_base
   int mavlinkSystemId;
   int mavlinkComponentId;
 
+  bool sendProtocolVersionAck = false;
+  bool sendAutopilotCapabilitiesAck = false;
+
   void init();
 
+  void sendParam(mav2dji::MavParams::paramValStruct paramVal);
   void sendParams();
-    
+  void SendAck(const mavlink_message_t* msg, uint16_t command);
+  void SendAck(const mavlink_message_t* msg, uint16_t command,
+    uint8_t resultCode, uint8_t progress, int32_t resultParam2 );
+
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_READ(const mavlink_message_t* msg);

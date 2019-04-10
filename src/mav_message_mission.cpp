@@ -462,13 +462,6 @@ void mav2dji_mission::send_mission_request(uint8_t targetSysid, uint8_t targetCo
 
 		if (_int_mode) 
 		{
-			//mavlink_mission_request_int_t wpr;
-			//wpr.target_system = targetSysid;
-			//wpr.target_component = targetCompid;
-			//wpr.seq = seq;
-			//wpr.mission_type = _mission_type;
-			//mavlink_msg_mission_request_int_send_struct(_mavlink->get_channel(), &wpr);
-
 			mavlink_msg_mission_request_int_pack(
 				getMavlinkSystemId(), getMavlinkComponentId(), 
 				&msgOut, targetSysid, targetCompid, seq, _mission_type );
@@ -478,17 +471,9 @@ void mav2dji_mission::send_mission_request(uint8_t targetSysid, uint8_t targetCo
 		} 
 		else 
 		{
-			//mavlink_mission_request_t wpr;
-			//wpr.target_system = targetSysid;
-			//wpr.target_component = targetCompid;
-			//wpr.seq = seq;
-			//wpr.mission_type = _mission_type;
-
 			mavlink_msg_mission_request_pack(
 				getMavlinkSystemId(), getMavlinkComponentId(), 
 				&msgOut, targetSysid, targetCompid, seq, _mission_type );
-
-			//mavlink_msg_mission_request_send_struct(_mavlink->get_channel(), &wpr);
 
 			PX4_DEBUG("WPM: Send MISSION_REQUEST seq %u to ID %u", seq, targetSysid);
 		}
@@ -765,7 +750,7 @@ void mav2dji_mission::switch_to_idle_state()
 
 void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_COUNT", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_COUNT", true);  
 
 	mavlink_mission_count_t wpc;
 	mavlink_msg_mission_count_decode(msg, &wpc);
@@ -894,7 +879,7 @@ void mav2dji_mission::handle_mission_count(const mavlink_message_t* msg)
 		}
 
 		send_mission_request(_transfer_partner_sysid, _transfer_partner_compid, _transfer_seq);
-		printMavMessageInfo(msg, "Sent response to : MAVLINK_MSG_ID_MISSION_COUNT", true);
+		printMavMessageInfo(msg, "< MAV : MAVLINK_MSG_ID_MISSION_COUNT", true);
 	}
 }
 
@@ -1002,7 +987,7 @@ void mav2dji_mission::send_mission_count(uint8_t targetSystemId,
 
 void mav2dji_mission::handle_mission_request_list(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_REQUEST_LIST", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_REQUEST_LIST", true);  
 
 	mavlink_mission_request_list_t wprl;
 	mavlink_msg_mission_request_list_decode(msg, &wprl);
@@ -1049,7 +1034,7 @@ void mav2dji_mission::handle_mission_request_list(const mavlink_message_t* msg)
 			}
 
 			send_mission_count(msg->sysid, msg->compid, _transfer_count, _mission_type);
-			printMavMessageInfo(msg, "Sent response to : MAVLINK_MSG_ID_MISSION_REQUEST_LIST\n", true);
+			printMavMessageInfo(msg, "< MAV : MAVLINK_MSG_ID_MISSION_REQUEST_LIST\n", true);
 		} 
 		else 
 		{
@@ -1070,7 +1055,7 @@ void mav2dji_mission::handle_mission_request_list(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_request_int(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_REQUEST_INT", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_REQUEST_INT", true);  
 }
 
 //*****************************************************************************
@@ -1081,7 +1066,7 @@ void mav2dji_mission::handle_mission_request_int(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_request(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_REQUEST", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_REQUEST", true);  
 }
 
 //*****************************************************************************
@@ -1092,7 +1077,7 @@ void mav2dji_mission::handle_mission_request(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_set_current(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_SET_CURRENT", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_SET_CURRENT", true);  
 }
 
 //*****************************************************************************
@@ -1103,7 +1088,7 @@ void mav2dji_mission::handle_mission_set_current(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_ack(const mavlink_message_t* msg)
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_ACK", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_ACK", true);  
 }
 
 //*****************************************************************************
@@ -1114,7 +1099,7 @@ void mav2dji_mission::handle_mission_ack(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_item(const mavlink_message_t* msg)
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_ITEM", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_ITEM", true);  
 
 	if (_int_mode) 
 	{
@@ -1132,7 +1117,7 @@ void mav2dji_mission::handle_mission_item(const mavlink_message_t* msg)
 
 void mav2dji_mission::handle_mission_item_int(const mavlink_message_t* msg)
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_ITEM_INT", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_ITEM_INT", true);  
 
 	if (!_int_mode) 
 	{
@@ -1410,7 +1395,7 @@ void mav2dji_mission::handle_mission_item_both(const mavlink_message_t *msg)
 
 void mav2dji_mission::handle_mission_clear_all(const mavlink_message_t* msg)
 {
-  printMavMessageInfo(msg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_CLEAR_ALL", true);  
+  printMavMessageInfo(msg, "MAV > MAVLINK_MSG_ID_MISSION_CLEAR_ALL", true);  
 }
 
 //*****************************************************************************
@@ -1421,7 +1406,7 @@ void mav2dji_mission::handle_mission_clear_all(const mavlink_message_t* msg)
 
 void mav2dji_mission::processMAVLINK_MSG_ID_MISSION_ITEM(const mavlink_message_t* recvMsg)
 {
-	printMavMessageInfo(recvMsg, "Mavlink Message : MAVLINK_MSG_ID_MISSION_ITEM", true);  
+	printMavMessageInfo(recvMsg, "MAV > MAVLINK_MSG_ID_MISSION_ITEM", true);  
 
   /*if(recvMsg.compid != MAV_COMP_ID_MISSIONPLANNER) 
   {
