@@ -1,3 +1,5 @@
+#pragma once 
+
 /*
  * mav2dji_ros.hpp
  *
@@ -5,8 +7,6 @@
  *      Author: Mark West
  *   
  */
-
-#pragma once
 
 #include <vehicle_interface.hpp>
 #include <vehicle_Info.hpp>

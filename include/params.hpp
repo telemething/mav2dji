@@ -1,3 +1,5 @@
+#pragma once 
+
 /*
  * mavvehiclelib.hpp
  *
@@ -5,8 +7,6 @@
  *      Author: Mark West
  *   
  */
-
-#pragma once
 
 // ROS
 #include <ros/ros.h>

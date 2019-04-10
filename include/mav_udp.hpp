@@ -1,3 +1,4 @@
+#pragma once 
 /*
  * mavvehiclelib.hpp
  *
@@ -5,8 +6,6 @@
  *      Author: Mark West
  *   
  */
-
-#pragma once
 
 #include <vehicle_Info.hpp>
 #include <thread>      

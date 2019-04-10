@@ -1,3 +1,4 @@
+#pragma once 
 /*
  * mav2dji_ros.hpp
  *
@@ -6,7 +7,6 @@
  *   
  */
 
-#pragma once
 
 // ROS
 //#include <ros/ros.h>

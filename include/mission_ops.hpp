@@ -1,3 +1,5 @@
+#pragma once 
+
 /*
  * mav2dji_ros.hpp
  *
@@ -5,8 +7,6 @@
  *      Author: Mark West
  *   
  */
-
-#pragma once
 
 #include <dji_sdk/MissionWaypoint.h>
 #include <dji_sdk/MissionWaypointAction.h>

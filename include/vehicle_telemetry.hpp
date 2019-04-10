@@ -1,3 +1,5 @@
+#pragma once 
+
 /*
  * mav2dji_ros.hpp
  *
@@ -6,9 +8,8 @@
  *   
  */
 
-#pragma once
-
 #include <vehicle_Info.hpp>
+#include <ivehicle_telemetry.hpp>
 #include <vehicle_interface.hpp>
 #include <thread>
 #include <chrono>
@@ -47,8 +48,8 @@ namespace mav2dji
 {
 
 class TelemetryRet;
-class VehicleTelemetry;
 class TelemetrySource;
+class VehicleTelemetry;
 
 //*****************************************************************************
 //*
@@ -145,7 +146,7 @@ class TelemetrySource
 //*
 //*****************************************************************************
 
-class VehicleTelemetry 
+class VehicleTelemetry : public iVehicleTelemetry
 {
  public:
 
