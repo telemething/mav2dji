@@ -19,6 +19,167 @@
 namespace mav2dji 
 {
 
+TelemetryRet::TelemetryRet(resultEnum result, std::string description )
+{
+  Result = result;
+  Description = description;
+}
+
+TelemetryRet::TelemetryRet(resultEnum result )
+{
+  Result = result;
+  Description = "";
+}
+
+TelemetryRet::TelemetryRet()
+{
+  Result = resultEnum::success;
+  Description = "";
+}
+
+TelemetryRet::~TelemetryRet()
+{}
+
+TelemetrySource::Trigger::triggerTypeEnum 
+  TelemetrySource::Trigger::getTriggerType()
+  {return triggerType_;};
+
+int TelemetrySource::Trigger::getTimeSpanMs()
+{return timeSpanMs_;}; 
+
+int TelemetrySource::Trigger::getTimeSpanHz()
+{return 1000.0/(double)timeSpanMs_;}; 
+
+std::shared_ptr<ros::Rate> TelemetrySource::Trigger::getTimeSpanRate()
+{ return std::make_shared<ros::Rate>(1000.0/(double)timeSpanMs_); }
+
+TelemetrySource::Trigger::Trigger()
+{};
+
+TelemetrySource::Trigger::~Trigger()
+{};
+
+TelemetrySource::Trigger::Trigger(triggerTypeEnum triggerType, int timeSpanMs)
+{
+  triggerType_ = triggerType;
+  timeSpanMs_ = timeSpanMs;
+}
+
+TelemetrySource::Trigger::Trigger(int timeSpanMs)
+{
+  triggerType_ = triggerTypeEnum::period;
+  timeSpanMs_ = timeSpanMs;
+}
+
+
+
+TelemetrySource::TelemetrySource()
+{};
+
+TelemetrySource::~TelemetrySource()
+{};
+
+TelemetrySource::Trigger TelemetrySource::getTrigger()
+{ return trigger_;}
+
+int TelemetrySource::sendMavMessageToGcs(const mavlink_message_t* msg)
+{ return sendMavMessageCallback(msg); };
+
+int TelemetrySource::init(Trigger trigger, std::shared_ptr<VehicleTelemetry> parent)
+{ 
+  vehicleTelemetry = parent;
+  rosNodeHandle = VehicleInfo::getVehicleInterface()->rosNodeHandle;
+  trigger_ = trigger; 
+  workerRosRate = trigger_.getTimeSpanRate(); 
+      
+  //telemetryInit_();
+  telemetryInit();
+};
+
+TelemetryRet TelemetrySource::startTelemetryAsync()
+{
+  mavlinkSystemId = VehicleInfo::getMavlinkSystemId();
+  mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
+  sendMavMessageCallback = VehicleInfo::getSendMavMessageCallback();
+
+  //telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
+  telemetryRunWorkerThread = std::thread(&TelemetrySource::telemetryRunWorker, this);
+  return TelemetryRet(TelemetryRet::resultEnum::success);    
+}
+
+uint64_t TelemetrySource::microsSinceEpoch()
+{
+  struct timeval tv;
+     
+  uint64_t micros = 0;
+      
+  gettimeofday(&tv, NULL);  
+  micros =  ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
+      
+  return micros;
+}
+   
+int32_t TelemetrySource::getTimeBootMs(std_msgs::Header header)
+{
+  //*** TODO * We need to think about synchronizing with controller time
+  return getTimeBootMs();
+  //return header.stamp.sec + header.stamp.nsec * 1000000;
+}
+    
+uint64_t TelemetrySource::getTimeBootMs()
+{
+  return microsSinceEpoch() - bootTime;
+}
+    
+TelemetryRet TelemetrySource::stopTelemetry(){};
+
+//*****************************************************************************
+
+   VehicleTelemetry::VehicleTelemetry(){};
+   VehicleTelemetry::~VehicleTelemetry(){};
+
+    //int init();
+   TelemetryRet VehicleTelemetry::addTelemetrySource(
+        std::shared_ptr<TelemetrySource> telemSource, 
+        TelemetrySource::Trigger trigger, 
+        std::shared_ptr<VehicleTelemetry> parent)
+   {
+      telemSource->init(trigger, parent);
+      telemSources.push_back(telemSource);
+
+      return TelemetryRet();
+   };
+    
+   TelemetryRet VehicleTelemetry::startTelemetrySourcesAsync()
+   {
+      for(auto ts : telemSources)
+      {
+         ts->startTelemetryAsync();
+      }
+
+      return TelemetryRet();
+   }
+
+   TelemetryRet VehicleTelemetry::stopTelemetrySources()
+   {
+      for(auto ts : telemSources)
+      {
+         ts->stopTelemetry();
+      }
+
+      return TelemetryRet();
+   }
+
+   void VehicleTelemetry::setBaseMode(uint8_t value){baseMode = value;}                       
+   void VehicleTelemetry::setSystemStatus(MAV_STATE value){systemStatus = value;}    
+   void VehicleTelemetry::setCustomMode(uint32_t value){customMode = value;} 
+  
+   uint8_t VehicleTelemetry::getBaseMode(){return baseMode;}                       
+   MAV_STATE VehicleTelemetry::getSystemStatus(){return systemStatus;}     
+   uint32_t VehicleTelemetry::getCustomMode(){return customMode;} 
+
+
+
 //*****************************************************************************
 //* Heartbeat
 //*
@@ -61,6 +222,10 @@ namespace mav2dji
 //* mavlin_version  3
 //*
 //******************************************************************************
+
+TelemetrySource_Heartbeat::TelemetrySource_Heartbeat(){};
+TelemetrySource_Heartbeat::~TelemetrySource_Heartbeat(){};
+void TelemetrySource_Heartbeat::telemetryInit(){};
 
 void TelemetrySource_Heartbeat::telemetryRunWorker()
 {
@@ -121,6 +286,10 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 //* @param errors_count4  Autopilot-specific errors
 //*
 //******************************************************************************
+
+TelemetrySource_SysStatus::TelemetrySource_SysStatus(){};
+TelemetrySource_SysStatus::~TelemetrySource_SysStatus(){};
+void TelemetrySource_SysStatus::telemetryInit(){};
 
 void TelemetrySource_SysStatus::telemetryRunWorker()
 {
@@ -200,6 +369,10 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 //*
 //******************************************************************************
 
+TelemetrySource_HomePosition::TelemetrySource_HomePosition(){};
+TelemetrySource_HomePosition::~TelemetrySource_HomePosition(){};
+void TelemetrySource_HomePosition::telemetryInit(){};
+
 void TelemetrySource_HomePosition::telemetryRunWorker()
 {
   ROS_INFO("TelemetrySource_HomePosition : Worker Thread Started OK");
@@ -252,6 +425,10 @@ void TelemetrySource_HomePosition::telemetryRunWorker()
 //*
 //******************************************************************************
 
+TelemetrySource_ExtendedSysState::TelemetrySource_ExtendedSysState(){};
+TelemetrySource_ExtendedSysState::~TelemetrySource_ExtendedSysState(){};
+void TelemetrySource_ExtendedSysState::telemetryInit(){};
+
 void TelemetrySource_ExtendedSysState::telemetryRunWorker()
 {
   ROS_INFO("TelemetrySource_ExtendedSysState : Worker Thread Started OK");
@@ -277,6 +454,11 @@ void TelemetrySource_ExtendedSysState::telemetryRunWorker()
 //*****************************************************************************
 // GPS
 //*****************************************************************************
+
+TelemetrySource_GlobalPositionInt::TelemetrySource_GlobalPositionInt()
+  {sourceTopicName = "/dji_sdk/gps_position";};
+
+TelemetrySource_GlobalPositionInt::~TelemetrySource_GlobalPositionInt(){};
 
 //*****************************************************************************
 //*
@@ -354,6 +536,11 @@ void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::C
 // Velocity
 //*****************************************************************************
 
+TelemetrySource_Velocity::TelemetrySource_Velocity()
+  {sourceTopicName = "/dji_sdk/velocity";};
+TelemetrySource_Velocity::~TelemetrySource_Velocity(){};
+void TelemetrySource_Velocity::telemetryRunWorker(){};
+
 //*****************************************************************************
 //*
 //* 
@@ -392,6 +579,11 @@ void TelemetrySource_Velocity::callback(const geometry_msgs::Vector3Stamped &msg
 //*****************************************************************************
 // Attitude
 //*****************************************************************************
+
+TelemetrySource_Attitude::TelemetrySource_Attitude()
+  {sourceTopicName = "/dji_sdk/attitude";};
+
+TelemetrySource_Attitude::~TelemetrySource_Attitude(){};
 
 //*****************************************************************************
 //*
@@ -460,6 +652,11 @@ void TelemetrySource_Attitude::callback(const geometry_msgs::QuaternionStamped &
 //*****************************************************************************
 // LocalPosition
 //*****************************************************************************
+
+TelemetrySource_LocalPositionNed::TelemetrySource_LocalPositionNed()
+  {sourceTopicName = "/dji_sdk/local_position";};
+
+TelemetrySource_LocalPositionNed::~TelemetrySource_LocalPositionNed(){};
 
 //*****************************************************************************
 //*
