@@ -17,6 +17,14 @@
 namespace mav2dji 
 {
 
+
+  vehicle::vehicle(){};
+  vehicle::~vehicle(){};
+
+  int vehicle::getMavlinkSystemId() { return mavlinkSystemId; }
+  int vehicle::getMavlinkComponentId() { return mavlinkComponentId; }
+  int vehicle::sendMavMessageToGcs(const mavlink_message_t* msg){ return udpConnection->sendMavMessageToGcs(msg);};
+
 //*****************************************************************************
 //*
 //*

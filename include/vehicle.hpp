@@ -23,8 +23,8 @@ class vehicle
 {
  public:
 
-  explicit vehicle(){};
-  ~vehicle(){};
+  explicit vehicle();
+  ~vehicle();
 
   int init();
   int startVehicle();
@@ -33,9 +33,9 @@ class vehicle
   int gotMavMessageCallback(const mavlink_message_t* msg);
   int sendMavMessageCallback(const mavlink_message_t* msg);
 
-  int getMavlinkSystemId() { return mavlinkSystemId; }
-  int getMavlinkComponentId() { return mavlinkComponentId; }
-  int sendMavMessageToGcs(const mavlink_message_t* msg){ return udpConnection->sendMavMessageToGcs(msg);};
+  int getMavlinkSystemId();
+  int getMavlinkComponentId();
+  int sendMavMessageToGcs(const mavlink_message_t* msg);
   bool isVehicleRunning();
    
  private:
