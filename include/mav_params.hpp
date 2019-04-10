@@ -26,8 +26,8 @@ class MavParams
 {
  public:
 
-    MavParams(){}
-    ~MavParams(){}
+    MavParams();
+    ~MavParams();
 
     enum paramTypeEnum {INT = 6, FLOAT = 9};
     uint16_t currentIndex = 0;
@@ -39,48 +39,17 @@ class MavParams
         float value;
         uint8_t type;
         uint16_t index;
-        paramValStruct(char const* paramName, const double value, const uint8_t type, uint16_t index) : 
-            name(paramName), value(value), type(type), index(index) {}
+        paramValStruct(char const* paramName, 
+            const double value, const uint8_t type, uint16_t index);
 
         //paramValStruct(char const* paramName, int value, int type) : 
         //    name(paramName), value(value), type(type) {}
     };
 
-    struct findParamByName
-    {
-        char const* name;
-        findParamByName(char const* name) : name(name) {}
-        bool operator () ( const paramValStruct& m ) const
-        { return 0 == strcmp(m.name, name); }
-    };
+    struct findParamByName;
+    struct findParamByIndex;
 
-    struct findParamByIndex
-    {
-        uint16_t index;
-        findParamByIndex(int16_t index) : index(index) {}
-        bool operator () ( const paramValStruct& m ) const
-        { return m.index == index; }
-    };
-
-    paramValStruct fetchParam(char* paramName, const int16_t index)
-    {
-        std::vector<paramValStruct>::iterator it;
-
-        if(0 > index)
-            it = std::find_if( paramValList.begin(), 
-                paramValList.end(), findParamByName(paramName));
-        else
-            it = std::find_if( paramValList.begin(), 
-                paramValList.end(), findParamByIndex(index));
-
-        if (it == paramValList.end())
-        {
-            //we didn't find it, return empt val
-            return paramValStruct("",0,0,0);
-        } 
-
-        return(*it);  
-    }
+    paramValStruct fetchParam(char* paramName, const int16_t index);
 
     // These values came from a PX4 SITL
     std::vector<paramValStruct> paramValList =
