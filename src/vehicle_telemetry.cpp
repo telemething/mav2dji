@@ -206,8 +206,8 @@ void TelemetrySource_HomePosition::telemetryRunWorker()
 
   mavlink_message_t msg;
 
-  int32_t latitude = 47.4684818;            //*** TODO * Need to set from GPS before liftoff
-  int32_t longitude = -121.76819669999999;  //*** TODO * Need to set from GPS before liftoff
+  int32_t latitude = 47.4684818 * 1e7;            //*** TODO * Need to set from GPS before liftoff
+  int32_t longitude = -121.76819669999999 * 1e7;  //*** TODO * Need to set from GPS before liftoff
   int32_t altitude = 174;
   float x = 0;
   float y = 0;

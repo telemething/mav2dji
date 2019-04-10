@@ -26,6 +26,7 @@ namespace mav2dji
 
 VehicleInterfaceDjiros::VehicleInterfaceDjiros()
 {
+  
 }
 
 //*****************************************************************************

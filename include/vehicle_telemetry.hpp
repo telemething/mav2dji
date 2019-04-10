@@ -262,10 +262,21 @@ class VehicleTelemetry
       return TelemetryRet();
    }
 
+   void setBaseMode(uint8_t value){baseMode = value;}                       
+   void setSystemStatus(MAV_STATE value){systemStatus = value;}    
+   void setCustomMode(uint32_t value){customMode = value;} 
+  
+   uint8_t getBaseMode(){return baseMode;}                       
+   MAV_STATE getSystemStatus(){return systemStatus;}     
+   uint32_t getCustomMode(){return customMode;} 
+  
  private:
 
-    std::vector<std::shared_ptr<TelemetrySource>> telemSources;
+   std::vector<std::shared_ptr<TelemetrySource>> telemSources;
 
+   uint8_t baseMode = 29;                         
+   MAV_STATE systemStatus = MAV_STATE_STANDBY;    
+   uint32_t customMode = 50593800;
 };
 
 //*****************************************************************************

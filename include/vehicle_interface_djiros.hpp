@@ -14,6 +14,7 @@
 #include <util.hpp>
 #include <thread>
 
+
 // ROS
 #include <ros/ros.h>
 #include <std_msgs/Header.h>
@@ -114,6 +115,8 @@ class VehicleInterfaceDjiros : public vehicle_interface
     Convert(const mav2dji::MissionWaypointTask* waypointTask );
   std::shared_ptr<mav2dji::MissionWaypointTask> 
     Convert( const dji_sdk::MissionWaypointTask* waypointTask );
+
+
 };
 
 } /* namespace mav2dji*/

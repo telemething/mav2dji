@@ -83,18 +83,11 @@ class mav2dji_message_base
 
     const static int logLevel = _PX4_LOG_LEVEL_DEBUG;
 
-    //int getMavlinkSystemId() { return mav_udp_->getMavlinkSystemId(); }
-    //int getMavlinkComponentId() { return mav_udp_->getMavlinkComponentId(); }
+    int getMavlinkSystemId();
+    int getMavlinkComponentId();
+    std::shared_ptr<mav2dji::vehicle_interface> vehicleInterface;
 
-    int getMavlinkSystemId() { return VehicleInfo::getMavlinkSystemId(); }
-    int getMavlinkComponentId() { return VehicleInfo::getMavlinkComponentId(); }
-
-    //void addSendMavMessageCallback(MavlinkMessageInfo::mavMessageCallbackType callback);
-
-    //int sendMavMessageToGcs(const mavlink_message_t* msg){ return mav_udp_->sendMavMessageToGcs(msg);};
-    int sendMavMessageToGcs(const mavlink_message_t* msg){ return sendMavMessageCallback(msg);};
-
-    //std::shared_ptr<mavvehiclelib::mav_udp> mav_udp_;
+    int sendMavMessageToGcs(const mavlink_message_t* msg);
 
     MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;
 
@@ -125,14 +118,13 @@ class mav2dji_message_base
         DM_INIT_REASON_VOLATILE			/* Data does not survive reset */
     } dm_reset_reason;
 
-    int dm_lock(dm_item_t item){return 0;};
-    int dm_trylock( dm_item_t item ){return 0;};
-    void dm_unlock( dm_item_t item ){};
-    int dm_clear( dm_item_t item ){return 0;};
-    int dm_restart( dm_reset_reason restart_type){return 0;};
-    ssize_t dm_read( dm_item_t item, unsigned index, void *buffer, size_t buflen )
-    { printf("\r\n###### dm_read not implemented ######\r\n"); throw std::runtime_error("dm_read not implemented");};
-    ssize_t dm_write( dm_item_t  item, unsigned index, dm_persitence_t persistence, const void *buffer, size_t buflen ){return buflen;};
+    int dm_lock(dm_item_t item);
+    int dm_trylock( dm_item_t item );
+    void dm_unlock( dm_item_t item );
+    int dm_clear( dm_item_t item );
+    int dm_restart( dm_reset_reason restart_type);
+    ssize_t dm_read( dm_item_t item, unsigned index, void *buffer, size_t buflen );
+    ssize_t dm_write( dm_item_t  item, unsigned index, dm_persitence_t persistence, const void *buffer, size_t buflen );
 	static dm_item_t    _dataman_id;				                 ///< Global Dataman storage ID for active mission
 	dm_item_t			_my_dataman_id{DM_KEY_WAYPOINTS_OFFBOARD_0}; ///< class Dataman storage ID
 
@@ -148,44 +140,14 @@ class mav2dji_message_base
     
     static orb_metadata orbDummy;
 
-    orb_advert_t orb_advertise(const struct orb_metadata *meta, const void *data){};
-    int	orb_publish(const struct orb_metadata *meta, orb_advert_t handle, const void *data){};
-
-    static inline void do_nothing(int level, ...){(void)level;}
-    static inline void debugPrintf(int level, const char * fmt, ...)
-    {
-        if(level >= logLevel)
-        {
-            va_list args;
-            va_start(args, fmt);
-            printf(fmt, args);
-            va_end(args);
-        }
-        printf("\r\n");
-    }
-
-    static void PX4_DEBUG(const char * fmt, ...)
-    {
-        if(logLevel >= _PX4_LOG_LEVEL_DEBUG)
-        {
-            va_list args;
-            va_start(args, fmt);
-            printf(fmt, args);
-            va_end(args);
-        }
-        printf("\r\n");
-    }
-
-    static void px4_log_modulename(int level, const char *moduleName, const char *fmt, ...)
-    {
-        //*** TODO
-    }
-    static void mavlink_vasprintf(int severity, orb_advert_t *mavlink_log_pub, const char *fmt, ...)
-    {
-        //*** TODO
-    }
-
-    
+    orb_advert_t orb_advertise(const struct orb_metadata *meta, const void *data);
+    int	orb_publish(const struct orb_metadata *meta, orb_advert_t handle, const void *data);
+    static inline void do_nothing(int level, ...);
+    static inline void debugPrintf(int level, const char * fmt, ...);
+    static void PX4_DEBUG(const char * fmt, ...);
+    static void px4_log_modulename(int level, const char *moduleName, const char *fmt, ...);
+    static void mavlink_vasprintf(int severity, orb_advert_t *mavlink_log_pub, const char *fmt, ...);
+ 
  private:
 
     bool verbose = false;

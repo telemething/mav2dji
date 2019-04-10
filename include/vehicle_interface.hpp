@@ -11,6 +11,8 @@
 #include <string>
 #include <ros/ros.h>
 #include <util.hpp>
+//#include <vehicle_telemetry.hpp>
+//#include <vehicle_Info.hpp>
 //#include <mission_ops.hpp>
 
 namespace mav2dji
@@ -319,6 +321,7 @@ class vehicle_interface
     virtual Util::OpRet StereoDepthSubscription() = 0;
     virtual Util::OpRet StereoVGASubscription() = 0;
     virtual Util::OpRet SetupCameraStream() = 0;   
+
 };
 
 } /* namespace mav2dji*/

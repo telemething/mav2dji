@@ -466,6 +466,9 @@ void mav_message::handle_message_ping(const mavlink_message_t* msg)
 
 void mav_message::handle_message_set_mode(const mavlink_message_t* msg) 
 {
+
+  //vehicleInterface->activate
+  
   printMavMessageInfo(msg, "Mav >  set_mode", true);  
 }
 
