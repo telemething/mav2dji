@@ -40,23 +40,9 @@ class ParamsRet
    resultEnum Result;
    std::string Description;
 
-   ParamsRet(resultEnum result, std::string description )
-   {
-      Result = result;
-      Description = description;
-   }
-
-   ParamsRet(resultEnum result )
-   {
-      Result = result;
-      Description = "";
-   }
-
-   ParamsRet()
-   {
-      Result = resultEnum::success;
-      Description = "";
-   }
+   ParamsRet(resultEnum result, std::string description );
+   ParamsRet(resultEnum result );
+   ParamsRet();
 };
 
 //*****************************************************************************
@@ -67,9 +53,9 @@ class ParamsApp
 {
  public:
 
-   ParamsApp(){};
-   ~ParamsApp(){};
-   ParamsRet readParams(){return ParamsRet();};   
+   ParamsApp();
+   ~ParamsApp();
+   ParamsRet readParams();
 
    bool verbose = false;
 
@@ -85,8 +71,8 @@ class ParamsVehicleInterface
 {
  public:
 
-   ParamsVehicleInterface(){};
-   ~ParamsVehicleInterface(){};
+   ParamsVehicleInterface();
+   ~ParamsVehicleInterface();
    ParamsRet readParams();   
 
    bool verbose = false;
@@ -105,8 +91,8 @@ class Params
 {
  public:
 
-   explicit Params(){ init(); };
-   ~Params(){};
+   explicit Params();
+   ~Params();
    ParamsRet readParams(std::shared_ptr<ros::NodeHandle> nodeHandle);
 
    std::shared_ptr<ParamsApp> App;
