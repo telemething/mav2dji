@@ -148,15 +148,19 @@ Util::OpRet TelemetrySource::stopTelemetry(){};
       return Util::OpRet();
    }
 
-   void VehicleTelemetry::setBaseMode(uint8_t value){baseMode = value;}                       
-   void VehicleTelemetry::setSystemStatus(MAV_STATE value){systemStatus = value;}    
-   void VehicleTelemetry::setCustomMode(uint32_t value){customMode = value;} 
+   void VehicleTelemetry::setBaseMode(uint8_t value)
+    {baseMode = value;}                       
+   void VehicleTelemetry::setSystemStatus(uint8_t value)
+    {systemStatus = value;}    
+   void VehicleTelemetry::setCustomMode(uint32_t value)
+    {customMode = value;} 
   
-   uint8_t VehicleTelemetry::getBaseMode(){return baseMode;}                       
-   MAV_STATE VehicleTelemetry::getSystemStatus(){return systemStatus;}     
-   uint32_t VehicleTelemetry::getCustomMode(){return customMode;} 
-
-
+   uint8_t VehicleTelemetry::getBaseMode()
+    {return baseMode;}                       
+   uint8_t VehicleTelemetry::getSystemStatus()
+    {return systemStatus;}     
+   uint32_t VehicleTelemetry::getCustomMode()
+    {return customMode;} 
 
 //*****************************************************************************
 //* Heartbeat

@@ -110,7 +110,13 @@ MissionWaypointTask::MissionWaypointTask(float velocityRange, float idleVelocity
 //*
 //******************************************************************************
 
-vehicle_interface::vehicle_interface()
+vehicle_interface::vehicle_interface() 
+{
+}
+
+vehicle_interface::vehicle_interface(
+    std::shared_ptr<iVehicleTelemetry> vehicleTelemetry) : 
+        vehicleTelemetry(vehicleTelemetry)
 {
 }
 

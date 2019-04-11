@@ -11,12 +11,58 @@
 #include <string>
 #include <ros/ros.h>
 #include <util.hpp>
+#include <ivehicle_telemetry.hpp>
+#include <bits/stdint-uintn.h>
 //#include <vehicle_telemetry.hpp>
 //#include <vehicle_Info.hpp>
 //#include <mission_ops.hpp>
 
 namespace mav2dji
 {
+
+typedef enum mavModeFlag
+{
+  mavModeFlagCustomModeEnabled=1, // 0b00000001 Reserved for future use. 
+  mavModeFlagTestEnabled=2, // 0b00000010 system has a test mode enabled. This 
+    //flag is intended for temporary system tests and should not be used for 
+    //stable implementations. 
+  mavModeFlagAutoEnabled=4, // 0b00000100 autonomous mode enabled, system finds 
+    //its own goal positions. Guided flag can be set or not, depends on the 
+    //actual implementation. 
+  mavModeFlagGuidedEnabled=8, // 0b00001000 guided mode enabled, system flies 
+    //waypoints / mission items. 
+  mavModeFlagStabilizeEnabled=16, // 0b00010000 system stabilizes electronically 
+    //its attitude (and optionally position). It needs however further control 
+    //inputs to move around. 
+  mavModeFlagHilEnbaled=32, //0b00100000 hardware in the loop simulation. All 
+    //motors actuators are blocked, but internal software is full operational. 
+  mavModeFlagManualInputEnabled=64, //0b01000000 remote control input is enabled. 
+  mavModeFlagSafteyArmed=128, // 0b10000000 MAV safety set to armed. Motors are 
+    //enabled running can start. Ready to fly. Additional note: this flag is 
+    //to be ignore when sent in the command MAV_CMD_DO_SET_MODE and 
+    //MAV_CMD_COMPONENT_ARM_DISARM shall be used instead. The flag can still be 
+    //used to report the armed state. 
+  mavModeFlagEnumEnd=129 
+} mavModeFlag_t;
+
+typedef enum mavState
+{
+   mavStateUninit=0, // Uninitialized system, state is unknown. 
+   mavStateBoot=1, // System is booting up. 
+   mavStateCalirating=2, // System is calibrating and not flight-ready. 
+   mavStateStandby=3, // System is grounded and on standby. It can be launched 
+    //any time. 
+   mavStateActive=4, // System is active and might be already airborne. Motors 
+    //are engaged. 
+   mavStateCritical=5, // System is in a non-normal flight mode. It can however 
+    //still navigate. 
+   mavStateEmergency=6, // System is in a non-normal flight mode. It lost control 
+    //over parts or over the whole airframe. It is in mayday and going down.
+   mavStatePowerOff=7, // System just initialized its power-down sequence, will 
+    //shut down now. 
+   mavStateFlightTermination=8, // System is terminating itself. 
+   mavStateEnumEnd=9, 
+} mavState_t;
 
 //*****************************************************************************
 //*
@@ -241,9 +287,11 @@ class vehicle_interface
     struct DroneVersion{ std::string Hardware; uint32_t Version; bool IsValid = false; };
 
     explicit vehicle_interface();
+    explicit vehicle_interface(std::shared_ptr<iVehicleTelemetry> vehicleTelemetry);
     ~vehicle_interface();
 
     std::shared_ptr<ros::NodeHandle> rosNodeHandle;
+    std::shared_ptr<iVehicleTelemetry> vehicleTelemetry;
 
     virtual Util::OpRet init() = 0;
     virtual Util::OpRet connectToPlatform() = 0;
@@ -275,6 +323,11 @@ class vehicle_interface
     virtual Util::OpRet StereoDepthSubscription() = 0;
     virtual Util::OpRet StereoVGASubscription() = 0;
     virtual Util::OpRet SetupCameraStream() = 0;   
+
+    //------------------------------
+
+    virtual Util::OpRet setMode(uint8_t baseMode, uint32_t customMode) = 0;
+    virtual Util::OpRet setState(mavState newState) = 0; 
 
 };
 

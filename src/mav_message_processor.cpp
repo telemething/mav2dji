@@ -466,8 +466,19 @@ void mav_message::handle_message_ping(const mavlink_message_t* msg)
 
 void mav_message::handle_message_set_mode(const mavlink_message_t* msg) 
 {
+  printMavMessageInfo(msg, "Mav >  MAVLINK_MSG_ID_SET_MODE", true);
 
-  //vehicleInterface->activate
+  mavlink_set_mode_t reqMode;
+	mavlink_msg_set_mode_decode(msg, &reqMode);
+
+  printf("Controller is requesting set mode: base: %u, custom: %u, target: %u", 
+    reqMode.base_mode,
+    reqMode.custom_mode,
+    reqMode.target_system);
+
+  vehicleInterface->setMode(reqMode.base_mode, reqMode.custom_mode);
+
+  SendAck(msg, MAVLINK_MSG_ID_SET_MODE);
   
   printMavMessageInfo(msg, "Mav >  set_mode", true);  
 }
@@ -637,6 +648,11 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
     case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
       printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
       processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(msg) ;
+    break;
+    
+    case MAV_CMD_DO_SET_MODE:
+      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_DO_SET_MODE", true);
+      //processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(msg) ;
     break;
     
     default:

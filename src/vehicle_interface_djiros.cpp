@@ -24,9 +24,20 @@ namespace mav2dji
 //*
 //******************************************************************************
 
-VehicleInterfaceDjiros::VehicleInterfaceDjiros()
+VehicleInterfaceDjiros::VehicleInterfaceDjiros() 
 {
-  
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//******************************************************************************
+
+VehicleInterfaceDjiros::VehicleInterfaceDjiros(
+  std::shared_ptr<iVehicleTelemetry> vehicleTelemetry) : 
+    vehicle_interface(vehicleTelemetry)
+{
 }
 
 //*****************************************************************************
@@ -1265,4 +1276,135 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
     return Util::OpRet::BuildError( 
       "SetupCameraStream not implemented", true, true);
   }
+
+  //***************************************************************************
+  //*
+  //* Chaange UAV to MAVLINK mode
+  //*
+  //* mavModeFlagCustomModeEnabled  0b00000001 Reserved for future use. 
+  //* mavModeFlagTestEnabled  0b00000010 system has a test mode enabled. This 
+  //*   flag is intended for temporary system tests and should not be used for 
+  //*   stable implementations. 
+  //* mavModeFlagAutoEnabled 0b00000100 autonomous mode enabled, system finds 
+  //*   its own goal positions. Guided flag can be set or not, depends on the 
+  //*   actual implementation. 
+  //* mavModeFlagGuidedEnabled  0b00001000 guided mode enabled, system flies 
+  //*   waypoints / mission items. 
+  //* mavModeFlagStabilizeEnabled  0b00010000 system stabilizes electronically 
+  //*   its attitude (and optionally position). It needs however further control 
+  //*   inputs to move around. 
+  //* mavModeFlagHilEnbaled 0b00100000 hardware in the loop simulation. All 
+  //*   motors actuators are blocked, but internal software is full operational. 
+  //* mavModeFlagManualInputEnabled 0b01000000 remote control input is enabled. 
+  //* mavModeFlagSafteyArmed  0b10000000 MAV safety set to armed. Motors are 
+  //*   enabled running can start. Ready to fly. Additional note: this flag is 
+  //*   to be ignore when sent in the command MAV_CMD_DO_SET_MODE and 
+  //*   MAV_CMD_COMPONENT_ARM_DISARM shall be used instead. The flag can still be 
+  //*   used to report the armed state. 
+  //*
+  //***************************************************************************
+
+  Util::OpRet VehicleInterfaceDjiros::setMode(uint8_t baseMode, uint32_t customMode)
+  {
+    printf("VehicleInterfaceDjiros::setMode():\r\n - CustomBits %u : %#04X\r\n - Custom %d\r\n - Test %d\r\n - Auto %d\r\n - Guided %d\r\n - Stabilize %d\r\n - HIL %d\r\n - Manual %d\r\n - Armed %d\r\n",
+      customMode, customMode,
+      baseMode && mavModeFlag_t::mavModeFlagCustomModeEnabled,
+      baseMode && mavModeFlagTestEnabled,
+      baseMode && mavModeFlagAutoEnabled,
+      baseMode && mavModeFlagGuidedEnabled,
+      baseMode && mavModeFlagStabilizeEnabled,
+      baseMode && mavModeFlagHilEnbaled,
+      baseMode && mavModeFlagManualInputEnabled, 
+      baseMode && mavModeFlagSafteyArmed );
+
+    //*** make changes
+
+    //*** reflect new vehicle state
+
+    mavState newState = mavState_t::mavStateUninit;
+    mavState_t::mavStateBoot;
+    mavState_t::mavStateCalirating;
+    mavState_t::mavStateStandby;
+    mavState_t::mavStateActive; 
+    mavState_t::mavStateCritical; 
+    mavState_t::mavStateEmergency;
+    mavState_t::mavStatePowerOff;
+    mavState_t::mavStateFlightTermination;
+
+    vehicleTelemetry->setBaseMode(baseMode);
+    vehicleTelemetry->setCustomMode(customMode);
+    setState(newState);
+
+    ROS_INFO_STREAM("VehicleInterfaceDjiros::setMode() OK");
+    return Util::OpRet();
+  }
+
+  //***************************************************************************
+  //*
+  //* Set UAV to MAVLINK state. Set a class member to the state and inform
+  //* the telemtry class of the state change. Normally this should not be called 
+  //* from outside this class. Outside classes should call other methods to 
+  //* effect state changes.
+  //*
+  //* mavStateUninit=0,  Uninitialized system, state is unknown. 
+  //* mavStateBoot=1,  System is booting up. 
+  //* mavStateCalirating=2,  System is calibrating and not flight-ready. 
+  //* mavStateStandby=3,  System is grounded and on standby. It can be launched 
+  //*  any time. 
+  //* mavStateActive=4,  System is active and might be already airborne. Motors 
+  //*  are engaged. 
+  //* mavStateCritical=5,  System is in a non-normal flight mode. It can however 
+  //*  still navigate. 
+  //* mavStateEmergency=6,  System is in a non-normal flight mode. It lost control 
+  //*  over parts or over the whole airframe. It is in mayday and going down.
+  //* mavStatePowerOff=7,  System just initialized its power-down sequence, will 
+  //*  shut down now. 
+  //* mavStateFlightTermination=8,  System is terminating itself. 
+  //*
+  //***************************************************************************
+
+  Util::OpRet VehicleInterfaceDjiros::setState(mavState newState)
+  {
+    printf("VehicleInterfaceDjiros::setState(): ");
+
+    switch( newState )
+    {
+      case mavState_t::mavStateUninit:
+        printf("Uninitialized\r\n");
+      break;
+      case mavState_t::mavStateBoot:
+        printf("Booting\r\n");      
+      break;
+      case mavState_t::mavStateCalirating:
+        printf("Calibrating\r\n");     
+        break;
+      case mavState_t::mavStateStandby:
+        printf("Standby\r\n");      
+      break;
+      case mavState_t::mavStateActive:
+        printf("Active\r\n");      
+      break;
+      case mavState_t::mavStateCritical: 
+        printf("Critical\r\n");      
+      break;
+      case mavState_t::mavStateEmergency:
+        printf("Emergency\r\n");      
+      break;
+      case mavState_t::mavStatePowerOff:
+        printf("PoweringOff\r\n");      
+      break;
+      case mavState_t::mavStateFlightTermination:
+        printf("FlightTermination\r\n");      
+      break;
+      default:
+        printf("--- Unrecognized ---\r\n");  
+      break;
+    }
+
+    vehicleTelemetry->setSystemStatus(newState);
+
+    ROS_INFO_STREAM("VehicleInterfaceDjiros::setState() OK");
+    return Util::OpRet(); 
+  }
 }
+

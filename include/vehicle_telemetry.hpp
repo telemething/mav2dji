@@ -48,8 +48,11 @@
 namespace mav2dji
 {
 
-class TelemetrySource;
 class VehicleTelemetry;
+
+//*****************************************************************************
+//*
+//*****************************************************************************
 
 class TelemTrigger
 {
@@ -87,17 +90,7 @@ class TelemetrySource
    ~TelemetrySource();
 
    TelemTrigger getTrigger();
-
    int sendMavMessageToGcs(const mavlink_message_t* msg);
-
-   //void setTelemetryInit(telemetryInitType telemetryInit)
-   //{ telemetryInit_ = telemetryInit; }
-
-   //void setSelf(TelemetrySource)
-
-   //void setTelemetryWorker(telemetryRunWorkerType telemetryRunWorker)
-   //{ telemetryRunWorker_ = telemetryRunWorker; }
-
    virtual int init(TelemTrigger trigger, std::shared_ptr<VehicleTelemetry> parent);
    virtual Util::OpRet startTelemetryAsync();
    static uint64_t microsSinceEpoch();
@@ -153,11 +146,11 @@ class VehicleTelemetry : public iVehicleTelemetry
    Util::OpRet stopTelemetrySources();
 
    void setBaseMode(uint8_t value);                      
-   void setSystemStatus(MAV_STATE value); 
+   void setSystemStatus(uint8_t value); 
    void setCustomMode(uint32_t value);
   
    uint8_t getBaseMode();                   
-   MAV_STATE getSystemStatus();  
+   uint8_t getSystemStatus();  
    uint32_t getCustomMode();
   
  private:
@@ -165,7 +158,7 @@ class VehicleTelemetry : public iVehicleTelemetry
    std::vector<std::shared_ptr<TelemetrySource>> telemSources;
 
    uint8_t baseMode = 29;                         
-   MAV_STATE systemStatus = MAV_STATE_STANDBY;    
+   uint8_t systemStatus = MAV_STATE_STANDBY;    
    uint32_t customMode = 50593800;
 };
 

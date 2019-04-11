@@ -58,6 +58,9 @@ int vehicle::init()
     vehicleInfo.setVehicleInterface(vehicleInterface);
 
     vehicleTelemetry = std::make_shared<VehicleTelemetry>();
+
+    std::shared_ptr<iVehicleTelemetry> ivt = std::make_shared<VehicleTelemetry>();
+    std::shared_ptr<iVehicleTelemetry> ivt2 = vehicleTelemetry;
   }
   catch(const std::exception& e)
   {

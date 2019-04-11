@@ -73,6 +73,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
  public:
 
   explicit VehicleInterfaceDjiros();
+  explicit VehicleInterfaceDjiros(std::shared_ptr<iVehicleTelemetry> vehicleTelemetry);
   ~VehicleInterfaceDjiros();
 
   Util::OpRet init();
@@ -108,6 +109,11 @@ class VehicleInterfaceDjiros : public vehicle_interface
   Util::OpRet StereoDepthSubscription();
   Util::OpRet StereoVGASubscription();
   Util::OpRet SetupCameraStream();
+
+  //--------------------------
+
+  Util::OpRet setMode(uint8_t baseMode, uint32_t customMode);
+  Util::OpRet setState(mavState newState);
 
  private:
 
