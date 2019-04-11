@@ -163,7 +163,7 @@ int vehicle::startVehicle()
 
     auto ret3 = startTelemetry();    
 
-    if( ret3.Result != TelemetryRet::resultEnum::success )
+    if( ret3.Result != Util::OpRet::resultEnum::success )
     {
       printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to start telemetry : %s ######\n\n\n", 
         ret.Description.c_str() );    
@@ -194,7 +194,7 @@ int vehicle::startVehicle()
 //*
 //*****************************************************************************
 
-TelemetryRet vehicle::startTelemetry()
+Util::OpRet vehicle::startTelemetry()
 {
   std::vector<std::shared_ptr<TelemetrySource>> telemSources = 
     {std::make_shared<TelemetrySource_GlobalPositionInt>(), 
@@ -207,13 +207,13 @@ TelemetryRet vehicle::startTelemetry()
     std::make_shared<TelemetrySource_HomePosition>()
     };
 
-  auto trigger = TelemetrySource::Trigger(1000);
-  TelemetryRet ret;
+  auto trigger = TelemTrigger(1000);
+  Util::OpRet ret;
 
   for( auto TS : telemSources )
   {
     ret = vehicleTelemetry->addTelemetrySource( TS, trigger, vehicleTelemetry );
-    if( ret.Result == TelemetryRet::resultEnum::failure )
+    if( ret.Result == Util::OpRet::resultEnum::failure )
       return ret;
   }
 

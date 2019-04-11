@@ -13,6 +13,7 @@
 #include <vehicle_interface.hpp>
 #include <thread>
 #include <chrono>
+#include <util.hpp>
 
 // ROS
 #include <ros/ros.h>
@@ -47,26 +48,30 @@
 namespace mav2dji
 {
 
-class TelemetryRet;
 class TelemetrySource;
 class VehicleTelemetry;
 
-//*****************************************************************************
-//*
-//*****************************************************************************
-
-class TelemetryRet
+class TelemTrigger
 {
-   public:
+  public:
 
-      enum resultEnum {success, failure};
-      resultEnum Result;
-      std::string Description;
+    enum triggerTypeEnum {period, asAvail};
+    triggerTypeEnum getTriggerType();
+    int getTimeSpanMs();
+    int getTimeSpanHz();
+    std::shared_ptr<ros::Rate> getTimeSpanRate();
 
-      TelemetryRet(resultEnum result, std::string description );
-      TelemetryRet(resultEnum result );
-      TelemetryRet();
-      ~TelemetryRet();
+    explicit TelemTrigger();
+    ~TelemTrigger();
+
+    TelemTrigger(triggerTypeEnum triggerType, int timeSpanMs);
+
+    TelemTrigger(int timeSpanMs);
+
+  private:
+
+    triggerTypeEnum triggerType_;
+    int timeSpanMs_; 
 };
 
 //*****************************************************************************
@@ -77,33 +82,11 @@ class TelemetrySource
 {
  public:
 
-   class Trigger
-   {
-      public:
-
-        enum triggerTypeEnum {period, asAvail};
-        triggerTypeEnum getTriggerType();
-        int getTimeSpanMs();
-        int getTimeSpanHz();
-        std::shared_ptr<ros::Rate> getTimeSpanRate();
-
-        explicit Trigger();
-        ~Trigger();
-
-        Trigger(triggerTypeEnum triggerType, int timeSpanMs);
-
-        Trigger(int timeSpanMs);
-
-      private:
-
-        triggerTypeEnum triggerType_;
-        int timeSpanMs_; 
-   };
 
    TelemetrySource();
    ~TelemetrySource();
 
-   Trigger getTrigger();
+   TelemTrigger getTrigger();
 
    int sendMavMessageToGcs(const mavlink_message_t* msg);
 
@@ -115,12 +98,12 @@ class TelemetrySource
    //void setTelemetryWorker(telemetryRunWorkerType telemetryRunWorker)
    //{ telemetryRunWorker_ = telemetryRunWorker; }
 
-   virtual int init(Trigger trigger, std::shared_ptr<VehicleTelemetry> parent);
-   virtual TelemetryRet startTelemetryAsync();
+   virtual int init(TelemTrigger trigger, std::shared_ptr<VehicleTelemetry> parent);
+   virtual Util::OpRet startTelemetryAsync();
    static uint64_t microsSinceEpoch();
    int32_t getTimeBootMs(std_msgs::Header header);
    uint64_t getTimeBootMs();
-   virtual TelemetryRet stopTelemetry();
+   virtual Util::OpRet stopTelemetry();
    virtual void telemetryRunWorker() = 0;
    virtual void telemetryInit() = 0;
 
@@ -137,7 +120,7 @@ class TelemetrySource
  private:
 
    std::thread telemetryRunWorkerThread;
-   Trigger trigger_;
+   TelemTrigger trigger_;
    uint64_t bootTime = microsSinceEpoch();
    MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
 };
@@ -150,7 +133,7 @@ class VehicleTelemetry : public iVehicleTelemetry
 {
  public:
 
-   typedef std::shared_ptr<TelemetryRet> TelemRet;
+   typedef std::shared_ptr<Util::OpRet> TelemRet;
 
    SensorLocalPositionNed  telemLocalPositionNed;
    SensorAttitude          telemAttitude;
@@ -160,14 +143,14 @@ class VehicleTelemetry : public iVehicleTelemetry
    ~VehicleTelemetry();
 
     //int init();
-   TelemetryRet addTelemetrySource(
+   Util::OpRet addTelemetrySource(
         std::shared_ptr<TelemetrySource> telemSource, 
-        TelemetrySource::Trigger trigger, 
+        TelemTrigger trigger, 
         std::shared_ptr<VehicleTelemetry> parent);
     
-   TelemetryRet startTelemetrySourcesAsync();
+   Util::OpRet startTelemetrySourcesAsync();
 
-   TelemetryRet stopTelemetrySources();
+   Util::OpRet stopTelemetrySources();
 
    void setBaseMode(uint8_t value);                      
    void setSystemStatus(MAV_STATE value); 

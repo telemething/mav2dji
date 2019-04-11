@@ -58,7 +58,7 @@ class vehicle
   std::thread vehicleThread;
 
   void worker();
-  mav2dji::TelemetryRet startTelemetry();
+  Util::OpRet startTelemetry();
 };
 
 } /* namespace mav2dji*/

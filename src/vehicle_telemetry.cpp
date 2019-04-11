@@ -18,54 +18,32 @@
 
 namespace mav2dji 
 {
-
-TelemetryRet::TelemetryRet(resultEnum result, std::string description )
-{
-  Result = result;
-  Description = description;
-}
-
-TelemetryRet::TelemetryRet(resultEnum result )
-{
-  Result = result;
-  Description = "";
-}
-
-TelemetryRet::TelemetryRet()
-{
-  Result = resultEnum::success;
-  Description = "";
-}
-
-TelemetryRet::~TelemetryRet()
-{}
-
-TelemetrySource::Trigger::triggerTypeEnum 
-  TelemetrySource::Trigger::getTriggerType()
+TelemTrigger::triggerTypeEnum 
+  TelemTrigger::getTriggerType()
   {return triggerType_;};
 
-int TelemetrySource::Trigger::getTimeSpanMs()
+int TelemTrigger::getTimeSpanMs()
 {return timeSpanMs_;}; 
 
-int TelemetrySource::Trigger::getTimeSpanHz()
+int TelemTrigger::getTimeSpanHz()
 {return 1000.0/(double)timeSpanMs_;}; 
 
-std::shared_ptr<ros::Rate> TelemetrySource::Trigger::getTimeSpanRate()
+std::shared_ptr<ros::Rate> TelemTrigger::getTimeSpanRate()
 { return std::make_shared<ros::Rate>(1000.0/(double)timeSpanMs_); }
 
-TelemetrySource::Trigger::Trigger()
+TelemTrigger::TelemTrigger()
 {};
 
-TelemetrySource::Trigger::~Trigger()
+TelemTrigger::~TelemTrigger()
 {};
 
-TelemetrySource::Trigger::Trigger(triggerTypeEnum triggerType, int timeSpanMs)
+TelemTrigger::TelemTrigger(triggerTypeEnum triggerType, int timeSpanMs)
 {
   triggerType_ = triggerType;
   timeSpanMs_ = timeSpanMs;
 }
 
-TelemetrySource::Trigger::Trigger(int timeSpanMs)
+TelemTrigger::TelemTrigger(int timeSpanMs)
 {
   triggerType_ = triggerTypeEnum::period;
   timeSpanMs_ = timeSpanMs;
@@ -79,13 +57,13 @@ TelemetrySource::TelemetrySource()
 TelemetrySource::~TelemetrySource()
 {};
 
-TelemetrySource::Trigger TelemetrySource::getTrigger()
+TelemTrigger TelemetrySource::getTrigger()
 { return trigger_;}
 
 int TelemetrySource::sendMavMessageToGcs(const mavlink_message_t* msg)
 { return sendMavMessageCallback(msg); };
 
-int TelemetrySource::init(Trigger trigger, std::shared_ptr<VehicleTelemetry> parent)
+int TelemetrySource::init(TelemTrigger trigger, std::shared_ptr<VehicleTelemetry> parent)
 { 
   vehicleTelemetry = parent;
   rosNodeHandle = VehicleInfo::getVehicleInterface()->rosNodeHandle;
@@ -96,7 +74,7 @@ int TelemetrySource::init(Trigger trigger, std::shared_ptr<VehicleTelemetry> par
   telemetryInit();
 };
 
-TelemetryRet TelemetrySource::startTelemetryAsync()
+Util::OpRet TelemetrySource::startTelemetryAsync()
 {
   mavlinkSystemId = VehicleInfo::getMavlinkSystemId();
   mavlinkComponentId = VehicleInfo::getMavlinkComponentId();
@@ -104,7 +82,7 @@ TelemetryRet TelemetrySource::startTelemetryAsync()
 
   //telemetryRunWorkerThread = std::thread(telemetryRunWorker_);
   telemetryRunWorkerThread = std::thread(&TelemetrySource::telemetryRunWorker, this);
-  return TelemetryRet(TelemetryRet::resultEnum::success);    
+  return Util::OpRet(Util::OpRet::resultEnum::success);    
 }
 
 uint64_t TelemetrySource::microsSinceEpoch()
@@ -131,7 +109,7 @@ uint64_t TelemetrySource::getTimeBootMs()
   return microsSinceEpoch() - bootTime;
 }
     
-TelemetryRet TelemetrySource::stopTelemetry(){};
+Util::OpRet TelemetrySource::stopTelemetry(){};
 
 //*****************************************************************************
 
@@ -139,35 +117,35 @@ TelemetryRet TelemetrySource::stopTelemetry(){};
    VehicleTelemetry::~VehicleTelemetry(){};
 
     //int init();
-   TelemetryRet VehicleTelemetry::addTelemetrySource(
+   Util::OpRet VehicleTelemetry::addTelemetrySource(
         std::shared_ptr<TelemetrySource> telemSource, 
-        TelemetrySource::Trigger trigger, 
+        TelemTrigger trigger, 
         std::shared_ptr<VehicleTelemetry> parent)
    {
       telemSource->init(trigger, parent);
       telemSources.push_back(telemSource);
 
-      return TelemetryRet();
+      return Util::OpRet();
    };
     
-   TelemetryRet VehicleTelemetry::startTelemetrySourcesAsync()
+   Util::OpRet VehicleTelemetry::startTelemetrySourcesAsync()
    {
       for(auto ts : telemSources)
       {
          ts->startTelemetryAsync();
       }
 
-      return TelemetryRet();
+      return Util::OpRet();
    }
 
-   TelemetryRet VehicleTelemetry::stopTelemetrySources()
+   Util::OpRet VehicleTelemetry::stopTelemetrySources()
    {
       for(auto ts : telemSources)
       {
          ts->stopTelemetry();
       }
 
-      return TelemetryRet();
+      return Util::OpRet();
    }
 
    void VehicleTelemetry::setBaseMode(uint8_t value){baseMode = value;}                       
