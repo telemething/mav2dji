@@ -114,6 +114,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
 
   Util::OpRet setMode(uint8_t baseMode, uint32_t customMode);
   Util::OpRet setState(MavState_t newState);
+  Util::OpRet armDisarm(bool arm); 
 
  private:
 

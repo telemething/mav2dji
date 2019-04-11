@@ -86,36 +86,48 @@ class TelemetrySource
  public:
 
 
-   TelemetrySource();
-   ~TelemetrySource();
+  TelemetrySource();
+  ~TelemetrySource();
 
-   TelemTrigger getTrigger();
-   int sendMavMessageToGcs(const mavlink_message_t* msg);
-   virtual int init(TelemTrigger trigger, std::shared_ptr<VehicleTelemetry> parent);
-   virtual Util::OpRet startTelemetryAsync();
-   static uint64_t microsSinceEpoch();
-   int32_t getTimeBootMs(std_msgs::Header header);
-   uint64_t getTimeBootMs();
-   virtual Util::OpRet stopTelemetry();
-   virtual void telemetryRunWorker() = 0;
-   virtual void telemetryInit() = 0;
+  TelemTrigger getTrigger();
+  int sendMavMessageToGcs(const mavlink_message_t* msg);
+  virtual int init(TelemTrigger trigger, std::shared_ptr<VehicleTelemetry> parent);
+  virtual Util::OpRet startTelemetryAsync();
+  static uint64_t microsSinceEpoch();
+  int32_t getTimeBootMs(std_msgs::Header header);
+  uint64_t getTimeBootMs();
+  virtual Util::OpRet stopTelemetry();
+  virtual void telemetryRunWorker() = 0;
+  virtual void telemetryInit() = 0;
 
-   std::shared_ptr<ros::Rate> workerRosRate;
-   mavlink_message_t mavlinkMsg;
-   ros::Time lastCallbackStartTime = ros::Time::now();
-   ros::Subscriber topicSubscription;
-   std::string sourceTopicName = "";
-   int mavlinkSystemId = 1;      
-   int mavlinkComponentId = 0;   
-   std::shared_ptr<ros::NodeHandle> rosNodeHandle;
-   std::shared_ptr<VehicleTelemetry> vehicleTelemetry;
+  std::shared_ptr<ros::Rate> workerRosRate;
+  mavlink_message_t mavlinkMsg;
+  ros::Time lastCallbackStartTime = ros::Time::now();
+  ros::Subscriber topicSubscription;
+  std::string sourceTopicName = "";
+  int mavlinkSystemId = 1;      
+  int mavlinkComponentId = 0;   
+  std::shared_ptr<ros::NodeHandle> rosNodeHandle;
+  std::shared_ptr<VehicleTelemetry> vehicleTelemetry;
+
+  // vehicle state values
+
+  uint8_t landedState = MavLandedState::MavLandedStateOnGround;
+  uint8_t baseMode = MavModeFlag::mavModeFlagCustomModeEnabled 
+    + MavModeFlag::mavModeFlagAutoEnabled 
+    + MavModeFlag::mavModeFlagGuidedEnabled 
+    + MavModeFlag::mavModeFlagStabilizeEnabled 
+    + MavModeFlag::mavModeFlagHilEnbaled 
+    + MavModeFlag::mavModeFlagManualInputEnabled;                         
+  uint8_t systemStatus = MavState::mavStateStandby;    
+  uint32_t customMode = 50593800;
   
  private:
 
-   std::thread telemetryRunWorkerThread;
-   TelemTrigger trigger_;
-   uint64_t bootTime = microsSinceEpoch();
-   MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
+  std::thread telemetryRunWorkerThread;
+  TelemTrigger trigger_;
+  uint64_t bootTime = microsSinceEpoch();
+  MavlinkMessageInfo::mavMessageCallbackType sendMavMessageCallback;  
 };
 
 //*****************************************************************************
@@ -126,40 +138,41 @@ class VehicleTelemetry : public iVehicleTelemetry
 {
  public:
 
-   typedef std::shared_ptr<Util::OpRet> TelemRet;
+  typedef std::shared_ptr<Util::OpRet> TelemRet;
 
-   SensorLocalPositionNed  telemLocalPositionNed;
-   SensorAttitude          telemAttitude;
-   SensorGlobalPositionInt telemGlobalPositionInt;
+  SensorLocalPositionNed  telemLocalPositionNed;
+  SensorAttitude          telemAttitude;
+  SensorGlobalPositionInt telemGlobalPositionInt;
 
-   explicit VehicleTelemetry();
-   ~VehicleTelemetry();
+  explicit VehicleTelemetry();
+  ~VehicleTelemetry();
 
-    //int init();
-   Util::OpRet addTelemetrySource(
-        std::shared_ptr<TelemetrySource> telemSource, 
-        TelemTrigger trigger, 
-        std::shared_ptr<VehicleTelemetry> parent);
+  //int init();
+  Util::OpRet addTelemetrySource(
+    std::shared_ptr<TelemetrySource> telemSource, 
+    TelemTrigger trigger, 
+    std::shared_ptr<VehicleTelemetry> parent);
     
-   Util::OpRet startTelemetrySourcesAsync();
+  Util::OpRet startTelemetrySourcesAsync();
+  Util::OpRet stopTelemetrySources();
 
-   Util::OpRet stopTelemetrySources();
-
-   void setBaseMode(uint8_t value);                      
-   void setSystemStatus(uint8_t value); 
-   void setCustomMode(uint32_t value);
+  void setBaseMode(uint8_t value);                      
+  void setSystemStatus(uint8_t value); 
+  void setCustomMode(uint32_t value);
   
-   uint8_t getBaseMode();                   
-   uint8_t getSystemStatus();  
-   uint32_t getCustomMode();
+  uint8_t getBaseMode();                   
+  uint8_t getSystemStatus();  
+  uint32_t getCustomMode();
   
  private:
 
-   std::vector<std::shared_ptr<TelemetrySource>> telemSources;
+  std::vector<std::shared_ptr<TelemetrySource>> telemSources;
 
-   uint8_t baseMode = 29;                         
-   uint8_t systemStatus = MAV_STATE_STANDBY;    
-   uint32_t customMode = 50593800;
+  // vehicle state values
+
+  uint8_t baseMode = 29;                         
+  uint8_t systemStatus = MAV_STATE_STANDBY;    
+  uint32_t customMode = 50593800;
 };
 
 

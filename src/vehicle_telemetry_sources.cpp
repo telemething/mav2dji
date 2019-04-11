@@ -70,11 +70,7 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
   ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
 
   MAV_TYPE mavType = MAV_TYPE_QUADROTOR;
-  MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_PX4;
-  //MAV_MODE base_mode = MAV_MODE_AUTO_ARMED;     // TODO * This needs to changed during flight
-  uint8_t base_mode = 29;                         // TODO * This needs to changed during flight
-  MAV_STATE system_status = MAV_STATE_STANDBY;    // TODO * This needs to changed during flight
-  uint32_t custom_mode = 50593800;                // TODO * This needs to changed during flight
+  MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_PX4;               
 
   while (ros::ok())
   {
@@ -84,9 +80,9 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 			&mavlinkMsg, 
       mavType,           
       mavAutoPilot,            
-			base_mode,        
-      custom_mode, 
-      system_status);            
+			baseMode,        
+      customMode, 
+      systemStatus);            
 					
 		sendMavMessageToGcs(&mavlinkMsg);
       workerRosRate->sleep();
@@ -261,6 +257,12 @@ void TelemetrySource_HomePosition::telemetryRunWorker()
 //* @param landed_state  The landed state. Is set to MAV_LANDED_STATE_UNDEFINED 
 //*   if landed state is unknown.
 //*
+//* 0	MAV_LANDED_STATE_UNDEFINED	MAV landed state is unknown
+//* 1	MAV_LANDED_STATE_ON_GROUND	MAV is landed (on ground)
+//* 2	MAV_LANDED_STATE_IN_AIR	MAV is in air
+//* 3	MAV_LANDED_STATE_TAKEOFF	MAV currently taking off
+//* 4	MAV_LANDED_STATE_LANDING
+//*
 //******************************************************************************
 
 TelemetrySource_ExtendedSysState::TelemetrySource_ExtendedSysState(){};
@@ -273,9 +275,8 @@ void TelemetrySource_ExtendedSysState::telemetryRunWorker()
 
   mavlink_message_t msg;
 
-  // These values came from a PX4 SITL
   uint8_t vtol_state    = 0;
-  uint8_t landed_state  = 1; 
+  uint8_t landed_state  = landedState; 
 
   while (ros::ok())
   {			

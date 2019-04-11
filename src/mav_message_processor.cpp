@@ -477,7 +477,7 @@ void mav_message::handle_message_set_mode(const mavlink_message_t* msg)
   mavlink_set_mode_t reqMode;
 	mavlink_msg_set_mode_decode(msg, &reqMode);
 
-  printf("Controller is requesting set mode: base: %u, custom: %u, target: %u", 
+  printf("Controller is requesting set mode: base: %u, custom: %u, target: %u\r\n", 
     reqMode.base_mode,
     reqMode.custom_mode,
     reqMode.target_system);
@@ -643,38 +643,64 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
   mavlink_msg_command_long_decode(msg,&cmd);
   switch(cmd.command)
   {
+    case 0:
+      //dji_commands::set_takeoff();
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : ------------------- 0 ------------------------", true);
+    break;
+
     case MAV_CMD_NAV_TAKEOFF:
       //dji_commands::set_takeoff();
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_TAKEOFF", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_NAV_TAKEOFF", true);
     break;
 
     case MAV_CMD_NAV_LAND:
       //dji_commands::set_land();
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_LAND", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_NAV_LAND", true);
     break;
 
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
       //dji_commands::set_return2home();
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_NAV_RETURN_TO_LAUNCH", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_NAV_RETURN_TO_LAUNCH", true);
+      processMAV_CMD_NAV_RETURN_TO_LAUNCH(msg) ;
     break;
     
     case MAV_CMD_REQUEST_PROTOCOL_VERSION:
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_REQUEST_PROTOCOL_VERSION", true);
       processMAV_CMD_REQUEST_PROTOCOL_VERSION(msg);
     break;
     
     case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES:
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES", true);
       processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(msg) ;
     break;
     
     case MAV_CMD_DO_SET_MODE:
-      printMavMessageInfo(msg, "Mav >  COMMAND_LONG : MAV_CMD_DO_SET_MODE", true);
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_DO_SET_MODE", true);
       //processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(msg) ;
     break;
-    
+
+    case MAV_CMD_DO_TRIGGER_CONTROL:
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_DO_TRIGGER_CONTROL", true);
+      processMAV_CMD_DO_TRIGGER_CONTROL(msg) ;
+    break;
+
+    case MAV_CMD_COMPONENT_ARM_DISARM:
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_COMPONENT_ARM_DISARM", true);
+      processMAV_CMD_COMPONENT_ARM_DISARM(msg) ;
+    break;
+
+    case MAV_CMD_LOGGING_START:
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_LOGGING_START", true);
+      processMAV_CMD_LOGGING_START(msg) ;
+    break;
+
+    case MAV_CMD_LOGGING_STOP:
+      printMavMessageInfo(msg, "Mav > COMMAND_LONG : MAV_CMD_LOGGING_STOP", true);
+      processMAV_CMD_LOGGING_STOP(msg) ;
+    break;
+
     default:
-      printf("Mav >  COMMAND_LONG : ??? Unhandled command ID : %d ???\n",cmd.command);
+      printf("Mav > COMMAND_LONG : ------------------ Unhandled command ID : %d -----------------------\n",cmd.command);
   }
 }
 
@@ -686,7 +712,95 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
 
 void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg) 
 {
-	printMavMessageInfo(msg, "Mav >  MAVLINK_MSG_ID_HEARTBEAT", false);
+	printMavMessageInfo(msg, "processMAVLINK_MSG_ID_HEARTBEAT()", false);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav_message::processMAV_CMD_DO_TRIGGER_CONTROL(const mavlink_message_t* msg) 
+{
+	printMavMessageInfo(msg, "processMAV_CMD_DO_TRIGGER_CONTROL()", false);
+
+  // this is a request to control the camera, I don't care right now
+  SendAck(msg, MAV_CMD_DO_TRIGGER_CONTROL);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav_message::processMAV_CMD_NAV_RETURN_TO_LAUNCH(const mavlink_message_t* msg) 
+{
+	printMavMessageInfo(msg, "processMAV_CMD_NAV_RETURN_TO_LAUNCH", false);
+
+  //*** TODO
+  SendAck(msg, MAV_CMD_NAV_RETURN_TO_LAUNCH);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav_message::processMAV_CMD_COMPONENT_ARM_DISARM(const mavlink_message_t* msg) 
+{
+	printMavMessageInfo(msg, "processMAV_CMD_COMPONENT_ARM_DISARM", false);
+
+  mavlink_command_long_t cmd;
+  mavlink_msg_command_long_decode(msg,&cmd);
+
+  Util::OpRet ret;
+
+  if(cmd.param1 > 0.1)
+  {
+    printf("ARM Vehicle\r\n");
+    ret = vehicleInterface->armDisarm(true);
+  }
+  else
+  {
+    printf("DISARM Vehicle\r\n");
+    ret = vehicleInterface->armDisarm(false);
+  }
+
+  if(ret.Result == Util::OpRet::resultEnum::failure)
+    SendAck(msg, MAV_CMD_COMPONENT_ARM_DISARM, 1, 0, 0);  
+  else
+    SendAck(msg, MAV_CMD_COMPONENT_ARM_DISARM);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav_message::processMAV_CMD_LOGGING_START(const mavlink_message_t* msg) 
+{
+	printMavMessageInfo(msg, "processMAV_CMD_LOGGING_START", false);
+
+  // this is a request to start logging over mavlink, I don't care right now
+  SendAck(msg, MAV_CMD_LOGGING_START);
+}
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
+void mav_message::processMAV_CMD_LOGGING_STOP(const mavlink_message_t* msg) 
+{
+	printMavMessageInfo(msg, "processMAV_CMD_LOGGING_STOP", false);
+
+  // this is a request to start logging over mavlink, I don't care right now
+  SendAck(msg, MAV_CMD_LOGGING_STOP);
 }
 
 //*****************************************************************************
@@ -697,7 +811,7 @@ void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg)
 
 void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg)
 {
-	printMavMessageInfo(msg, "Mav >  PARAM_REQUEST_LIST", true);
+	printMavMessageInfo(msg, "processPARAM_REQUEST_LIST", true);
 
   mavlink_param_request_list_t req_list;
 	mavlink_msg_param_request_list_decode(msg, &req_list);
@@ -720,7 +834,7 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message
 
 void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_READ(const mavlink_message_t* msg)
 {
-	printMavMessageInfo(msg, "Mav >  PARAM_REQUEST_READ", true);
+	printMavMessageInfo(msg, "processPARAM_REQUEST_READ", true);
 
   if(sendingParams)
   {

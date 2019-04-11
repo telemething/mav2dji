@@ -55,6 +55,11 @@ class mav_message : public mav2dji_message_base
     uint8_t resultCode, uint8_t progress, int32_t resultParam2 );
 
   void processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg);
+  void processMAV_CMD_NAV_RETURN_TO_LAUNCH(const mavlink_message_t* msg);
+  void processMAV_CMD_DO_TRIGGER_CONTROL(const mavlink_message_t* msg);
+  void processMAV_CMD_COMPONENT_ARM_DISARM(const mavlink_message_t* msg);
+  void processMAV_CMD_LOGGING_START(const mavlink_message_t* msg);
+  void processMAV_CMD_LOGGING_STOP(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_PARAM_REQUEST_READ(const mavlink_message_t* msg);
   void processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* msg);

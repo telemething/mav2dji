@@ -47,22 +47,31 @@ typedef enum MavModeFlag
 
 typedef enum MavState
 {
-   mavStateUninit=0, // Uninitialized system, state is unknown. 
-   mavStateBoot=1, // System is booting up. 
-   mavStateCalirating=2, // System is calibrating and not flight-ready. 
-   mavStateStandby=3, // System is grounded and on standby. It can be launched 
+  mavStateUninit=0, // Uninitialized system, state is unknown. 
+  mavStateBoot=1, // System is booting up. 
+  mavStateCalirating=2, // System is calibrating and not flight-ready. 
+  mavStateStandby=3, // System is grounded and on standby. It can be launched 
     //any time. 
-   mavStateActive=4, // System is active and might be already airborne. Motors 
+  mavStateActive=4, // System is active and might be already airborne. Motors 
     //are engaged. 
-   mavStateCritical=5, // System is in a non-normal flight mode. It can however 
+  mavStateCritical=5, // System is in a non-normal flight mode. It can however 
     //still navigate. 
-   mavStateEmergency=6, // System is in a non-normal flight mode. It lost control 
+  mavStateEmergency=6, // System is in a non-normal flight mode. It lost control 
     //over parts or over the whole airframe. It is in mayday and going down.
-   mavStatePowerOff=7, // System just initialized its power-down sequence, will 
+  mavStatePowerOff=7, // System just initialized its power-down sequence, will 
     //shut down now. 
-   mavStateFlightTermination=8, // System is terminating itself. 
-   mavStateEnumEnd=9, 
+  mavStateFlightTermination=8, // System is terminating itself. 
+  mavStateEnumEnd=9, 
 } MavState_t;
+
+typedef enum MavLandedState
+{
+  MavLandedStateUndefined	= 0,
+  MavLandedStateOnGround = 1,
+  MavLandedStateInAir	= 2,
+  MavLandedStateTakeoff	= 3,
+  MavLandedStateLanding	= 4
+} MavLandedState_t;
 
 //*****************************************************************************
 //*
@@ -332,6 +341,7 @@ class vehicle_interface
 
     virtual Util::OpRet setMode(uint8_t baseMode, uint32_t customMode) = 0;
     virtual Util::OpRet setState(MavState newState) = 0; 
+    virtual Util::OpRet armDisarm(bool arm) = 0; 
 
 };
 

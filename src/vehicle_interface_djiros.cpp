@@ -1308,49 +1308,49 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   {
     printf("VehicleInterfaceDjiros::setMode():\r\n - BaseBits %u : %02X\r\n - CustomBits %u : %08X\r\n - Custom %d\r\n - Test %d\r\n - Auto %d\r\n - Guided %d\r\n - Stabilize %d\r\n - HIL %d\r\n - Manual %d\r\n - Armed %d\r\n",
       baseMode, baseMode, customMode, customMode,
-      baseMode && MavModeFlag_t::mavModeFlagCustomModeEnabled,
-      baseMode && MavModeFlag_t::mavModeFlagTestEnabled,
-      baseMode && MavModeFlag_t::mavModeFlagAutoEnabled,
-      baseMode && MavModeFlag_t::mavModeFlagGuidedEnabled,
-      baseMode && MavModeFlag_t::mavModeFlagStabilizeEnabled,
-      baseMode && MavModeFlag_t::mavModeFlagHilEnbaled,
-      baseMode && MavModeFlag_t::mavModeFlagManualInputEnabled, 
-      baseMode && MavModeFlag_t::mavModeFlagSafteyArmed );
+      baseMode & MavModeFlag_t::mavModeFlagCustomModeEnabled,
+      baseMode & MavModeFlag_t::mavModeFlagTestEnabled,
+      baseMode & MavModeFlag_t::mavModeFlagAutoEnabled,
+      baseMode & MavModeFlag_t::mavModeFlagGuidedEnabled,
+      baseMode & MavModeFlag_t::mavModeFlagStabilizeEnabled,
+      baseMode & MavModeFlag_t::mavModeFlagHilEnbaled,
+      baseMode & MavModeFlag_t::mavModeFlagManualInputEnabled, 
+      baseMode & MavModeFlag_t::mavModeFlagSafteyArmed );
 
     mavBaseMode = baseMode;
     mavCustomMode = customMode;
 
     //*** make changes
 
-    if(baseMode && MavModeFlag_t::mavModeFlagCustomModeEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagCustomModeEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagTestEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagTestEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagAutoEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagAutoEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagGuidedEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagGuidedEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagStabilizeEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagStabilizeEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagHilEnbaled)
+    if(baseMode & MavModeFlag_t::mavModeFlagHilEnbaled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagManualInputEnabled)
+    if(baseMode & MavModeFlag_t::mavModeFlagManualInputEnabled)
     {
     }
 
-    if(baseMode && MavModeFlag_t::mavModeFlagSafteyArmed)
+    if(baseMode & MavModeFlag_t::mavModeFlagSafteyArmed)
     {
     }
 
@@ -1440,6 +1440,31 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 
     ROS_INFO_STREAM("VehicleInterfaceDjiros::setState() OK");
     return Util::OpRet(); 
+  }
+
+  //***************************************************************************
+  //*
+  //* Arm or disarm UAV. This can be called from outside classes
+  //*
+  //***************************************************************************
+
+  Util::OpRet VehicleInterfaceDjiros::armDisarm(bool arm)
+  {
+    // signal telemetry
+    auto mode = vehicleTelemetry->getBaseMode();
+
+    if(arm)
+      mode |= MavModeFlag::mavModeFlagSafteyArmed;
+    else
+      mode &= ~MavModeFlag::mavModeFlagSafteyArmed;
+
+    vehicleTelemetry->setBaseMode(mode);
+
+    // signal ROS
+
+
+    ROS_INFO_STREAM("VehicleInterfaceDjiros::armDisarm() OK");
+    return Util::OpRet();   
   }
 }
 
