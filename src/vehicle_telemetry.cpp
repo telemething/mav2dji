@@ -281,6 +281,9 @@ void VehicleTelemetry::setSystemStatus(uint8_t value)
 void VehicleTelemetry::setCustomMode(uint32_t value)
 {customMode = value;} 
   
+void VehicleTelemetry::setLandedState(uint8_t value)
+{landedState = value;} 
+  
 uint8_t VehicleTelemetry::getBaseMode()
 {return baseMode;}      
 
@@ -289,5 +292,8 @@ uint8_t VehicleTelemetry::getSystemStatus()
 
 uint32_t VehicleTelemetry::getCustomMode()
 {return customMode;} 
+
+uint8_t VehicleTelemetry::getLandedState()
+{return landedState;} 
 
 }

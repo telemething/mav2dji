@@ -112,15 +112,8 @@ class TelemetrySource
 
   // vehicle state values
 
-  uint8_t landedState = MavLandedState::MavLandedStateOnGround;
-  uint8_t baseMode = MavModeFlag::mavModeFlagCustomModeEnabled 
-    + MavModeFlag::mavModeFlagAutoEnabled 
-    + MavModeFlag::mavModeFlagGuidedEnabled 
-    + MavModeFlag::mavModeFlagStabilizeEnabled 
-    + MavModeFlag::mavModeFlagHilEnbaled 
-    + MavModeFlag::mavModeFlagManualInputEnabled;                         
-  uint8_t systemStatus = MavState::mavStateStandby;    
-  uint32_t customMode = 50593800;
+  //uint8_t landedState = MavLandedState::MavLandedStateOnGround;
+
   
  private:
 
@@ -159,10 +152,12 @@ class VehicleTelemetry : public iVehicleTelemetry
   void setBaseMode(uint8_t value);                      
   void setSystemStatus(uint8_t value); 
   void setCustomMode(uint32_t value);
+  void setLandedState(uint8_t value);
   
   uint8_t getBaseMode();                   
   uint8_t getSystemStatus();  
   uint32_t getCustomMode();
+  uint8_t getLandedState();
   
  private:
 
@@ -170,8 +165,14 @@ class VehicleTelemetry : public iVehicleTelemetry
 
   // vehicle state values
 
-  uint8_t baseMode = 29;                         
-  uint8_t systemStatus = MAV_STATE_STANDBY;    
+  uint8_t landedState = MavLandedState::MavLandedStateOnGround;
+  uint8_t baseMode = MavModeFlag::mavModeFlagCustomModeEnabled 
+    + MavModeFlag::mavModeFlagAutoEnabled 
+    + MavModeFlag::mavModeFlagGuidedEnabled 
+    + MavModeFlag::mavModeFlagStabilizeEnabled 
+    + MavModeFlag::mavModeFlagHilEnbaled 
+    + MavModeFlag::mavModeFlagManualInputEnabled;                         
+  uint8_t systemStatus = MavState::mavStateStandby;    
   uint32_t customMode = 50593800;
 };
 

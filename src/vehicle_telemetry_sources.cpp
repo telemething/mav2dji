@@ -70,7 +70,7 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
   ROS_INFO("TelemetrySource_Heartbeat : Worker Thread Started OK");
 
   MAV_TYPE mavType = MAV_TYPE_QUADROTOR;
-  MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_PX4;               
+  MAV_AUTOPILOT mavAutoPilot = MAV_AUTOPILOT_PX4;      
 
   while (ros::ok())
   {
@@ -80,9 +80,9 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 			&mavlinkMsg, 
       mavType,           
       mavAutoPilot,            
-			baseMode,        
-      customMode, 
-      systemStatus);            
+			vehicleTelemetry->getBaseMode(),     
+      vehicleTelemetry->getCustomMode(), 
+      vehicleTelemetry->getSystemStatus() );            
 					
 		sendMavMessageToGcs(&mavlinkMsg);
       workerRosRate->sleep();
@@ -276,7 +276,7 @@ void TelemetrySource_ExtendedSysState::telemetryRunWorker()
   mavlink_message_t msg;
 
   uint8_t vtol_state    = 0;
-  uint8_t landed_state  = landedState; 
+  uint8_t landed_state  = vehicleTelemetry->getLandedState(); 
 
   while (ros::ok())
   {			
