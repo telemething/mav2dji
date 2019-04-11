@@ -12,9 +12,8 @@
 #include <thread>
 #include <mav_udp.hpp>
 #include <mav_message_processor.hpp>
-#include <vehicle_telemetry.hpp>
 #include <condition_variable>
-#include <ivehicle_telemetry.hpp>
+#include <vehicle_telemetry_sources.hpp>
 
 namespace mav2dji
 {

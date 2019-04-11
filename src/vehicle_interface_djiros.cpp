@@ -1306,8 +1306,8 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 
   Util::OpRet VehicleInterfaceDjiros::setMode(uint8_t baseMode, uint32_t customMode)
   {
-    printf("VehicleInterfaceDjiros::setMode():\r\n - CustomBits %u : %#04X\r\n - Custom %d\r\n - Test %d\r\n - Auto %d\r\n - Guided %d\r\n - Stabilize %d\r\n - HIL %d\r\n - Manual %d\r\n - Armed %d\r\n",
-      customMode, customMode,
+    printf("VehicleInterfaceDjiros::setMode():\r\n - BaseBits %u : %02X\r\n - CustomBits %u : %08X\r\n - Custom %d\r\n - Test %d\r\n - Auto %d\r\n - Guided %d\r\n - Stabilize %d\r\n - HIL %d\r\n - Manual %d\r\n - Armed %d\r\n",
+      baseMode, baseMode, customMode, customMode,
       baseMode && MavModeFlag_t::mavModeFlagCustomModeEnabled,
       baseMode && MavModeFlag_t::mavModeFlagTestEnabled,
       baseMode && MavModeFlag_t::mavModeFlagAutoEnabled,

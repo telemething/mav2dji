@@ -52,15 +52,13 @@ int vehicle::init()
     vehicleInfo.setGotMavMessageCallback( std::bind(
     &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
-    // create an instance of the vehicle specific interface class, cast as the 
-    // interface base class
-    vehicleInterface = std::make_shared<VehicleInterfaceDjiros>();
-    vehicleInfo.setVehicleInterface(vehicleInterface);
-
+    // create a telemetry 'service'
     vehicleTelemetry = std::make_shared<VehicleTelemetry>();
 
-    std::shared_ptr<iVehicleTelemetry> ivt = std::make_shared<VehicleTelemetry>();
-    std::shared_ptr<iVehicleTelemetry> ivt2 = vehicleTelemetry;
+    // create an instance of the vehicle specific interface class, cast as the 
+    // interface base class
+    vehicleInterface = std::make_shared<VehicleInterfaceDjiros>(vehicleTelemetry);
+    vehicleInfo.setVehicleInterface(vehicleInterface);
   }
   catch(const std::exception& e)
   {
