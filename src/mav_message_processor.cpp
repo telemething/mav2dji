@@ -464,9 +464,15 @@ void mav_message::handle_message_ping(const mavlink_message_t* msg)
   printMavMessageInfo(msg, "Mav >  message_ping", true);  
 }
 
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
+
 void mav_message::handle_message_set_mode(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  MAVLINK_MSG_ID_SET_MODE", true);
+  printMavMessageInfo(msg, "Mav >  set_mode", true);
 
   mavlink_set_mode_t reqMode;
 	mavlink_msg_set_mode_decode(msg, &reqMode);
@@ -476,12 +482,24 @@ void mav_message::handle_message_set_mode(const mavlink_message_t* msg)
     reqMode.custom_mode,
     reqMode.target_system);
 
-  vehicleInterface->setMode(reqMode.base_mode, reqMode.custom_mode);
+  auto ret = vehicleInterface->setMode(reqMode.base_mode, reqMode.custom_mode);
+
+  if(ret.Result == Util::OpRet::resultEnum::failure)
+  {
+    SendAck(msg, MAVLINK_MSG_ID_SET_MODE, 1, 0, 0);  
+    printMavMessageInfo(msg, "--- Unable to set vehicle mode ---", true);  
+    return;
+  }
 
   SendAck(msg, MAVLINK_MSG_ID_SET_MODE);
-  
-  printMavMessageInfo(msg, "Mav >  set_mode", true);  
+  printMavMessageInfo(msg, "set vehicle mode ok", true);  
 }
+
+//*****************************************************************************
+//*
+//*
+//*
+//*****************************************************************************
 
 void mav_message::handle_message_att_pos_mocap(const mavlink_message_t* msg) 
 {

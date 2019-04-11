@@ -20,7 +20,7 @@
 namespace mav2dji
 {
 
-typedef enum mavModeFlag
+typedef enum MavModeFlag
 {
   mavModeFlagCustomModeEnabled=1, // 0b00000001 Reserved for future use. 
   mavModeFlagTestEnabled=2, // 0b00000010 system has a test mode enabled. This 
@@ -42,10 +42,10 @@ typedef enum mavModeFlag
     //to be ignore when sent in the command MAV_CMD_DO_SET_MODE and 
     //MAV_CMD_COMPONENT_ARM_DISARM shall be used instead. The flag can still be 
     //used to report the armed state. 
-  mavModeFlagEnumEnd=129 
-} mavModeFlag_t;
+  MavModeFlagEnumEnd=129 
+} MavModeFlag_t;
 
-typedef enum mavState
+typedef enum MavState
 {
    mavStateUninit=0, // Uninitialized system, state is unknown. 
    mavStateBoot=1, // System is booting up. 
@@ -62,7 +62,7 @@ typedef enum mavState
     //shut down now. 
    mavStateFlightTermination=8, // System is terminating itself. 
    mavStateEnumEnd=9, 
-} mavState_t;
+} MavState_t;
 
 //*****************************************************************************
 //*
@@ -326,8 +326,12 @@ class vehicle_interface
 
     //------------------------------
 
+    MavState_t  mavState;
+    uint8_t     mavBaseMode;
+    uint32_t    mavCustomMode;
+
     virtual Util::OpRet setMode(uint8_t baseMode, uint32_t customMode) = 0;
-    virtual Util::OpRet setState(mavState newState) = 0; 
+    virtual Util::OpRet setState(MavState newState) = 0; 
 
 };
 

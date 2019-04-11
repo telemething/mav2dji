@@ -113,7 +113,7 @@ class VehicleInterfaceDjiros : public vehicle_interface
   //--------------------------
 
   Util::OpRet setMode(uint8_t baseMode, uint32_t customMode);
-  Util::OpRet setState(mavState newState);
+  Util::OpRet setState(MavState_t newState);
 
  private:
 
