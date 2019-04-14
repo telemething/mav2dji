@@ -154,6 +154,26 @@ class TelemetrySource_Velocity : public TelemetrySource
 
 //*****************************************************************************
 //*
+//* /dji_sdk/battery_state (sensor_msgs/BatteryState) 10 hz
+//*
+//*****************************************************************************
+
+class TelemetrySource_BatteryState : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_BatteryState();
+   ~TelemetrySource_BatteryState();
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const sensor_msgs::BatteryState &msg);
+};
+
+//*****************************************************************************
+//*
 //*   --- not instanciated --------------------------------
 //*
 //* /dji_sdk/acceleration_ground_fused (geometry_msgs/Vector3Stamped) Fused 
@@ -198,29 +218,6 @@ class TelemetrySource_AngularVelocityFused : public TelemetrySource
    void telemetryInit();
    void telemetryRunWorker(){};
    void callback(const geometry_msgs::Vector3Stamped &msg);
-};
-
-//*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
-//*
-//* /dji_sdk/battery_state (sensor_msgs/BatteryState) 10 hz
-//*
-//*****************************************************************************
-
-class TelemetrySource_BatteryState : public TelemetrySource
-{
- public:
-
-   explicit TelemetrySource_BatteryState()
-      {sourceTopicName = "/dji_sdk/battery_state";};
-   ~TelemetrySource_BatteryState(){};
-
- private:
-
-   void telemetryInit();
-   void telemetryRunWorker(){};
-   void callback(const sensor_msgs::BatteryState &msg);
 };
 
 //*****************************************************************************

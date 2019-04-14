@@ -136,9 +136,9 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
   uint32_t onboard_control_sensors_enabled  = 2097170;  // 1000000000000000010010
   uint32_t onboard_control_sensors_health   = 2359340;  // 1001000000000000101100
   uint16_t load                             = 0; 
-  uint16_t voltage_battery                  = 12149;
-  int16_t current_battery                   = -100;
-  int8_t battery_remaining                  = 100; 
+  //uint16_t voltage_battery                  = 12149;
+  //int16_t current_battery                   = -100;
+  //int8_t battery_remaining                  = 100; 
   uint16_t drop_rate_comm                   = 0; 
   uint16_t errors_comm                      = 0;
   uint16_t errors_count1                    = 0; 
@@ -148,13 +148,16 @@ void TelemetrySource_SysStatus::telemetryRunWorker()
 
   while (ros::ok())
   {				
+    auto battery = vehicleTelemetry->telemBatteryStatus.getSysBattStatus();
+
 		mavlink_msg_sys_status_pack(mavlinkSystemId, mavlinkComponentId, 
 			&msg,onboard_control_sensors_present,
       onboard_control_sensors_enabled,
       onboard_control_sensors_health,
-      load,voltage_battery,
-      current_battery,
-      battery_remaining,
+      load,
+      battery->voltageMv,
+      battery->currentCa,
+      battery->capacityRemaining,
       drop_rate_comm,
       errors_comm,
       errors_count1,
@@ -212,36 +215,34 @@ void TelemetrySource_HomePosition::telemetryRunWorker()
   ROS_INFO("TelemetrySource_HomePosition : Worker Thread Started OK");
 
   mavlink_message_t msg;
-
-  int32_t latitude = 47.4684818 * 1e7;            //*** TODO * Need to set from GPS before liftoff
-  int32_t longitude = -121.76819669999999 * 1e7;  //*** TODO * Need to set from GPS before liftoff
-  int32_t altitude = 174;
-  float x = 0;
-  float y = 0;
-  float z = 0;
-  float q[4] = {1,0,0,0};
-  float approach_x = 0;
-  float approach_y = 0;
-  float approach_z = 0;
-  uint64_t time_usec = getTimeBootMs();
-
+  
   while (ros::ok())
   {				
-		mavlink_msg_home_position_pack(
-      mavlinkSystemId, 
-      mavlinkComponentId, 
-			&msg,
-      latitude, 
-      longitude, 
-      altitude, 
-      x, y, z, q, 
-      approach_x, 
-      approach_y, 
-      approach_z, 
-      time_usec);
-					
-		sendMavMessageToGcs(&msg);
-        workerRosRate->sleep();
+    auto pos = vehicleTelemetry->telemGlobalPositionInt.getDataPtr();
+
+    // if not valid then we have no gps data
+    if(vehicleTelemetry->telemHomePosition.isValid())
+    {
+      uint64_t time_usec = getTimeBootMs();
+      auto pos = vehicleTelemetry->telemHomePosition.getDataPtr();
+
+      mavlink_msg_home_position_pack(
+        mavlinkSystemId, 
+        mavlinkComponentId, 
+        &msg,
+        pos->latitude, 
+        pos->longitude, 
+        pos->altitude, 
+        pos->x, pos->y, pos->z, pos->q, 
+        pos->approach_x, 
+        pos->approach_y, 
+        pos->approach_z, 
+        time_usec);
+            
+      sendMavMessageToGcs(&msg);
+    }
+        
+    workerRosRate->sleep();
   }
 }
 
@@ -311,13 +312,16 @@ void TelemetrySource_GlobalPositionInt::telemetryInit()
   {
     int32_t tbs = 0;   //getTimeBootMs(gPosition.header);
 
-    double latitude = 47.4684818;
+    double latitude = 47.4684818;           //*** TODO
     double longitude = -121.76819669999999;
     double altitude = 174;
     double height = 5;
 
     vehicleTelemetry->telemGlobalPositionInt.setLatLonAlt(
       &tbs, &latitude, &longitude, &altitude, &height);
+
+    vehicleTelemetry->telemHomePosition.setPosition(
+      &latitude, &longitude, &altitude);
   }
 
 	topicSubscription = rosNodeHandle->subscribe(
@@ -368,6 +372,11 @@ void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::C
     vehicleTelemetry->telemGlobalPositionInt.setLatLonAlt(
       &tbs, &gPosition.latitude, &gPosition.longitude, 
       &gPosition.altitude, &gPosition.altitude);
+
+    // set the home position to the first gps coord we see
+    if(!vehicleTelemetry->telemHomePosition.isValid())
+      vehicleTelemetry->telemHomePosition.setPosition(&gPosition.latitude, 
+        &gPosition.longitude, &gPosition.altitude);
   }
 }
 
@@ -561,6 +570,51 @@ void TelemetrySource_LocalPositionNed::callback(const geometry_msgs::PointStampe
 
     vehicleTelemetry->telemLocalPositionNed.setPosition(
       &tbs, &x, &y, &z);
+  }
+}
+
+//*****************************************************************************
+//*
+//* BatteryState
+//*
+//******************************************************************************
+
+TelemetrySource_BatteryState::TelemetrySource_BatteryState()
+{sourceTopicName = "/dji_sdk/battery_state";};
+TelemetrySource_BatteryState::~TelemetrySource_BatteryState(){};
+
+void TelemetrySource_BatteryState::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_BatteryState::callback, this);
+}
+
+void TelemetrySource_BatteryState::telemetryRunWorker(){};
+
+void TelemetrySource_BatteryState::callback(const sensor_msgs::BatteryState &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    vehicleTelemetry->telemBatteryStatus.setState(
+      msg.location, msg.voltage, msg.current, msg.percentage);
+    //msg.voltage;
+    //msg.current;
+    //msg.charge;
+    //msg.capacity;
+    //msg.design_capacity;
+    //msg.percentage;
+    //msg.power_supply_status;
+    //msg.power_supply_health;
+    //msg.power_supply_technology;
+    //msg.present;
+    //msg.cell_voltage;
+    //msg.location;
+    //msg.serial_number;  
   }
 }
 

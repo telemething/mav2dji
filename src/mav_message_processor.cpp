@@ -74,7 +74,7 @@ void mav_message::mcu_unique_id(uint32_t *uid_96_bit)
 
 //*****************************************************************************
 //*
-//*
+//* Send an ack to the requestor
 //*
 //*****************************************************************************
 
@@ -99,7 +99,7 @@ void mav_message::SendAck(const mavlink_message_t* msg, uint16_t command,
 
 //*****************************************************************************
 //*
-//*
+//* Send a success ack to the requestor
 //*
 //*****************************************************************************
 
@@ -110,7 +110,7 @@ void mav_message::SendAck(const mavlink_message_t* msg, uint16_t command)
 
 //*****************************************************************************
 //*
-//*
+//* Send a param to the requestor
 //*
 //*****************************************************************************
 
@@ -151,12 +151,13 @@ void mav_message::sendParam(mav2dji::MavParams::paramValStruct paramVal)
 
 //*****************************************************************************
 //*
+//* Send all params to the requestor. Throttle to avoid flooding
+//*
 //*   https://mavlink.io/en/services/parameter.html#PARAM_VALUE
 //*
 //*  system_id ID of this system
 //*  component_id ID of this component (e.g. 200 for IMU)
 //*  msg The MAVLink message to compress the data into
-//*  
 //*  param_id  Onboard parameter id, terminated by NULL if the length is 
 //*   less than 16 human-readable chars and WITHOUT null termination (NULL) byte 
 //*   if the length is exactly 16 chars - applications have to provide 16+1 bytes 
@@ -238,7 +239,7 @@ void mav_message::stopVehicle()
 
 //*****************************************************************************
 //*
-//*
+//* Print diagnostic info
 //*
 //*****************************************************************************
 
@@ -252,27 +253,12 @@ void mav_message::printMavMessageInfo(const mavlink_message_t* msg,
 
 //*****************************************************************************
 //*
-//*
-//*
-//*****************************************************************************
-
-/*int mav_message::vehicleMavMessageCallback(const mavlink_message_t* msg)
-{
-	printMavMessageInfo(msg, "Mavlink Message", false);
-  ProcessMavMessage(msg);
-  return 0;
-}*/
-
-//*****************************************************************************
-//*
-//*
+//* Process an incoming mavlink message
 //*
 //*****************************************************************************
 
 void mav_message::ProcessMavMessage(const mavlink_message_t* msg)
 {
-  //mavlink_message_t msg = msgIn;
-
   int retcode = mission_manager->ProcessMavMessage(msg);
 
   if(retcode != 1)
@@ -466,13 +452,13 @@ void mav_message::handle_message_ping(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
-//*
+//* The requstor wants to set vehicle mode
 //*
 //*****************************************************************************
 
 void mav_message::handle_message_set_mode(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  set_mode", true);
+  printMavMessageInfo(msg, "Mav > set_mode", true);
 
   mavlink_set_mode_t reqMode;
 	mavlink_msg_set_mode_decode(msg, &reqMode);
@@ -497,143 +483,143 @@ void mav_message::handle_message_set_mode(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
-//*
+//* 
 //*
 //*****************************************************************************
 
 void mav_message::handle_message_att_pos_mocap(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  att_pos_mocap", true);  
+  printMavMessageInfo(msg, "Mav > att_pos_mocap", true);  
 }
 
 void mav_message::handle_message_set_position_target_local_ned(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  set_position_target_local_ned", true);  
+  printMavMessageInfo(msg, "Mav > set_position_target_local_ned", true);  
 }
 
 void mav_message::handle_message_set_attitude_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  set_attitude_target", true);  
+  printMavMessageInfo(msg, "Mav > set_attitude_target", true);  
 }
 
 void mav_message::handle_message_set_actuator_control_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  set_actuator_control_target", true);  
+  printMavMessageInfo(msg, "Mav > set_actuator_control_target", true);  
 }
 
 void mav_message::handle_message_vision_position_estimate(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  vision_position_estimate", true);  
+  printMavMessageInfo(msg, "Mav > vision_position_estimate", true);  
 }
 
 void mav_message::handle_message_odometry(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  odometry", true);  
+  printMavMessageInfo(msg, "Mav > odometry", true);  
 }
 
 void mav_message::handle_message_gps_global_origin(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  gps_global_origin", true);  
+  printMavMessageInfo(msg, "Mav > gps_global_origin", true);  
 }
 
 void mav_message::handle_message_radio_status(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  radio_status", true);  
+  printMavMessageInfo(msg, "Mav > radio_status", true);  
 }
 
 void mav_message::handle_message_manual_control(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  manual_control", true);  
+  printMavMessageInfo(msg, "Mav > manual_control", true);  
 }
 
 void mav_message::handle_message_rc_channels_override(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  rc_channels_override", true);  
+  printMavMessageInfo(msg, "Mav > rc_channels_override", true);  
 }
 
 void mav_message::handle_message_distance_sensor(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  distance_sensor", true);  
+  printMavMessageInfo(msg, "Mav > distance_sensor", true);  
 }
 
 void mav_message::handle_message_follow_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  follow_target", true);  
+  printMavMessageInfo(msg, "Mav > follow_target", true);  
 }
 
 void mav_message::handle_message_landing_target(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  landing_target", true);  
+  printMavMessageInfo(msg, "Mav > landing_target", true);  
 }
 
 void mav_message::handle_message_adsb_vehicle(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  adsb_vehicle", true);  
+  printMavMessageInfo(msg, "Mav > adsb_vehicle", true);  
 }
 
 void mav_message::handle_message_collision(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  collision", true);  
+  printMavMessageInfo(msg, "Mav > collision", true);  
 }
 
 void mav_message::handle_message_gps_rtcm_data(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  gps_rtcm_data", true);  
+  printMavMessageInfo(msg, "Mav > gps_rtcm_data", true);  
 }
 
 void mav_message::handle_message_battery_status(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  battery_status", true);  
+  printMavMessageInfo(msg, "Mav > battery_status", true);  
 }
 
 void mav_message::handle_message_serial_control(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  serial_control", true);  
+  printMavMessageInfo(msg, "Mav > serial_control", true);  
 }
 
 void mav_message::handle_message_logging_ack(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  logging_ack", true);  
+  printMavMessageInfo(msg, "Mav > logging_ack", true);  
 }
 
 void mav_message::handle_message_play_tune(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  play_tune", true);  
+  printMavMessageInfo(msg, "Mav > play_tune", true);  
 }
 
 void mav_message::handle_message_obstacle_distance(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  obstacle_distance", true);  
+  printMavMessageInfo(msg, "Mav > obstacle_distance", true);  
 }
 
 void mav_message::handle_message_trajectory_representation_waypoints(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  trajectory_representation_waypoints", true);  
+  printMavMessageInfo(msg, "Mav > trajectory_representation_waypoints", true);  
 }
 
 void mav_message::handle_message_named_value_float(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  named_value_float", true);  
+  printMavMessageInfo(msg, "Mav > named_value_float", true);  
 }
 
 void mav_message::handle_message_debug(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  debug", true);  
+  printMavMessageInfo(msg, "Mav > debug", true);  
 }
 
 void mav_message::handle_message_debug_vect(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  debug_vect", true);  
+  printMavMessageInfo(msg, "Mav > debug_vect", true);  
 }
 
 void mav_message::handle_message_debug_float_array(const mavlink_message_t* msg) 
 {
-  printMavMessageInfo(msg, "Mav >  debug_float_array", true);  
+  printMavMessageInfo(msg, "Mav > debug_float_array", true);  
 }
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants to issue a long command
 //*
 //*****************************************************************************
 
@@ -706,7 +692,7 @@ void mav_message::processMAVLINK_MSG_ID_COMMAND_LONG(const mavlink_message_t* ms
 
 //*****************************************************************************
 //*
-//*
+//* We received a heartbeat
 //*
 //*****************************************************************************
 
@@ -717,7 +703,7 @@ void mav_message::processMAVLINK_MSG_ID_HEARTBEAT(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants camera control
 //*
 //*****************************************************************************
 
@@ -731,7 +717,7 @@ void mav_message::processMAV_CMD_DO_TRIGGER_CONTROL(const mavlink_message_t* msg
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wnats the vehicle to return to home
 //*
 //*****************************************************************************
 
@@ -745,7 +731,7 @@ void mav_message::processMAV_CMD_NAV_RETURN_TO_LAUNCH(const mavlink_message_t* m
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wnats to arm/disarm the vehicle
 //*
 //*****************************************************************************
 
@@ -777,7 +763,7 @@ void mav_message::processMAV_CMD_COMPONENT_ARM_DISARM(const mavlink_message_t* m
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants the vehicle to start sending log data over mavlink
 //*
 //*****************************************************************************
 
@@ -791,7 +777,7 @@ void mav_message::processMAV_CMD_LOGGING_START(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants to vehicle to stop sending log data over mavlink
 //*
 //*****************************************************************************
 
@@ -805,7 +791,7 @@ void mav_message::processMAV_CMD_LOGGING_STOP(const mavlink_message_t* msg)
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants the vehicle to send all params
 //*
 //*****************************************************************************
 
@@ -828,7 +814,7 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_LIST(const mavlink_message
 
 //*****************************************************************************
 //*
-//*
+//* The requestor wants the vehicle to send a param
 //*
 //*****************************************************************************
 
@@ -862,6 +848,7 @@ void mav_message::processMAVLINK_MSG_ID_PARAM_REQUEST_READ(const mavlink_message
 
 //*****************************************************************************
 //*
+//* The rtequstor wants the vehicle to send/accept a protocol version
 //*
 // uint16_t version; /*<  Currently active MAVLink version number * 100: v1.0 is 100, v2.0 is 200, etc.*/
 // uint16_t min_version; /*<  Minimum MAVLink version supported*/
@@ -934,30 +921,49 @@ void mav_message::processMAV_CMD_REQUEST_PROTOCOL_VERSION(const mavlink_message_
 
 //*****************************************************************************
 //*
-//* @param capabilities  Bitmap of capabilities
-//* @param flight_sw_version  Firmware version number
-//* @param middleware_sw_version  Middleware version number
-//* @param os_sw_version  Operating system version number
-//* @param board_version  HW / board version (last 8 bytes should be silicon 
+//* The requestor wants the vehicle to send/accept capabilities
+//*
+//* capabilities              : Bitmap of capabilities
+//* flight_sw_version         : Firmware version number
+//* middleware_sw_version     : Middleware version number
+//* os_sw_version             : Operating system version number
+//* board_version             : HW / board version (last 8 bytes should be silicon 
 //    ID, if any)
-//* @param flight_custom_version  Custom version field, commonly the first 8 
+//* flight_custom_version     :  Custom version field, commonly the first 8 
 //    bytes of the git hash. This is not an unique identifier, but should allow 
 //    to identify the commit using the main version number even for very large 
 //    code bases.
-//* @param middleware_custom_version  Custom version field, commonly the first 
+//* middleware_custom_version : Custom version field, commonly the first 
 //    8 bytes of the git hash. This is not an unique identifier, but should allow 
 //    to identify the commit using the main version number even for very large 
 //    code bases.
-//* @param os_custom_version  Custom version field, commonly the first 8 bytes 
+//* os_custom_version         : Custom version field, commonly the first 8 bytes 
 //    of the git hash. This is not an unique identifier, but should allow to 
 //    identify the commit using the main version number even for very large 
 //    code bases.
-//* @param vendor_id  ID of the board vendor
-//* @param product_id  ID of the product
-//* @param uid  UID if provided by hardware (see uid2)
-//* @param uid2  UID if provided by hardware (supersedes the uid field. If this 
-//    is non-zero, use this field, otherwise use uid)
-//* @return length of the message in bytes (excluding serial stream start sign)
+//* vendor_id                 : ID of the board vendor
+//* product_id                : ID of the product
+//* uid                       : UID if provided by hardware (see uid2)
+//* uid2                      : UID if provided by hardware (supersedes the uid field. 
+//*   If this is non-zero, use this field, otherwise use uid)
+//* 
+//*
+//* MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT                   : MISSION float message type. 
+//* MAV_PROTOCOL_CAPABILITY_MISSION_INT                     : MISSION_INT scaled integer message type. 
+//* MAV_PROTOCOL_CAPABILITY_COMMAND_INT                     : COMMAND_INT scaled integer message type. 
+//* MAV_PROTOCOL_CAPABILITY_PARAM_UNION                     : new param union message type. 
+//* MAV_PROTOCOL_CAPABILITY_FTP                             : new FILE_TRANSFER_PROTOCOL message type. 
+//* MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET             : commanding attitude offboard. 
+//* MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED   : commanding position and velocity targets in local NED frame. 
+//* MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT  : commanding position and velocity targets in global scaled integers. 
+//* MAV_PROTOCOL_CAPABILITY_TERRAIN                         : terrain protocol / data handling. 
+//* MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET             : direct actuator control. 
+//* MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION              : flight termination command. 
+//* MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION             : onboard compass calibration. 
+//* MAV_PROTOCOL_CAPABILITY_MAVLINK2                        : MAVLink version 2. 
+//* MAV_PROTOCOL_CAPABILITY_MISSION_FENCE                   : mission fence protocol. 
+//* MAV_PROTOCOL_CAPABILITY_MISSION_RALLY                   : mission rally point protocol. 
+//* MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION;             : flight information protocol.
 //*
 //*****************************************************************************
 
@@ -966,14 +972,39 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
   mavlink_autopilot_version_t versionReq;
 	mavlink_msg_autopilot_version_decode(msgIn, &versionReq);
 
-  printf("Controller is requesting autopilot caps: %lu, flightVer: %u, midVer: %u, osVer: %u, boardVer: %u, vedId: %u, prodId: %u", 
-    versionReq.capabilities, 
+  printf("Controller is requesting autopilot caps: %lu : %08X, flightVer: %u, midVer: %u, osVer: %u, boardVer: %u, vedId: %u, prodId: %u", 
+    versionReq.capabilities, versionReq.capabilities,
     versionReq.flight_sw_version, 
     versionReq.middleware_sw_version, 
     versionReq.os_sw_version, 
     versionReq.board_version, 
     versionReq.vendor_id, 
     versionReq.product_id);
+
+  char const* format = "Capabilities :\r\n - MissionFloat %d\r\n - ParamFloat %d\r\n"
+    " - MissionInt %d\r\n - CommandInt %d\r\n - ParamUnion %d\r\n - FTP %d\r\n"
+    " - SetAttitudeTarget %d\r\n - SetPositionTargetLocalNed %d\r\n - SetPositionTargetGlobalInt %d\r\n"
+    " - Terrain %d\r\n - SetActuatorTarget %d\r\n - FlightTermination %d\r\n - CompassCalibration %d\r\n"
+    " - Mavlink2 %d\r\n - MissionFence %d\r\n - MissionRally %d\r\n - FlightInformation %d\r\n";
+
+  printf(format,
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT,
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_INT, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_COMMAND_INT, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_UNION, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_FTP, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED,
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_TERRAIN, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_MAVLINK2, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FENCE,  
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_RALLY, 
+    versionReq.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION );
 
   /*uint32_t uid3[3];
   mcu_unique_id(uid3);
@@ -991,23 +1022,23 @@ void mav_message::processMAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES(const mavlink_me
   uint8_t  uid2[18];
 
   uint64_t capabilities =	
-      MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT /* Autopilot supports MISSION float message type. | 
-    | MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT /* Autopilot supports the new param float message type. | 
-    | MAV_PROTOCOL_CAPABILITY_MISSION_INT /* Autopilot supports MISSION_INT scaled integer message type. | 
-    | MAV_PROTOCOL_CAPABILITY_COMMAND_INT /* Autopilot supports COMMAND_INT scaled integer message type. | 
-    | MAV_PROTOCOL_CAPABILITY_PARAM_UNION /* Autopilot supports the new param union message type. | 
-    //      | MAV_PROTOCOL_CAPABILITY_FTP /* Autopilot supports the new FILE_TRANSFER_PROTOCOL message type. | 
-    | MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET /* Autopilot supports commanding attitude offboard. | 
-    | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED /* Autopilot supports commanding position and velocity targets in local NED frame. | 
-    | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT /* Autopilot supports commanding position and velocity targets in global scaled integers. | 
-    | MAV_PROTOCOL_CAPABILITY_TERRAIN /* Autopilot supports terrain protocol / data handling. | 
-    | MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET /* Autopilot supports direct actuator control. | 
-    | MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION /* Autopilot supports the flight termination command. | 
-    | MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION /* Autopilot supports onboard compass calibration. | 
-    | MAV_PROTOCOL_CAPABILITY_MAVLINK2 /* Autopilot supports MAVLink version 2. | 
-    | MAV_PROTOCOL_CAPABILITY_MISSION_FENCE /* Autopilot supports mission fence protocol. | 
-    | MAV_PROTOCOL_CAPABILITY_MISSION_RALLY /* Autopilot supports mission rally point protocol. | 
-    | MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION;
+      MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT 
+    | MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT 
+    | MAV_PROTOCOL_CAPABILITY_MISSION_INT 
+    | MAV_PROTOCOL_CAPABILITY_COMMAND_INT 
+    | MAV_PROTOCOL_CAPABILITY_PARAM_UNION 
+    | MAV_PROTOCOL_CAPABILITY_FTP 
+    | MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET 
+    | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED
+    | MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT 
+    | MAV_PROTOCOL_CAPABILITY_TERRAIN 
+    | MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET 
+    | MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION 
+    | MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION 
+    | MAV_PROTOCOL_CAPABILITY_MAVLINK2 
+    | MAV_PROTOCOL_CAPABILITY_MISSION_FENCE  
+    | MAV_PROTOCOL_CAPABILITY_MISSION_RALLY 
+    | MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION; 
 
   memcpy((void *)flight_custom_version, &px4_git_version_binary, sizeof(flight_custom_version));
 	memcpy((void *)middleware_custom_version, &px4_git_version_binary, sizeof(middleware_custom_version));

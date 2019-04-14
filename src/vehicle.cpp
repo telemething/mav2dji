@@ -198,15 +198,17 @@ int vehicle::startVehicle()
 Util::OpRet vehicle::startTelemetry()
 {
   std::vector<std::shared_ptr<TelemetrySource>> telemSources = 
-    {std::make_shared<TelemetrySource_GlobalPositionInt>(), 
+  {
+    std::make_shared<TelemetrySource_GlobalPositionInt>(), 
     std::make_shared<TelemetrySource_Attitude>(), 
     std::make_shared<TelemetrySource_LocalPositionNed>(), 
     std::make_shared<TelemetrySource_Heartbeat>(), 
     std::make_shared<TelemetrySource_SysStatus>(),
     std::make_shared<TelemetrySource_Velocity>(), 
     std::make_shared<TelemetrySource_ExtendedSysState>(), 
-    std::make_shared<TelemetrySource_HomePosition>()
-    };
+    std::make_shared<TelemetrySource_HomePosition>(),
+    std::make_shared<TelemetrySource_BatteryState>()
+  };
 
   auto trigger = TelemTrigger(1000);
   Util::OpRet ret;

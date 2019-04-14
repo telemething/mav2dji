@@ -44,6 +44,8 @@
 #include <sensors/sensor_attitude.hpp>
 #include <sensors/sensor_global_position_int.hpp>
 #include <sensors/sensor_local_position_ned.hpp>
+#include <sensors/sensor_home_position.hpp>
+#include <sensors/sensor_battery_state.hpp>
 
 namespace mav2dji
 {
@@ -136,6 +138,8 @@ class VehicleTelemetry : public iVehicleTelemetry
   SensorLocalPositionNed  telemLocalPositionNed;
   SensorAttitude          telemAttitude;
   SensorGlobalPositionInt telemGlobalPositionInt;
+  SensorHomePosition      telemHomePosition;
+  SensorBatteryStatus     telemBatteryStatus;
 
   explicit VehicleTelemetry();
   ~VehicleTelemetry();
