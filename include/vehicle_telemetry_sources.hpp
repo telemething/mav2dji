@@ -194,9 +194,9 @@ class TelemetrySource_FlightStatus : public TelemetrySource
 
   typedef enum DjiFlightStatus
   {
-    STOPED=0,  
-    ON_GROUND=1,  
-    IN_AIR=2 
+    STOPED    = 0,  
+    ON_GROUND = 1,  
+    IN_AIR    = 2 
   } DjiFlightStatus_t;
 
  private:
@@ -207,56 +207,6 @@ class TelemetrySource_FlightStatus : public TelemetrySource
 };
 
 //*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
-//*
-//* /dji_sdk/acceleration_ground_fused (geometry_msgs/Vector3Stamped) Fused 
-//*   acceleration with respect to East-North-Up (ENU) ground frame, 100 Hz
-//*
-//*****************************************************************************
-
-/*class TelemetrySource_AccelerationGroundFused : public TelemetrySource
-{
- public:
-
-   explicit TelemetrySource_AccelerationGroundFused()
-      {sourceTopicName = "/dji_sdk/acceleration_ground_fused";};
-   ~TelemetrySource_AccelerationGroundFused(){};
-
- private:
-
-   void telemetryInit();
-   void telemetryRunWorker(){};
-   void callback(const geometry_msgs::Vector3Stamped &msg);
-};
-
-//*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
-//*
-//* /dji_sdk/angular_velocity_fused (geometry_msgs/Vector3Stamped) Fused 
-//    angular rate (p,q,r) around Forward-Left-Up (FLU) body frame, 100 Hz
-//*
-//*****************************************************************************
-
-class TelemetrySource_AngularVelocityFused : public TelemetrySource
-{
- public:
-
-   explicit TelemetrySource_AngularVelocityFused()
-      {sourceTopicName = "/dji_sdk/angular_velocity_fused";};
-   ~TelemetrySource_AngularVelocityFused(){};
-
- private:
-
-   void telemetryInit();
-   void telemetryRunWorker(){};
-   void callback(const geometry_msgs::Vector3Stamped &msg);
-};
-
-//*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
 //*
 //* dji_sdk/display_mode (std_msgs/UInt8)
 //*   
@@ -309,14 +259,29 @@ class TelemetrySource_DisplayMode : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_DisplayMode()
-      {sourceTopicName = "/dji_sdk/display_mode";};
-   ~TelemetrySource_DisplayMode(){};
+  explicit TelemetrySource_DisplayMode();
+  ~TelemetrySource_DisplayMode();
 
  private:
 
+  typedef enum DjiDisplayMode
+  {
+    MODE_MANUAL_CTRL        = 0,
+    MODE_ATTITUDE           = 1,
+    MODE_P_GPS              = 6,
+    MODE_HOTPOINT_MODE      = 9,
+    MODE_ASSISTED_TAKEOFF   = 10,
+    MODE_AUTO_TAKEOFF       = 11,
+    MODE_AUTO_LANDING       = 12,
+    MODE_NAVI_GO_HOME       = 15,
+    MODE_NAVI_SDK_CTRL      = 17,
+    MODE_FORCE_AUTO_LANDING = 33,
+    MODE_SEARCH_MODE        = 40,
+    MODE_ENGINE_START       = 41
+  } DjiDispalyMode_t;
+
    void telemetryInit();
-   void telemetryRunWorker(){};
+   void telemetryRunWorker();
    void callback(const std_msgs::UInt8 &msg);
 };
 
@@ -324,27 +289,48 @@ class TelemetrySource_DisplayMode : public TelemetrySource
 //*
 //*   --- not instanciated --------------------------------
 //*
-//*  /dji_sdk/flight_status (std_msgs/UInt8)
-//*
-//*  STATUS_STOPPED   = DJI::OSDK::VehicleStatus::FlightStatus::STOPED
-//*  STATUS_ON_GROUND = DJI::OSDK::VehicleStatus::FlightStatus::ON_GROUND
-//*  STATUS_IN_AIR    = DJI::OSDK::VehicleStatus::FlightStatus::IN_AIR
+//* /dji_sdk/acceleration_ground_fused (geometry_msgs/Vector3Stamped) Fused 
+//*   acceleration with respect to East-North-Up (ENU) ground frame, 100 Hz
 //*
 //*****************************************************************************
 
-class TelemetrySource_FlightStatus : public TelemetrySource
+/*class TelemetrySource_AccelerationGroundFused : public TelemetrySource
 {
  public:
 
-   explicit TelemetrySource_FlightStatus()
-      {sourceTopicName = "/dji_sdk/flight_status";};
-   ~TelemetrySource_FlightStatus(){};
+   explicit TelemetrySource_AccelerationGroundFused()
+      {sourceTopicName = "/dji_sdk/acceleration_ground_fused";};
+   ~TelemetrySource_AccelerationGroundFused(){};
 
  private:
 
    void telemetryInit();
    void telemetryRunWorker(){};
-   void callback(const std_msgs::UInt8 &msg);
+   void callback(const geometry_msgs::Vector3Stamped &msg);
+};
+
+//*****************************************************************************
+//*
+//*   --- not instanciated --------------------------------
+//*
+//* /dji_sdk/angular_velocity_fused (geometry_msgs/Vector3Stamped) Fused 
+//    angular rate (p,q,r) around Forward-Left-Up (FLU) body frame, 100 Hz
+//*
+//*****************************************************************************
+
+class TelemetrySource_AngularVelocityFused : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_AngularVelocityFused()
+      {sourceTopicName = "/dji_sdk/angular_velocity_fused";};
+   ~TelemetrySource_AngularVelocityFused(){};
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker(){};
+   void callback(const geometry_msgs::Vector3Stamped &msg);
 };
 
 //*****************************************************************************

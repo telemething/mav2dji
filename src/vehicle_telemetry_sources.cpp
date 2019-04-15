@@ -645,6 +645,7 @@ void TelemetrySource_FlightStatus::telemetryInit()
 }
 
 void TelemetrySource_FlightStatus::telemetryRunWorker(){};
+
 void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
 {
   ros::Time startTime = ros::Time::now();
@@ -668,13 +669,139 @@ void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
       break;
     }
 
-    // TODO : we need more processinbg to get five states from three states
+    // TODO : we need more processing to get five states from three states
 
     // TODO : do we need to update baseMode or customMode? 
 
     vehicleTelemetry->setLandedState(mavLandedState); 
   }
-  
-};
-
 }
+
+//*****************************************************************************
+//*
+//* Flight Status
+//*
+//* DJI values from  
+//* https://github.com/dji-sdk/Onboard-SDK-ROS/blob/3.7/dji_sdk/include/dji_sdk/dji_sdk.h:
+//*
+//* This mode requires the user to manually control the aircraft to remain stable in air. 
+//* MODE_MANUAL_CTRL=DJI::OSDK::VehicleStatus::DisplayMode::MODE_MANUAL_CTRL
+//*
+//* In this mode, the aircraft can keep attitude stabilization and only use the
+//* barometer for positioning to control the altitude. 
+//*
+//* The aircraft can not autonomously locate and hover stably.
+//* MODE_ATTITUDE=DJI::OSDK::VehicleStatus::DisplayMode::MODE_ATTITUDE
+//*
+//* The aircraft is in normal GPS mode. In normal GPS mode, the aircraft can
+//* autonomously locate and hover stably. The sensitivity of the aircraft to the
+//* command response is moderate.
+//* MODE_P_GPS=DJI::OSDK::VehicleStatus::DisplayMode::MODE_P_GPS
+//*
+//* In hotpoint mode 
+//* MODE_HOTPOINT_MODE=DJI::OSDK::VehicleStatus::DisplayMode::MODE_HOTPOINT_MODE
+//*
+//* In this mode, user can push the throttle stick to complete stable take-off. 
+//* MODE_ASSISTED_TAKEOFF=DJI::OSDK::VehicleStatus::DisplayMode::MODE_ASSISTED_TAKEOFF
+//*
+//* In this mode, the aircraft will autonomously start motor, ascend and finally hover. 
+//* MODE_AUTO_TAKEOFF=DJI::OSDK::VehicleStatus::DisplayMode::MODE_AUTO_TAKEOFF
+//*
+//* In this mode, the aircraft can land autonomously. 
+//* MODE_AUTO_LANDING=DJI::OSDK::VehicleStatus::DisplayMode::MODE_AUTO_LANDING
+//*
+//* In this mode, the aircraft can antonomously return the last recorded Home Point. 
+//* There are three types of this mode: Smart RTH(Return-to-Home), Low Batterry RTH, and Failsafe RTTH.  
+//* MODE_NAVI_GO_HOME=DJI::OSDK::VehicleStatus::DisplayMode::MODE_NAVI_GO_HOME
+//*
+//* In this mode, the aircraft is controled by SDK API. User can directly define the control mode of horizon
+//* and vertical directions and send control datas to aircraft. 
+//* MODE_NAVI_SDK_CTRL=DJI::OSDK::VehicleStatus::DisplayMode::MODE_NAVI_SDK_CTRL
+//*
+//* drone is forced to land, might due to low battery 
+//* MODE_FORCE_AUTO_LANDING=DJI::OSDK::VehicleStatus::DisplayMode::MODE_FORCE_AUTO_LANDING
+//*
+//* drone will search for the last position where the rc is not lost 
+//* MODE_SEARCH_MODE =DJI::OSDK::VehicleStatus::DisplayMode::MODE_SEARCH_MODE
+//*
+//* Mode for motor starting. Every time user unlock the motor, this will be the first mode. 
+//* MODE_ENGINE_START = DJI::OSDK::VehicleStatus::DisplayMode::MODE_ENGINE_START
+//*
+//* Mavlink values:
+//*
+//* ???
+//*
+//******************************************************************************
+
+TelemetrySource_DisplayMode::TelemetrySource_DisplayMode()
+    {sourceTopicName = "/dji_sdk/display_mode";};
+TelemetrySource_DisplayMode::~TelemetrySource_DisplayMode(){};
+
+void TelemetrySource_DisplayMode::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_DisplayMode::callback, this);
+}
+
+void TelemetrySource_DisplayMode::telemetryRunWorker(){};
+
+void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  //MavLandedState_t mavLandedState = MavLandedState_t::MavLandedStateUndefined;
+  
+  // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    switch(msg.data)
+    {
+      case DjiDispalyMode_t::MODE_ASSISTED_TAKEOFF :
+        printf("--- DJI DisplayMode : MODE_ASSISTED_TAKEOFF\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_ATTITUDE :
+        printf("--- DJI DisplayMode : MODE_ATTITUDE\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_AUTO_LANDING :
+        printf("--- DJI DisplayMode : MODE_AUTO_LANDING\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_AUTO_TAKEOFF :
+        printf("--- DJI DisplayMode : MODE_AUTO_TAKEOFF\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_ENGINE_START :
+        printf("--- DJI DisplayMode : MODE_ENGINE_START\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_FORCE_AUTO_LANDING :
+        printf("--- DJI DisplayMode : MODE_FORCE_AUTO_LANDING\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_HOTPOINT_MODE :
+        printf("--- DJI DisplayMode : MODE_HOTPOINT_MODE\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_MANUAL_CTRL :
+        printf("--- DJI DisplayMode : MODE_MANUAL_CTRL\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_NAVI_GO_HOME :
+        printf("--- DJI DisplayMode : MODE_NAVI_GO_HOME\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_NAVI_SDK_CTRL :
+        printf("--- DJI DisplayMode : MODE_NAVI_SDK_CTRL\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_P_GPS :
+        printf("--- DJI DisplayMode : MODE_P_GPS\r\n");
+      break;
+      case DjiDispalyMode_t::MODE_SEARCH_MODE :
+        printf("--- DJI DisplayMode : MODE_SEARCH_MODE\r\n");
+      break;
+    }
+
+    // TODO : we need more processing 
+
+    //vehicleTelemetry->setLandedState(mavLandedState); 
+    //vehicleTelemetry->setBaseMode(something); 
+    //vehicleTelemetry->setCustomMode(something); 
+  }
+}
+
+} // namespace mav2dji 
