@@ -2,6 +2,9 @@
 
 namespace mav2dji
 {
+
+
+
 //*****************************************************************************
 //*
 //* /dji_sdk/gps_position (sensor_msgs/NavSatFix) 50 hz
@@ -170,6 +173,37 @@ class TelemetrySource_BatteryState : public TelemetrySource
    void telemetryInit();
    void telemetryRunWorker();
    void callback(const sensor_msgs::BatteryState &msg);
+};
+
+//*****************************************************************************
+//*
+//*  /dji_sdk/flight_status (std_msgs/UInt8)
+//*
+//*  STATUS_STOPPED   = DJI::OSDK::VehicleStatus::FlightStatus::STOPED
+//*  STATUS_ON_GROUND = DJI::OSDK::VehicleStatus::FlightStatus::ON_GROUND
+//*  STATUS_IN_AIR    = DJI::OSDK::VehicleStatus::FlightStatus::IN_AIR
+//*
+//*****************************************************************************
+
+class TelemetrySource_FlightStatus : public TelemetrySource
+{
+ public:
+
+  explicit TelemetrySource_FlightStatus();
+  ~TelemetrySource_FlightStatus();
+
+  typedef enum DjiFlightStatus
+  {
+    STOPED=0,  
+    ON_GROUND=1,  
+    IN_AIR=2 
+  } DjiFlightStatus_t;
+
+ private:
+
+  void telemetryInit();
+  void telemetryRunWorker();
+  void callback(const std_msgs::UInt8 &msg);
 };
 
 //*****************************************************************************

@@ -207,7 +207,8 @@ Util::OpRet vehicle::startTelemetry()
     std::make_shared<TelemetrySource_Velocity>(), 
     std::make_shared<TelemetrySource_ExtendedSysState>(), 
     std::make_shared<TelemetrySource_HomePosition>(),
-    std::make_shared<TelemetrySource_BatteryState>()
+    std::make_shared<TelemetrySource_BatteryState>(),
+    std::make_shared<TelemetrySource_FlightStatus>()
   };
 
   auto trigger = TelemTrigger(1000);

@@ -92,32 +92,28 @@ void TelemetrySource_Heartbeat::telemetryRunWorker()
 //*****************************************************************************
 //* SystemStatus
 //* 
-//* @param system_id ID of this system
-//* @param component_id ID of this component (e.g. 200 for IMU)
-//* @param msg The MAVLink message to compress the data into
-//*
-//* @param onboard_control_sensors_present  Bitmap showing which onboard 
+//* onboard_control_sensors_present  Bitmap showing which onboard 
 //*   controllers and sensors are present. Value of 0: not present. Value of 1: present.
-//* @param onboard_control_sensors_enabled  Bitmap showing which onboard 
+//* onboard_control_sensors_enabled  Bitmap showing which onboard 
 //*   controllers and sensors are enabled:  Value of 0: not enabled. Value of 1: enabled.
-//* @param onboard_control_sensors_health  Bitmap showing which onboard controllers 
+//* onboard_control_sensors_health  Bitmap showing which onboard controllers 
 //*   and sensors are operational or have an error:  Value of 0: not enabled. 
 //*   Value of 1: enabled.
-//* @param load [d%] Maximum usage in percent of the mainloop time. Values: 
+//* load [d%] Maximum usage in percent of the mainloop time. Values: 
 //*   [0-1000] - should always be below 1000
-//* @param voltage_battery [mV] Battery voltage
-//* @param current_battery [cA] Battery current, -1: autopilot does not measure 
+//* voltage_battery [mV] Battery voltage
+//* current_battery [cA] Battery current, -1: autopilot does not measure 
 //*   the current
-//* @param battery_remaining [%] Remaining battery energy, -1: autopilot estimate 
+//* battery_remaining [%] Remaining battery energy, -1: autopilot estimate 
 //*   the remaining battery
-//* @param drop_rate_comm [c%] Communication drop rate, (UART, I2C, SPI, CAN), 
+//* drop_rate_comm [c%] Communication drop rate, (UART, I2C, SPI, CAN), 
 //*   dropped packets on all links (packets that were corrupted on reception on the MAV)
-//* @param errors_comm  Communication errors (UART, I2C, SPI, CAN), dropped packets 
+//* errors_comm  Communication errors (UART, I2C, SPI, CAN), dropped packets 
 //*   on all links (packets that were corrupted on reception on the MAV)
-//* @param errors_count1  Autopilot-specific errors
-//* @param errors_count2  Autopilot-specific errors
-//* @param errors_count3  Autopilot-specific errors
-//* @param errors_count4  Autopilot-specific errors
+//* errors_count1  Autopilot-specific errors
+//* errors_count2  Autopilot-specific errors
+//* errors_count3  Autopilot-specific errors
+//* errors_count4  Autopilot-specific errors
 //*
 //******************************************************************************
 
@@ -249,19 +245,15 @@ void TelemetrySource_HomePosition::telemetryRunWorker()
 //*****************************************************************************
 //* ExtendedSysState
 //* 
-//* @param system_id ID of this system
-//* @param component_id ID of this component (e.g. 200 for IMU)
-//* @param msg The MAVLink message to compress the data into
-//*
-//* @param vtol_state  The VTOL state if applicable. Is set to 
+//* vtol_state  The VTOL state if applicable. Is set to 
 //*   MAV_VTOL_STATE_UNDEFINED if UAV is not in VTOL configuration.
-//* @param landed_state  The landed state. Is set to MAV_LANDED_STATE_UNDEFINED 
+//* landed_state  The landed state. Is set to MAV_LANDED_STATE_UNDEFINED 
 //*   if landed state is unknown.
 //*
-//* 0	MAV_LANDED_STATE_UNDEFINED	MAV landed state is unknown
-//* 1	MAV_LANDED_STATE_ON_GROUND	MAV is landed (on ground)
-//* 2	MAV_LANDED_STATE_IN_AIR	MAV is in air
-//* 3	MAV_LANDED_STATE_TAKEOFF	MAV currently taking off
+//* 0	MAV_LANDED_STATE_UNDEFINED	
+//* 1	MAV_LANDED_STATE_ON_GROUND	
+//* 2	MAV_LANDED_STATE_IN_AIR	    
+//* 3	MAV_LANDED_STATE_TAKEOFF	  
 //* 4	MAV_LANDED_STATE_LANDING
 //*
 //******************************************************************************
@@ -575,12 +567,13 @@ void TelemetrySource_LocalPositionNed::callback(const geometry_msgs::PointStampe
 
 //*****************************************************************************
 //*
-//* BatteryState
+//* Battery State
 //*
 //******************************************************************************
 
 TelemetrySource_BatteryState::TelemetrySource_BatteryState()
 {sourceTopicName = "/dji_sdk/battery_state";};
+
 TelemetrySource_BatteryState::~TelemetrySource_BatteryState(){};
 
 void TelemetrySource_BatteryState::telemetryInit()
@@ -617,5 +610,71 @@ void TelemetrySource_BatteryState::callback(const sensor_msgs::BatteryState &msg
     //msg.serial_number;  
   }
 }
+
+//*****************************************************************************
+//*
+//* Flight Status
+//*
+//* DJI values from  
+//* https://github.com/dji-sdk/Onboard-SDK-ROS/blob/3.7/dji_sdk/include/dji_sdk/dji_sdk.h:
+//*
+//* STATUS_STOPPED   = DJI::OSDK::VehicleStatus::FlightStatus::STOPED
+//* STATUS_ON_GROUND = DJI::OSDK::VehicleStatus::FlightStatus::ON_GROUND
+//* STATUS_IN_AIR    = DJI::OSDK::VehicleStatus::FlightStatus::IN_AIR
+//*
+//* Mavlink values:
+//*
+//* MAV_LANDED_STATE_UNDEFINED	= 0
+//* MAV_LANDED_STATE_ON_GROUND	= 1
+//* MAV_LANDED_STATE_IN_AIR	    = 2
+//* MAV_LANDED_STATE_TAKEOFF	  = 3
+//* MAV_LANDED_STATE_LANDING    = 4
+//*
+//******************************************************************************
+
+TelemetrySource_FlightStatus::TelemetrySource_FlightStatus()
+      {sourceTopicName = "/dji_sdk/flight_status";};
+
+TelemetrySource_FlightStatus::~TelemetrySource_FlightStatus(){};
+
+void TelemetrySource_FlightStatus::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_FlightStatus::callback, this);
+}
+
+void TelemetrySource_FlightStatus::telemetryRunWorker(){};
+void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  MavLandedState_t mavLandedState = MavLandedState_t::MavLandedStateUndefined;
+
+  // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    switch(msg.data)
+    {
+      case DjiFlightStatus_t::STOPED :
+        mavLandedState = MavLandedState_t::MavLandedStateUndefined;
+      break;
+      case DjiFlightStatus_t::ON_GROUND :
+        mavLandedState = MavLandedState_t::MavLandedStateOnGround;
+      break;
+      case DjiFlightStatus_t::IN_AIR :
+        mavLandedState = MavLandedState_t::MavLandedStateInAir;
+      break;
+    }
+
+    // TODO : we need more processinbg to get five states from three states
+
+    // TODO : do we need to update baseMode or customMode? 
+
+    vehicleTelemetry->setLandedState(mavLandedState); 
+  }
+  
+};
 
 }
