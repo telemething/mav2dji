@@ -804,4 +804,32 @@ void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
   }
 }
 
+//*****************************************************************************
+//*
+//* Height above takeoff
+//*
+//******************************************************************************
+
+TelemetrySource_HeightAboveTakeoff::TelemetrySource_HeightAboveTakeoff()
+      {sourceTopicName = "/dji_sdk/height_above_takeoff";};
+
+TelemetrySource_HeightAboveTakeoff::~TelemetrySource_HeightAboveTakeoff(){};
+
+void TelemetrySource_HeightAboveTakeoff::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_HeightAboveTakeoff::callback, this);
+}
+
+void TelemetrySource_HeightAboveTakeoff::telemetryRunWorker(){};
+
+void TelemetrySource_HeightAboveTakeoff::callback(const std_msgs::Float32 &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  //msg.data; // TODO * is this useful?
+}
+
 } // namespace mav2dji 

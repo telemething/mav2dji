@@ -287,6 +287,27 @@ class TelemetrySource_DisplayMode : public TelemetrySource
 
 //*****************************************************************************
 //*
+//*  /dji_sdk/height_above_takeoff (std_msgs/Float32) valid after drone is 
+//*  armed, after reference altitude set. 
+//*
+//*****************************************************************************
+
+class TelemetrySource_HeightAboveTakeoff : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_HeightAboveTakeoff();
+   ~TelemetrySource_HeightAboveTakeoff();
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const std_msgs::Float32 &msg);
+};
+
+//*****************************************************************************
+//*
 //*   --- not instanciated --------------------------------
 //*
 //* /dji_sdk/acceleration_ground_fused (geometry_msgs/Vector3Stamped) Fused 
@@ -446,30 +467,6 @@ class TelemetrySource_Rc : public TelemetrySource
    void telemetryInit();
    void telemetryRunWorker(){};
    void callback(const sensor_msgs::Joy &msg);
-};
-
-//*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
-//*
-//*  /dji_sdk/height_above_takeoff (std_msgs/Float32) valid after drone is 
-//*  armed, after reference altitude set. 
-//*
-//*****************************************************************************
-
-class TelemetrySource_HeightAboveTakeoff : public TelemetrySource
-{
- public:
-
-   explicit TelemetrySource_HeightAboveTakeoff()
-      {sourceTopicName = "/dji_sdk/height_above_takeoff";};
-   ~TelemetrySource_HeightAboveTakeoff(){};
-
- private:
-
-   void telemetryInit();
-   void telemetryRunWorker(){};
-   void callback(const std_msgs::Float32 &msg);
 };
 
 //*****************************************************************************
