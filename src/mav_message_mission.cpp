@@ -498,6 +498,23 @@ std::shared_ptr<mav2dji::vehicle_interface> mav2dji_mission::getVehicleInterface
 
 //*****************************************************************************
 //*
+//* Invoke this in a new thread because the vehicle can
+//* take several seconds to load a mission and QGC times out in a second or so.
+//* TODO : this is not ideal, we need a way to tell QGC that the vehicle did not
+//* accept the mission. The is no 'pending' ack available on mission items.
+//*
+//*****************************************************************************
+
+void mav2dji_mission::MissionWpUploadToVehicle(
+	mav2dji::MissionWaypointTask waypointTask)
+{
+	auto ret = getVehicleInterface()->MissionWpUpload(&waypointTask);	
+
+	//*** TODO * figure out what to do if the vehicle rejects the mission
+}
+
+//*****************************************************************************
+//*
 //*
 //*
 //*****************************************************************************
@@ -515,7 +532,17 @@ int mav2dji_mission::update_active_mission(
 
 	auto missionItemListConverted = Convert(missionItemList);
 
-	auto ret = getVehicleInterface()->MissionWpUpload(&missionItemListConverted);
+	// We send an ack before we submit request to vehicle because the vehicle can
+	// take several seconds to load a mission and QGC times out in a second or so.
+	// TODO : this is not ideal, we need a way to tell QGC that the vehicle did not
+	// accept the mission. The is no 'pending' ack available on mission items.
+	//send_mission_ack(_transfer_partner_sysid, 
+	//	_transfer_partner_compid, MAV_MISSION_ACCEPTED);
+
+	MissionWpUploadToVehicleThread = std::thread(
+		&mav2dji_mission::MissionWpUploadToVehicle, this, missionItemListConverted);
+
+	//auto ret = getVehicleInterface()->MissionWpUpload(&missionItemListConverted);
 
 	//*** new above ***
 
@@ -524,7 +551,8 @@ int mav2dji_mission::update_active_mission(
 	// lock MISSION_STATE item 
 	int dm_lock_ret = dm_lock(DM_KEY_MISSION_STATE);
 
-	if (dm_lock_ret != 0) {
+	if (dm_lock_ret != 0) 
+	{
 		PX4_ERR("DM_KEY_MISSION_STATE lock failed");
 	}
 

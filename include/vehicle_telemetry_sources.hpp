@@ -277,12 +277,15 @@ class TelemetrySource_DisplayMode : public TelemetrySource
     MODE_NAVI_SDK_CTRL      = 17,
     MODE_FORCE_AUTO_LANDING = 33,
     MODE_SEARCH_MODE        = 40,
-    MODE_ENGINE_START       = 41
+    MODE_ENGINE_START       = 41,
+    MODE_UNINTIALIZED       = 256
   } DjiDispalyMode_t;
 
-   void telemetryInit();
-   void telemetryRunWorker();
-   void callback(const std_msgs::UInt8 &msg);
+  DjiDispalyMode_t currentDjiDisplayMode = DjiDisplayMode::MODE_UNINTIALIZED;
+
+  void telemetryInit();
+  void telemetryRunWorker();
+  void callback(const std_msgs::UInt8 &msg);
 };
 
 //*****************************************************************************

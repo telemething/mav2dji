@@ -49,6 +49,29 @@ class ParamsRet
 //*
 //*****************************************************************************
 
+class ParamsMavlink
+{
+ public:
+
+  ParamsMavlink();
+  ~ParamsMavlink();
+  ParamsRet readParams();
+
+  std::string vehicleUdpAddress = "";
+  int vehicleUdpPort = 14551;
+  std::string qgcUdpAddress = "192.168.1.12";
+  int qgcUdpPort = 14550;
+  int mavlinkSystemId = 1;
+  int mavlinkComponentId = 0;
+
+ private:
+
+};
+
+//*****************************************************************************
+//*
+//*****************************************************************************
+
 class ParamsApp
 {
  public:
@@ -76,8 +99,8 @@ class ParamsVehicleInterface
    ParamsRet readParams();   
 
    bool verbose = false;
-   bool fakeVehicleConnection = true;
-   bool fakeTelemtry = true;
+   bool fakeVehicleConnection = false;
+   bool fakeTelemtry = false;
 
  private:
 
@@ -97,6 +120,7 @@ class Params
 
    std::shared_ptr<ParamsApp> App;
    std::shared_ptr<ParamsVehicleInterface> VehicleInterface;
+   std::shared_ptr<ParamsMavlink> Mavlink;
 
  private:
 

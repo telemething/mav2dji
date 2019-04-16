@@ -94,34 +94,27 @@ int mav_udp::getMavlinkComponentId() { return mavlinkComponentId; }
 //*****************************************************************************
 //*
 //*
-//*
+//*qgroundcontrol githu
 //******************************************************************************
 
 void mav_udp::init()
 {
 		verbose = false;
 
-    vehicleUdpAddress = "";
-    vehicleUdpPort = 14551;
-    qgcUdpAddress = "127.0.0.1";
-    qgcUdpPort = 14550;
+    //vehicleUdpAddress = "";
+    //vehicleUdpPort = 14551;
+    //qgcUdpAddress = "127.0.0.1";
+    //qgcUdpPort = 14550;
+		//mavlinkSystemId = 1;
+		//mavlinkComponentId = 1;
 
-		mavlinkSystemId = 1;
-		mavlinkComponentId = 1;
-
-		/*union 
-		{
-			unsigned long gvbul = FIRMWARE_BUILD_VERSION;
-			uint8_t gvbui8[8];
-		} xvert;
-
-		px4_git_version_binary = xvert.gvbui8;*/
+		vehicleUdpAddress = VehicleInfo::params->Mavlink->vehicleUdpAddress;
+		vehicleUdpPort = VehicleInfo::params->Mavlink->vehicleUdpPort;
+		qgcUdpAddress = VehicleInfo::params->Mavlink->qgcUdpAddress;
+		qgcUdpPort = VehicleInfo::params->Mavlink->qgcUdpPort;
+		mavlinkSystemId = VehicleInfo::params->Mavlink->mavlinkSystemId;
+		mavlinkComponentId = VehicleInfo::params->Mavlink->mavlinkComponentId;
 }
-
-//uint8_t* mav_udp::getGitVersion()
-//{
-//	return px4_git_version_binary;
-//}
 
 //*****************************************************************************
 //*

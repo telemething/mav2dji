@@ -65,6 +65,7 @@ class mav_udp
       int qgcUdpPort = 14550;
       int mavlinkSystemId = 1;
       int mavlinkComponentId = 0;
+      
       int vehicleMavlinkSocket = 0;
       struct sockaddr_in gcSockAddr; 
       bool verbose;

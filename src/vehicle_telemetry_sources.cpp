@@ -593,6 +593,8 @@ void TelemetrySource_BatteryState::callback(const sensor_msgs::BatteryState &msg
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+    
     vehicleTelemetry->telemBatteryStatus.setState(
       msg.location, msg.voltage, msg.current, msg.percentage);
     //msg.voltage;
@@ -656,6 +658,8 @@ void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     switch(msg.data)
     {
       case DjiFlightStatus_t::STOPED :
@@ -748,6 +752,14 @@ void TelemetrySource_DisplayMode::telemetryRunWorker(){};
 
 void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
 {
+  if(currentDjiDisplayMode == msg.data )
+  {
+    //mode did not change, no need to act
+    return;
+  }
+
+  currentDjiDisplayMode = static_cast<DjiDispalyMode_t>(msg.data);
+
   ros::Time startTime = ros::Time::now();
   ros::Duration elapsed_time = startTime - lastCallbackStartTime;
 
@@ -756,6 +768,8 @@ void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
   // don't waste power collecting faster than we report
   if(elapsed_time > workerRosRate->cycleTime())
   {
+    lastCallbackStartTime = startTime;
+
     switch(msg.data)
     {
       case DjiDispalyMode_t::MODE_ASSISTED_TAKEOFF :
@@ -828,6 +842,12 @@ void TelemetrySource_HeightAboveTakeoff::callback(const std_msgs::Float32 &msg)
 {
   ros::Time startTime = ros::Time::now();
   ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+    // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    lastCallbackStartTime = startTime;
+  }
 
   //msg.data; // TODO * is this useful?
 }

@@ -255,11 +255,12 @@ class mav2dji_mission : mav2dji_message_base
     int32_t     _current_seq = 0;
    	orb_advert_t    _offboard_mission_pub{nullptr};
 
-
+    std::thread MissionWpUploadToVehicleThread;
     uint16_t current_max_item_count();
     void printMavMessageInfo(const mavlink_message_t* msg, 
         std::string prefix, bool always);
     
+    void MissionWpUploadToVehicle(mav2dji::MissionWaypointTask waypointTask);
     void send_mission_ack(uint8_t sysid, uint8_t compid, uint8_t type);
     int update_geofence_count(unsigned count);
     int update_safepoint_count(unsigned count);
@@ -282,8 +283,6 @@ class mav2dji_mission : mav2dji_message_base
 	void handle_mission_clear_all(const mavlink_message_t* msg);
 
     void processMAVLINK_MSG_ID_MISSION_ITEM(const mavlink_message_t* msg);
-
-    //*** new below ***
 
     int load_geofence_stats();
     int load_safepoint_stats();
