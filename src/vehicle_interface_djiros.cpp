@@ -1511,17 +1511,29 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
       // if we have a mission, then start it
       if(haveUploadedMission)
       {
-          printf("--- we have a mission, try to start it ---\r\n");  
-          auto ret = MissionWpAction( 
-            vehicle_interface::MissionWpActionEnum::MissionWpActionStart );
+          printf("--- we have a mission, set local position reference ---\r\n");  
+          auto ret = SetLocalPosRef();
 
           if(ret.Result == Util::OpRet::resultEnum::failure)
           {
-            printf("--- mission start failure ---\r\n");
+            printf("--- local pos ref failure ---\r\n");
           }
           else
           {
-            printf("--- mission start success ---\r\n");
+            printf("--- loacl pos ref success ---\r\n");
+
+            printf("--- start the mission ---\r\n");  
+            ret = MissionWpAction( 
+              vehicle_interface::MissionWpActionEnum::MissionWpActionStart );
+
+            if(ret.Result == Util::OpRet::resultEnum::failure)
+            {
+              printf("--- mission start failure ---\r\n");
+            }
+            else
+            {
+              printf("--- mission start success ---\r\n");
+            }
           }
       }
       else

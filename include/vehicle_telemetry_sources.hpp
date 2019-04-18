@@ -311,6 +311,27 @@ class TelemetrySource_HeightAboveTakeoff : public TelemetrySource
 
 //*****************************************************************************
 //*
+//*  /dji_sdk/gps_health (std_msgs/UInt8) strength 0-5, 5 is best, < 3 is bad
+//*
+//*****************************************************************************
+
+class TelemetrySource_GpsHealth : public TelemetrySource
+{
+ public:
+
+   explicit TelemetrySource_GpsHealth();
+   ~TelemetrySource_GpsHealth();
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const std_msgs::UInt8 &msg);
+};
+
+
+//*****************************************************************************
+//*
 //*   --- not instanciated --------------------------------
 //*
 //* /dji_sdk/acceleration_ground_fused (geometry_msgs/Vector3Stamped) Fused 
@@ -401,29 +422,6 @@ class TelemetrySource_GimbalAngle : public TelemetrySource
    void telemetryInit();
    void telemetryRunWorker(){};
    void callback(const geometry_msgs::Vector3Stamped &msg);
-};
-
-//*****************************************************************************
-//*
-//*   --- not instanciated --------------------------------
-//*
-//*  /dji_sdk/gps_health (std_msgs/UInt8) strength 0-5, 5 is best, < 3 is bad
-//*
-//*****************************************************************************
-
-class TelemetrySource_GpsHealth : public TelemetrySource
-{
- public:
-
-   explicit TelemetrySource_GpsHealth()
-      {sourceTopicName = "/dji_sdk/gps_health";};
-   ~TelemetrySource_GpsHealth(){};
-
- private:
-
-   void telemetryInit();
-   void telemetryRunWorker(){};
-   void callback(const std_msgs::UInt8 &msg);
 };
 
 //*****************************************************************************

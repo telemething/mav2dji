@@ -575,6 +575,7 @@ TelemetrySource_BatteryState::TelemetrySource_BatteryState()
 {sourceTopicName = "/dji_sdk/battery_state";};
 
 TelemetrySource_BatteryState::~TelemetrySource_BatteryState(){};
+void TelemetrySource_BatteryState::telemetryRunWorker(){};
 
 void TelemetrySource_BatteryState::telemetryInit()
 {
@@ -582,8 +583,6 @@ void TelemetrySource_BatteryState::telemetryInit()
 		sourceTopicName, 1,
         &TelemetrySource_BatteryState::callback, this);
 }
-
-void TelemetrySource_BatteryState::telemetryRunWorker(){};
 
 void TelemetrySource_BatteryState::callback(const sensor_msgs::BatteryState &msg)
 {
@@ -638,6 +637,7 @@ TelemetrySource_FlightStatus::TelemetrySource_FlightStatus()
       {sourceTopicName = "/dji_sdk/flight_status";};
 
 TelemetrySource_FlightStatus::~TelemetrySource_FlightStatus(){};
+void TelemetrySource_FlightStatus::telemetryRunWorker(){};
 
 void TelemetrySource_FlightStatus::telemetryInit()
 {
@@ -645,8 +645,6 @@ void TelemetrySource_FlightStatus::telemetryInit()
 		sourceTopicName, 1,
         &TelemetrySource_FlightStatus::callback, this);
 }
-
-void TelemetrySource_FlightStatus::telemetryRunWorker(){};
 
 void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
 {
@@ -739,7 +737,9 @@ void TelemetrySource_FlightStatus::callback(const std_msgs::UInt8 &msg)
 
 TelemetrySource_DisplayMode::TelemetrySource_DisplayMode()
     {sourceTopicName = "/dji_sdk/display_mode";};
+
 TelemetrySource_DisplayMode::~TelemetrySource_DisplayMode(){};
+void TelemetrySource_DisplayMode::telemetryRunWorker(){};
 
 void TelemetrySource_DisplayMode::telemetryInit()
 {
@@ -747,8 +747,6 @@ void TelemetrySource_DisplayMode::telemetryInit()
 		sourceTopicName, 1,
         &TelemetrySource_DisplayMode::callback, this);
 }
-
-void TelemetrySource_DisplayMode::telemetryRunWorker(){};
 
 void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
 {
@@ -830,6 +828,7 @@ TelemetrySource_HeightAboveTakeoff::TelemetrySource_HeightAboveTakeoff()
       {sourceTopicName = "/dji_sdk/height_above_takeoff";};
 
 TelemetrySource_HeightAboveTakeoff::~TelemetrySource_HeightAboveTakeoff(){};
+void TelemetrySource_HeightAboveTakeoff::telemetryRunWorker(){};
 
 void TelemetrySource_HeightAboveTakeoff::telemetryInit()
 {
@@ -837,8 +836,6 @@ void TelemetrySource_HeightAboveTakeoff::telemetryInit()
 		sourceTopicName, 1,
         &TelemetrySource_HeightAboveTakeoff::callback, this);
 }
-
-void TelemetrySource_HeightAboveTakeoff::telemetryRunWorker(){};
 
 void TelemetrySource_HeightAboveTakeoff::callback(const std_msgs::Float32 &msg)
 {
@@ -852,6 +849,38 @@ void TelemetrySource_HeightAboveTakeoff::callback(const std_msgs::Float32 &msg)
   }
 
   //msg.data; // TODO * is this useful?
+}
+
+//*****************************************************************************
+//*
+//*  /dji_sdk/gps_health (std_msgs/UInt8) strength 0-5, 5 is best, < 3 is bad
+//*
+//*****************************************************************************
+
+TelemetrySource_GpsHealth::TelemetrySource_GpsHealth()
+      {sourceTopicName = "/dji_sdk/gps_health";};
+
+TelemetrySource_GpsHealth::~TelemetrySource_GpsHealth(){}
+void TelemetrySource_GpsHealth::telemetryRunWorker(){};
+
+void TelemetrySource_GpsHealth::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_GpsHealth::callback, this);
+}
+
+void TelemetrySource_GpsHealth::callback(const std_msgs::UInt8 &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    lastCallbackStartTime = startTime;
+    vehicleTelemetry->setGpsHealth(msg.data);
+  }
 }
 
 } // namespace mav2dji 

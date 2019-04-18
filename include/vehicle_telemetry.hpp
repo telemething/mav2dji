@@ -168,6 +168,9 @@ class VehicleTelemetry : public iVehicleTelemetry
   
   void setCurrentAsHomePosition(const double* lat, 
     const double* lon, const double* alt);
+
+  void setGpsHealth(uint8_t value);
+  uint8_t getGpsHealth();
   
  private:
 
@@ -184,6 +187,7 @@ class VehicleTelemetry : public iVehicleTelemetry
     + MavModeFlag::mavModeFlagManualInputEnabled;                         
   uint8_t systemStatus = MavState::mavStateStandby;    
   uint32_t customMode = 50593800;
+  uint8_t gpsHealth = 0;
 };
 
 

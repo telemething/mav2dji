@@ -305,9 +305,7 @@ void VehicleTelemetry::setArmed(bool arm)
 }
 
 bool VehicleTelemetry::isArmed()
-{
-  return baseMode & MavModeFlag::mavModeFlagSafteyArmed;
-}
+{ return baseMode & MavModeFlag::mavModeFlagSafteyArmed; }
 
 void VehicleTelemetry::setCurrentAsHomePosition(const double* lat, 
     const double* lon, const double* alt)
@@ -318,5 +316,11 @@ void VehicleTelemetry::setCurrentAsHomePosition(const double* lat,
   // send signal to the vehicle
   VehicleInfo::getVehicleInterface()->SetLocalPosRef(); 
 }
+
+void VehicleTelemetry::setGpsHealth(uint8_t value)
+{ gpsHealth = value; }
+
+uint8_t VehicleTelemetry::getGpsHealth()
+{ return gpsHealth; }
 
 }
