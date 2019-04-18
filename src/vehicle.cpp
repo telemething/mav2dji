@@ -126,6 +126,7 @@ int vehicle::startVehicle()
 {
   try
   {
+    // connect to the vehicle platform
     auto ret = vehicleInterface->connectToPlatform();
 
     if(!ret.Result == Util::OpRet::resultEnum::success)
@@ -142,6 +143,7 @@ int vehicle::startVehicle()
     udpConnection->addGotMavMessageCallback(std::bind(
       &vehicle::gotMavMessageCallback, this, std::placeholders::_1));
 
+    // activate the vehicle
     ret = vehicleInterface->activate();  
 
     if( ret.Result != Util::OpRet::resultEnum::success )
@@ -152,6 +154,18 @@ int vehicle::startVehicle()
       return -1;
     }
 
+    // request control authority of the vehicle
+    ret = vehicleInterface->SDKControlAuthority(vehicle_interface::ControlAutority::TakeAuthority);
+
+    if( ret.Result != Util::OpRet::resultEnum::success )
+    {
+      printf("\n\n\n###### vehicle::startVehicle() Exception : Unable to acquire control authority of vehicle : %s ######\n\n\n", 
+        ret.Description.c_str() );
+      stopVehicle();
+      return -1;
+    }
+
+    // start Mavlink communication connection
     auto ret2 = udpConnection->startConnection();  
 
     if( ret2.Result != mavvehiclelib::MavUdpRet::resultEnum::success )
@@ -162,6 +176,7 @@ int vehicle::startVehicle()
       return -1;
     }
 
+    // start vehicle telemetry
     auto ret3 = startTelemetry();    
 
     if( ret3.Result != Util::OpRet::resultEnum::success )

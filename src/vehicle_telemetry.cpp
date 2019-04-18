@@ -296,4 +296,27 @@ uint32_t VehicleTelemetry::getCustomMode()
 uint8_t VehicleTelemetry::getLandedState()
 {return landedState;} 
 
+void VehicleTelemetry::setArmed(bool arm)
+{
+  if(arm)
+    baseMode |= MavModeFlag::mavModeFlagSafteyArmed;
+  else
+    baseMode &= ~MavModeFlag::mavModeFlagSafteyArmed;
+}
+
+bool VehicleTelemetry::isArmed()
+{
+  return baseMode & MavModeFlag::mavModeFlagSafteyArmed;
+}
+
+void VehicleTelemetry::setCurrentAsHomePosition(const double* lat, 
+    const double* lon, const double* alt)
+{
+  // set member value to giver coords
+  telemHomePosition.setPosition(lat, lon, alt);
+
+  // send signal to the vehicle
+  VehicleInfo::getVehicleInterface()->SetLocalPosRef(); 
+}
+
 }

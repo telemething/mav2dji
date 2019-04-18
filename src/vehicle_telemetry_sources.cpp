@@ -367,7 +367,7 @@ void TelemetrySource_GlobalPositionInt::callback(const sensor_msgs::NavSatFix::C
 
     // set the home position to the first gps coord we see
     if(!vehicleTelemetry->telemHomePosition.isValid())
-      vehicleTelemetry->telemHomePosition.setPosition(&gPosition.latitude, 
+      vehicleTelemetry->setCurrentAsHomePosition(&gPosition.latitude, 
         &gPosition.longitude, &gPosition.altitude);
   }
 }
@@ -773,40 +773,42 @@ void TelemetrySource_DisplayMode::callback(const std_msgs::UInt8 &msg)
     switch(msg.data)
     {
       case DjiDispalyMode_t::MODE_ASSISTED_TAKEOFF :
-        printf("--- DJI DisplayMode : MODE_ASSISTED_TAKEOFF\r\n");
+        printf("DJI > DJI DisplayMode : MODE_ASSISTED_TAKEOFF\r\n");
       break;
       case DjiDispalyMode_t::MODE_ATTITUDE :
-        printf("--- DJI DisplayMode : MODE_ATTITUDE\r\n");
+        printf("DJI > DJI DisplayMode : MODE_ATTITUDE\r\n");
       break;
       case DjiDispalyMode_t::MODE_AUTO_LANDING :
-        printf("--- DJI DisplayMode : MODE_AUTO_LANDING\r\n");
+        printf("DJI > DJI DisplayMode : MODE_AUTO_LANDING\r\n");
       break;
       case DjiDispalyMode_t::MODE_AUTO_TAKEOFF :
-        printf("--- DJI DisplayMode : MODE_AUTO_TAKEOFF\r\n");
+        printf("DJI > DJI DisplayMode : MODE_AUTO_TAKEOFF\r\n");
       break;
       case DjiDispalyMode_t::MODE_ENGINE_START :
-        printf("--- DJI DisplayMode : MODE_ENGINE_START\r\n");
+        printf("DJI > DJI DisplayMode : MODE_ENGINE_START\r\n");
+        // signal that we are armed
+        vehicleTelemetry->setArmed(true);
       break;
       case DjiDispalyMode_t::MODE_FORCE_AUTO_LANDING :
-        printf("--- DJI DisplayMode : MODE_FORCE_AUTO_LANDING\r\n");
+        printf("DJI > DJI DisplayMode : MODE_FORCE_AUTO_LANDING\r\n");
       break;
       case DjiDispalyMode_t::MODE_HOTPOINT_MODE :
-        printf("--- DJI DisplayMode : MODE_HOTPOINT_MODE\r\n");
+        printf("DJI > DJI DisplayMode : MODE_HOTPOINT_MODE\r\n");
       break;
       case DjiDispalyMode_t::MODE_MANUAL_CTRL :
-        printf("--- DJI DisplayMode : MODE_MANUAL_CTRL\r\n");
+        printf("DJI > DJI DisplayMode : MODE_MANUAL_CTRL\r\n");
       break;
       case DjiDispalyMode_t::MODE_NAVI_GO_HOME :
-        printf("--- DJI DisplayMode : MODE_NAVI_GO_HOME\r\n");
+        printf("DJI > DJI DisplayMode : MODE_NAVI_GO_HOME\r\n");
       break;
       case DjiDispalyMode_t::MODE_NAVI_SDK_CTRL :
-        printf("--- DJI DisplayMode : MODE_NAVI_SDK_CTRL\r\n");
+        printf("DJI > DJI DisplayMode : MODE_NAVI_SDK_CTRL\r\n");
       break;
       case DjiDispalyMode_t::MODE_P_GPS :
-        printf("--- DJI DisplayMode : MODE_P_GPS\r\n");
+        printf("DJI > DJI DisplayMode : MODE_P_GPS\r\n");
       break;
       case DjiDispalyMode_t::MODE_SEARCH_MODE :
-        printf("--- DJI DisplayMode : MODE_SEARCH_MODE\r\n");
+        printf("DJI > DJI DisplayMode : MODE_SEARCH_MODE\r\n");
       break;
     }
 

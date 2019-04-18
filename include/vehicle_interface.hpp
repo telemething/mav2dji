@@ -338,6 +338,7 @@ class vehicle_interface
     MavState_t  mavState;
     uint8_t     mavBaseMode;
     uint32_t    mavCustomMode;
+    bool        haveUploadedMission;
 
     virtual Util::OpRet setMode(uint8_t baseMode, uint32_t customMode) = 0;
     virtual Util::OpRet setState(MavState newState) = 0; 

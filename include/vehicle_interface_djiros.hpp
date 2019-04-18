@@ -118,6 +118,9 @@ class VehicleInterfaceDjiros : public vehicle_interface
 
  private:
 
+  void ArmChange(bool arm);
+  std::thread ArmChangeThread;
+
   std::shared_ptr<dji_sdk::MissionWaypointTask> 
     Convert(const mav2dji::MissionWaypointTask* waypointTask );
   std::shared_ptr<mav2dji::MissionWaypointTask> 

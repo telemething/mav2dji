@@ -162,6 +162,12 @@ class VehicleTelemetry : public iVehicleTelemetry
   uint8_t getSystemStatus();  
   uint32_t getCustomMode();
   uint8_t getLandedState();
+
+  void setArmed(bool isArmed);
+  bool isArmed();
+  
+  void setCurrentAsHomePosition(const double* lat, 
+    const double* lon, const double* alt);
   
  private:
 
