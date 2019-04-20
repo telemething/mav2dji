@@ -226,7 +226,8 @@ Util::OpRet vehicle::startTelemetry()
     std::make_shared<TelemetrySource_FlightStatus>(),
     std::make_shared<TelemetrySource_DisplayMode>(),
     std::make_shared<TelemetrySource_HeightAboveTakeoff>(),
-    std::make_shared<TelemetrySource_GpsHealth>()
+    std::make_shared<TelemetrySource_GpsHealth>(),
+    std::make_shared<TelemetrySource_Rc>()
   };
 
   auto trigger = TelemTrigger(1000);

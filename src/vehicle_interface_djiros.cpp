@@ -573,18 +573,29 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
       switch(task)
       {
         case Takeoff: 
+          ROS_INFO_STREAM("Task : Takeoff");
           vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_TAKEOFF; 
         break;
         case Land: 
+          ROS_INFO_STREAM("Task : Land");
           vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_LAND; 
         break;
         case GoHome: 
+          ROS_INFO_STREAM("Task : GoHome");
           vehTask.request.task = dji_sdk::DroneTaskControl::RequestType::TASK_GOHOME; 
+        break;
+        default: 
+          return Util::OpRet::BuildError(true, true, 
+            "Task : Unrecognized. Vehicle task not performed");
         break;
       }
 
       if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
         return Util::OpRet();
+
+      if(!offboardControlAllowed)
+        return Util::OpRet::BuildError(true, true, 
+          "Ofborad control not allowed : Vehicle task could not be performed");
 
       vehicleTaskService.call(vehTask);
 
@@ -603,7 +614,7 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
           "Vehicle task could not be performed. Unrecognized Exception", true, true);
     }
 
-    ROS_INFO_STREAM("Vehicle task erformed OK");
+    ROS_INFO_STREAM("Vehicle task performed OK");
     return Util::OpRet();
   }
 
@@ -665,6 +676,10 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   {
     return Util::OpRet::BuildError( 
       "MissionHpAction not implemented", true, true);
+
+    if(!offboardControlAllowed)
+      return Util::OpRet::BuildError(true, true, 
+        "Offboard control not allowed : Vehicle task could not be performed");
   }
 
   //***************************************************************************
@@ -702,6 +717,10 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   {
     return Util::OpRet::BuildError( 
       "MissionHpResetYaw not implemented", true, true);
+
+    if(!offboardControlAllowed)
+      return Util::OpRet::BuildError(true, true, 
+        "Offboard control not allowed : ");
   }
 
   //***************************************************************************
@@ -722,6 +741,10 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   {
     return Util::OpRet::BuildError( 
       "MissionHpUpdateRadius not implemented", true, true);
+
+    if(!offboardControlAllowed)
+      return Util::OpRet::BuildError(true, true, 
+        "Offboard control not allowed : ");
   }
 
   //***************************************************************************
@@ -743,6 +766,10 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
   {
     return Util::OpRet::BuildError( 
       "MissionHpUpdateYawRate not implemented", true, true);
+
+    if(!offboardControlAllowed)
+      return Util::OpRet::BuildError(true, true, 
+        "Offboard control not allowed : ");
   }
 
   //***************************************************************************
@@ -812,14 +839,9 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
       if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
         return Util::OpRet();
 
-      // Local declaration to get avoid the error:
-      // [ERROR] [1555546053.598870434]: Call to service [/dji_sdk/mission_waypoint_action] 
-      // with md5sum [067ec5f79e77e0b4c0121e09e733b483] does not match md5sum when the handle 
-      // was created ([eb13ac1f1354ccecb7941ee8fa2192e8])
-
-      //auto missionWpActionService2  = 
-      //  rosNodeHandle->serviceClient<dji_sdk::SetLocalPosRef>
-      //      ("/dji_sdk/mission_waypoint_action");
+      if(!offboardControlAllowed)
+        return Util::OpRet::BuildError(true, true, 
+          "Offboard control not allowed : could not set mission action");
 
       missionWpActionService.call(missionWpAction);
 
@@ -957,6 +979,10 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
 
       if( VehicleInfo::params->VehicleInterface->fakeVehicleConnection )
         return Util::OpRet();
+
+      if(!offboardControlAllowed)
+        return Util::OpRet::BuildError(true, true, 
+          "Offboard control not allowed : could not set mission speed");
 
       missionWpSetSpeedService.call(missionWpSetSpeed);
 
@@ -1520,7 +1546,7 @@ Util::OpRet VehicleInterfaceDjiros::stopVehicle()
           }
           else
           {
-            printf("--- loacl pos ref success ---\r\n");
+            printf("--- local pos ref success ---\r\n");
 
             printf("--- start the mission ---\r\n");  
             ret = MissionWpAction( 

@@ -46,6 +46,7 @@
 #include <sensors/sensor_local_position_ned.hpp>
 #include <sensors/sensor_home_position.hpp>
 #include <sensors/sensor_battery_state.hpp>
+#include <sensors/sensor_rc.hpp>
 
 namespace mav2dji
 {
@@ -140,6 +141,7 @@ class VehicleTelemetry : public iVehicleTelemetry
   SensorGlobalPositionInt telemGlobalPositionInt;
   SensorHomePosition      telemHomePosition;
   SensorBatteryStatus     telemBatteryStatus;
+  SensorRc                telemRc;
 
   explicit VehicleTelemetry();
   ~VehicleTelemetry();
@@ -157,11 +159,13 @@ class VehicleTelemetry : public iVehicleTelemetry
   void setSystemStatus(uint8_t value); 
   void setCustomMode(uint32_t value);
   void setLandedState(uint8_t value);
+  void setOffboardControlAllowed(bool value);
   
   uint8_t getBaseMode();                   
   uint8_t getSystemStatus();  
   uint32_t getCustomMode();
   uint8_t getLandedState();
+  bool getOffboardControlAllowed();
 
   void setArmed(bool isArmed);
   bool isArmed();
@@ -188,6 +192,7 @@ class VehicleTelemetry : public iVehicleTelemetry
   uint8_t systemStatus = MavState::mavStateStandby;    
   uint32_t customMode = 50593800;
   uint8_t gpsHealth = 0;
+  bool offboardControlAllowed = true;
 };
 
 

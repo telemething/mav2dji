@@ -284,6 +284,12 @@ void VehicleTelemetry::setCustomMode(uint32_t value)
 void VehicleTelemetry::setLandedState(uint8_t value)
 {landedState = value;} 
   
+void VehicleTelemetry::setOffboardControlAllowed(bool value)
+{
+  offboardControlAllowed = value;
+  auto gvi = VehicleInfo::getVehicleInterface()->setOffboardControlAllowed(value);
+} 
+  
 uint8_t VehicleTelemetry::getBaseMode()
 {return baseMode;}      
 
@@ -295,6 +301,9 @@ uint32_t VehicleTelemetry::getCustomMode()
 
 uint8_t VehicleTelemetry::getLandedState()
 {return landedState;} 
+
+bool VehicleTelemetry::getOffboardControlAllowed()
+{return offboardControlAllowed;} 
 
 void VehicleTelemetry::setArmed(bool arm)
 {

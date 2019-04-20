@@ -338,12 +338,13 @@ class vehicle_interface
     MavState_t  mavState;
     uint8_t     mavBaseMode;
     uint32_t    mavCustomMode;
-    bool        haveUploadedMission;
+    bool        haveUploadedMission = false;
+    bool        offboardControlAllowed = true;
 
     virtual Util::OpRet setMode(uint8_t baseMode, uint32_t customMode) = 0;
     virtual Util::OpRet setState(MavState newState) = 0; 
     virtual Util::OpRet armDisarm(bool arm) = 0; 
-
+    virtual Util::OpRet setOffboardControlAllowed(bool value);
 };
 
 } /* namespace mav2dji*/

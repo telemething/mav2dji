@@ -883,4 +883,73 @@ void TelemetrySource_GpsHealth::callback(const std_msgs::UInt8 &msg)
   }
 }
 
+//*****************************************************************************
+//*
+//*  /dji_sdk/rc 0=roll, 1=pitch, 2=yaw, 3=throttle, 4=mode, 5=landing gear
+//*
+//*****************************************************************************
+
+TelemetrySource_Rc::TelemetrySource_Rc()
+  {sourceTopicName = "/dji_sdk/rc";};
+
+TelemetrySource_Rc::~TelemetrySource_Rc(){};
+void TelemetrySource_Rc::telemetryRunWorker(){}
+
+void TelemetrySource_Rc::telemetryInit()
+{
+	topicSubscription = rosNodeHandle->subscribe(
+		sourceTopicName, 1,
+        &TelemetrySource_Rc::callback, this);
+}
+
+bool TelemetrySource_Rc::checkMode(const float modeValue)
+{
+  bool changed = true;
+
+  if( vehicleTelemetry->telemRc.isValid() )
+    changed = ( modeValue != vehicleTelemetry->
+      telemRc.getAxes()[DjiRcAxesChannel::AXES_CHANNEL_MODE]);  
+
+  // don't do anything if nothing changed
+  if(!changed)
+    return false;
+
+  std::string modeName;
+
+  //if mode switch = P then offboard is allowed, otherwise not
+  switch(static_cast<int>(modeValue))
+  {
+    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_F:
+      printf("DJI > DJI Mode Switch : F\r\n");
+      printf("###### Oboard control disabled ######\r\n");
+      vehicleTelemetry->setOffboardControlAllowed(false);
+    break;
+    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_A:
+      printf("DJI > DJI Mode Switch : A\r\n");
+      printf("###### Oboard control disabled ######\r\n");
+      vehicleTelemetry->setOffboardControlAllowed(false);
+    break;
+    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_P:
+      printf("DJI > DJI Mode Switch : P\r\n");
+      printf("###### Oboard control enabled ######\r\n");
+      vehicleTelemetry->setOffboardControlAllowed(true);
+    break;
+  }
+}
+
+void TelemetrySource_Rc::callback(const sensor_msgs::Joy &msg)
+{
+  ros::Time startTime = ros::Time::now();
+  ros::Duration elapsed_time = startTime - lastCallbackStartTime;
+
+  // don't waste power collecting faster than we report
+  if(elapsed_time > workerRosRate->cycleTime())
+  {
+    lastCallbackStartTime = startTime;
+    vehicleTelemetry->telemRc.setState(msg.axes, msg.buttons);
+
+    checkMode(msg.axes[DjiRcAxesChannel::AXES_CHANNEL_MODE]);
+  }
+}
+
 } // namespace mav2dji 

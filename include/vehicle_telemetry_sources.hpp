@@ -329,6 +329,43 @@ class TelemetrySource_GpsHealth : public TelemetrySource
    void callback(const std_msgs::UInt8 &msg);
 };
 
+//*****************************************************************************
+//*
+//*  /dji_sdk/rc 0=roll, 1=pitch, 2=yaw, 3=throttle, 4=mode, 5=landing gear
+//*
+//*****************************************************************************
+
+class TelemetrySource_Rc : public TelemetrySource
+{
+ public:
+
+  typedef enum DjiRcAxesChannel
+  {
+    AXES_CHANNEL_ROLL          = 0,
+    AXES_CHANNEL_PITCH         = 1,
+    AXES_CHANNEL_YAW           = 2,
+    AXES_CHANNEL_THROTTLE      = 3,
+    AXES_CHANNEL_MODE          = 4,
+    AXES_CHANNEL_LANDING_GEAR  = 5
+  } DjiRcAxesChannel_t;
+
+  typedef enum DjiRcAxesChannelMode
+  {
+    AXES_CHANNEL_MODE_F = -10000,
+    AXES_CHANNEL_MODE_A = 0,
+    AXES_CHANNEL_MODE_P = 10000
+  } DjiRcAxesChannelMode_t;
+
+   explicit TelemetrySource_Rc();
+   ~TelemetrySource_Rc();
+
+ private:
+
+   void telemetryInit();
+   void telemetryRunWorker();
+   void callback(const sensor_msgs::Joy &msg);
+   bool checkMode(const float modeValue);
+};
 
 //*****************************************************************************
 //*
