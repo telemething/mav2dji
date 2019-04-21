@@ -285,10 +285,7 @@ void VehicleTelemetry::setLandedState(uint8_t value)
 {landedState = value;} 
   
 void VehicleTelemetry::setOffboardControlAllowed(bool value)
-{
-  offboardControlAllowed = value;
-  auto gvi = VehicleInfo::getVehicleInterface()->setOffboardControlAllowed(value);
-} 
+{ auto gvi = VehicleInfo::getVehicleInterface()->setOffboardControlAllowed(value); } 
   
 uint8_t VehicleTelemetry::getBaseMode()
 {return baseMode;}      
@@ -303,7 +300,7 @@ uint8_t VehicleTelemetry::getLandedState()
 {return landedState;} 
 
 bool VehicleTelemetry::getOffboardControlAllowed()
-{return offboardControlAllowed;} 
+{ return VehicleInfo::getVehicleInterface()->getOffboardControlAllowed(); } 
 
 void VehicleTelemetry::setArmed(bool arm)
 {

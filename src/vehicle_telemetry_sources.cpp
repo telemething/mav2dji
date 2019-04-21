@@ -916,22 +916,27 @@ bool TelemetrySource_Rc::checkMode(const float modeValue)
 
   std::string modeName;
 
-  //if mode switch = P then offboard is allowed, otherwise not
+  //if mode switch = F then offboard is allowed, otherwise not
   switch(static_cast<int>(modeValue))
   {
-    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_F:
-      printf("DJI > DJI Mode Switch : F\r\n");
+    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_P:
+      printf("DJI > DJI Mode Switch : P (%f)\r\n", modeValue);
       printf("###### Oboard control disabled ######\r\n");
       vehicleTelemetry->setOffboardControlAllowed(false);
     break;
     case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_A:
-      printf("DJI > DJI Mode Switch : A\r\n");
+      printf("DJI > DJI Mode Switch : A (%f)\r\n", modeValue);
       printf("###### Oboard control disabled ######\r\n");
       vehicleTelemetry->setOffboardControlAllowed(false);
     break;
-    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_P:
-      printf("DJI > DJI Mode Switch : P\r\n");
+    case DjiRcAxesChannelMode_t::AXES_CHANNEL_MODE_F:
+      printf("DJI > DJI Mode Switch : F (%f)\r\n", modeValue);
       printf("###### Oboard control enabled ######\r\n");
+      vehicleTelemetry->setOffboardControlAllowed(true);
+    break;
+    default:
+      printf("DJI > DJI Mode Switch : Unrecognized (%f)\r\n", modeValue);
+      printf("###### Oboard control disabled ######\r\n");
       vehicleTelemetry->setOffboardControlAllowed(true);
     break;
   }
@@ -946,9 +951,9 @@ void TelemetrySource_Rc::callback(const sensor_msgs::Joy &msg)
   if(elapsed_time > workerRosRate->cycleTime())
   {
     lastCallbackStartTime = startTime;
-    vehicleTelemetry->telemRc.setState(msg.axes, msg.buttons);
 
     checkMode(msg.axes[DjiRcAxesChannel::AXES_CHANNEL_MODE]);
+    vehicleTelemetry->telemRc.setState(msg.axes, msg.buttons); 
   }
 }
 

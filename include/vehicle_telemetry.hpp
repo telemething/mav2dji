@@ -192,7 +192,7 @@ class VehicleTelemetry : public iVehicleTelemetry
   uint8_t systemStatus = MavState::mavStateStandby;    
   uint32_t customMode = 50593800;
   uint8_t gpsHealth = 0;
-  bool offboardControlAllowed = true;
+  //bool offboardControlAllowed = true;
 };
 
 

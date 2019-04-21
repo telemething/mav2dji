@@ -345,6 +345,7 @@ class vehicle_interface
     virtual Util::OpRet setState(MavState newState) = 0; 
     virtual Util::OpRet armDisarm(bool arm) = 0; 
     virtual Util::OpRet setOffboardControlAllowed(bool value);
+    virtual bool getOffboardControlAllowed();
 };
 
 } /* namespace mav2dji*/

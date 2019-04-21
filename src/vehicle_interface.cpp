@@ -132,7 +132,13 @@ vehicle_interface::~vehicle_interface()
 
 Util::OpRet vehicle_interface::setOffboardControlAllowed(bool value)
 {
-    
+    offboardControlAllowed = value;
+    return Util::OpRet();    
+}
+
+bool vehicle_interface::getOffboardControlAllowed()
+{
+    return offboardControlAllowed;
 }
 
 }
